@@ -1,0 +1,14 @@
+C:\proyectos\24bet\backend\src\main\java\com\_bet\Application.java
+C:\proyectos\24bet\backend\src\main\java\com\_bet\config\SecurityConfig.java
+C:\proyectos\24bet\backend\src\main\java\com\_bet\controller\AuthController.java
+C:\proyectos\24bet\backend\src\main\java\com\_bet\controller\UsuarioController.java
+C:\proyectos\24bet\backend\src\main\java\com\_bet\dto\JwtResponse.java
+C:\proyectos\24bet\backend\src\main\java\com\_bet\dto\LoginRequest.java
+C:\proyectos\24bet\backend\src\main\java\com\_bet\dto\RegistroRequest.java
+C:\proyectos\24bet\backend\src\main\java\com\_bet\dto\UsuarioResponse.java
+C:\proyectos\24bet\backend\src\main\java\com\_bet\entity\Usuario.java
+C:\proyectos\24bet\backend\src\main\java\com\_bet\repository\UsuarioRepository.java
+C:\proyectos\24bet\backend\src\main\java\com\_bet\security\JwtAuthenticationFilter.java
+C:\proyectos\24bet\backend\src\main\java\com\_bet\service\AuthService.java
+C:\proyectos\24bet\backend\src\main\java\com\_bet\service\JwtService.java
+C:\proyectos\24bet\backend\src\main\java\com\_bet\service\UsuarioService.java

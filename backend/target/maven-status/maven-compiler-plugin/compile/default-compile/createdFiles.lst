@@ -1,0 +1,16 @@
+com\_bet\controller\AuthController.class
+com\_bet\controller\UsuarioController.class
+com\_bet\Application.class
+com\_bet\controller\AuthController$ApiResponseWrapper.class
+com\_bet\dto\JwtResponse.class
+com\_bet\repository\UsuarioRepository.class
+com\_bet\dto\LoginRequest.class
+com\_bet\dto\RegistroRequest.class
+com\_bet\entity\Usuario$Rol.class
+com\_bet\service\JwtService.class
+com\_bet\entity\Usuario.class
+com\_bet\service\AuthService.class
+com\_bet\config\SecurityConfig.class
+com\_bet\service\UsuarioService.class
+com\_bet\dto\UsuarioResponse.class
+com\_bet\security\JwtAuthenticationFilter.class
