@@ -1,0 +1,18 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.8.2",
+    "axios": "^1.11.0",
+    "react-redux": "^9.2.0",
+    "redux": "^5.0.1"
+  },
+  "workspaces": [
+    "packages/shared",
+    "packages/24bet-web-app",
+    "packages/24bet-mobile-app"
+  ]
+}
