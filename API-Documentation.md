@@ -38,7 +38,7 @@ Registra un nuevo usuario en el sistema.
   "apellido": "Doe",
   "ladaTelefono": "55",
   "numeroTelefono": "12345678",
-  "fechaNacimiento": "2024-08-10T10:30:00"
+  "fechaNacimiento": "2024-08-10"
 }
 ```
 

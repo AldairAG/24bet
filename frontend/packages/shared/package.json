@@ -1,10 +1,27 @@
 {
   "name": "shared",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
   "license": "MIT",
-  "dependencies": {
-    "@reduxjs/toolkit": "^2.8.2",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "build": "tsc -p tsconfig.json"
+  },
+  "peerDependencies": {
     "react-redux": "^9.2.0"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.8.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.2.1",
+    "@types/react": "^19.1.10",
+    "typescript": "^5.0.0"
   }
 }
