@@ -29,7 +29,7 @@ public class RegistroRequest {
     @Size(max = 5, message = "La lada no puede tener más de 5 caracteres")
     private String ladaTelefono;
 
-    @Size(min = 7, max = 10, message = "El número de teléfono debe tener entre 7 y 10 dígitos")
+    @Size(min = 7, max = 11, message = "El número de teléfono debe tener entre 7 y 10 dígitos")
     private String numeroTelefono;
     
     private LocalDateTime fechaNacimiento;
