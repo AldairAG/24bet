@@ -1,6 +1,6 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import ProfileScreen from '../screens/ProfileScreen';
+import MenuScreen from '../screens/MenuScreen';
 import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { View, Text } from 'react-native';
 
@@ -26,8 +26,8 @@ export default function MainTabNavigator() {
                         return <MaterialIcons name="attach-money" size={size} color={color} />;
                     } else if (route.name === 'Apuestas') {
                         return <FontAwesome5 name="dice" size={size} color={color} />;
-                    } else if (route.name === 'Perfil') {
-                        return <Ionicons name="person-circle-outline" size={size} color={color} />;
+                    } else if (route.name === 'Menú') {
+                        return <Ionicons name="menu" size={size} color={color} />;
                     }
                     return null;
                 }
@@ -35,7 +35,7 @@ export default function MainTabNavigator() {
         >
             <Tab.Screen name="Retiro" children={() => <DummyScreen title="Retiro" />} />
             <Tab.Screen name="Apuestas" children={() => <DummyScreen title="Apuestas" />} />
-            <Tab.Screen name="Perfil" component={ProfileScreen} />
+            <Tab.Screen name="Menú" component={MenuScreen} />
         </Tab.Navigator>
     );
 }
