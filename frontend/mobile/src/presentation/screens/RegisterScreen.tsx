@@ -27,6 +27,9 @@ interface RegisterScreenProps {
     navigation: RegisterScreenNavigationProp;
 }
 
+import { useAuth } from '../../hooks/useAuth';
+import { Alert } from 'react-native';
+import { RegistroRequest } from '../../types/authTypes';
 // Lista de códigos de área internacionales
 const countryCodes = [
     { label: "México (+52)", value: "+52", maxLength: 10 },
@@ -80,6 +83,7 @@ const days = generateDays();
 const months = generateMonths();
 const years = generateYears();
 
+
 export default function RegisterScreen({ navigation }: RegisterScreenProps) {
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
@@ -112,6 +116,9 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
     // Obtener la configuración del país seleccionado
     const selectedCountry = countryCodes.find(country => country.value === countryCode);
     const maxPhoneLength = selectedCountry?.maxLength || 10;
+
+    // Hook de autenticación
+    const { registro, loading, error } = useAuth();
 
     // Función para actualizar la fecha de nacimiento completa
     const updateBirthDate = (day: number | null, month: number | null, year: number | null) => {
@@ -265,11 +272,43 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
         setShowYearPicker(false);
     };
 
-    const handleRegister = () => {
+
+    const handleRegister = async () => {
         if (isFormValid) {
-            console.log(`Número completo: ${countryCode} ${phone}`);
-            console.log(`Fecha de nacimiento: ${birthDate?.toLocaleDateString()}`);
-            navigation.navigate("Home");
+            const fechaNacimiento = birthDate ? birthDate.toISOString().split('T')[0] : '';
+            const registroRequest: RegistroRequest = {
+                username,
+                email,
+                password,
+                nombre: firstName,
+                apellido: lastName,
+                ladaTelefono: countryCode,
+                numeroTelefono: phone,
+                fechaNacimiento,
+            };
+            try {
+                const action = await registro(registroRequest);
+                // Si el registro fue exitoso
+                if (
+                    action &&
+                    action.payload &&
+                    typeof action.payload === 'object' &&
+                    'success' in action.payload &&
+                    (action.payload as any).success
+                ) {
+                    Alert.alert('Registro exitoso', 'Tu cuenta ha sido creada correctamente.');
+                    navigation.navigate('Home');
+                } else {
+                    Alert.alert(
+                        'Error',
+                        typeof action?.payload === 'object' && action?.payload?.message
+                            ? action.payload.message
+                            : (typeof action?.payload === 'string' ? action.payload : 'No se pudo registrar')
+                    );
+                }
+            } catch (e: any) {
+                Alert.alert('Error', e?.message || 'No se pudo registrar');
+            }
         }
     };
 
@@ -500,12 +539,15 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
                     </Text>
                 </View>
                 <TouchableOpacity
-                    style={[styles.button, { backgroundColor: isFormValid ? "#d32f2f" : "#bdbdbd" }]}
+                    style={[styles.button, { backgroundColor: isFormValid && !loading ? "#d32f2f" : "#bdbdbd" }]}
                     onPress={handleRegister}
-                    disabled={!isFormValid}
+                    disabled={!isFormValid || loading}
                 >
-                    <Text style={styles.buttonText}>Registrarse</Text>
+                    <Text style={styles.buttonText}>{loading ? 'Registrando...' : 'Registrarse'}</Text>
                 </TouchableOpacity>
+                {error && (
+                    <Text style={styles.errorText}>{error}</Text>
+                )}
                 <TouchableOpacity onPress={() => navigation.navigate("Home")}>
                     <Text style={styles.loginText}>Ya tienes cuenta? Inicia sesión</Text>
                 </TouchableOpacity>
