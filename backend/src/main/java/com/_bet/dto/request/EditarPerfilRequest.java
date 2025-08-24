@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 public class EditarPerfilRequest {
@@ -23,7 +24,7 @@ public class EditarPerfilRequest {
     @Size(min = 7, max = 10, message = "El número de teléfono debe tener entre 7 y 10 dígitos")
     private String numeroTelefono;
     
-    private LocalDateTime fechaNacimiento;
+    private Date fechaNacimiento;
     
     // ========== INFORMACIÓN PERSONAL ==========
     

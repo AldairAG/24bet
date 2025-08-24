@@ -33,7 +33,7 @@ public class AuthController {
             @ApiResponse(responseCode = "409", description = "Usuario o email ya existente")
     })
     public ResponseEntity<?> registrarUsuario(@Valid @RequestBody RegistroRequest registroRequest) {
-        try {
+        try { 
             UsuarioResponse usuario = authService.registrar(registroRequest);
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(new ApiResponseWrapper<>(true, "Usuario registrado exitosamente", usuario));
