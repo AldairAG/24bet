@@ -3,14 +3,16 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, KeyboardAv
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigation } from '@react-navigation/native';
-const initialForm = {
-    nombreCompleto: 'Juan Pérez García',
-    email: 'juan.perez@email.com',
-    numeroTelefono: '+52 555 123 4567',
-};
 
 export default function ProfileScreen() {
     const { user } = useAuth();
+
+    const initialForm = {
+        nombreCompleto: 'Juan Pérez García',
+        email: 'juan.perez@email.com',
+        numeroTelefono: '+52 555 123 4567',
+    };
+
     const navigation = useNavigation();
     const [form, setForm] = useState(initialForm);
     const colorScheme = useColorScheme();

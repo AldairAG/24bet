@@ -32,6 +32,7 @@ export interface UsuarioResponse {
   ladaTelefono: string;
   numeroTelefono: string;
   fechaNacimiento: string;
+  
   // Agrega otros campos según la respuesta del backend
 }
 
