@@ -4,6 +4,7 @@ import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/
 import { useColorScheme } from 'react-native'; // Importante
 import HomeScreen from '../screens/HomeScreen';
 import RegisterScreen from '../screens/RegisterScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 import MainTabNavigator from './MainTabNavigator';
 
 const Stack = createNativeStackNavigator();
@@ -13,6 +14,7 @@ export default function AppNavigator() {
 
     return (
         <NavigationContainer theme={scheme === 'dark' ? DarkTheme : DefaultTheme}>
+
             <Stack.Navigator initialRouteName="Home">
                 <Stack.Screen
                     name="Home"
@@ -28,8 +30,22 @@ export default function AppNavigator() {
                     component={RegisterScreen}
                     options={{ title: '' }}
                 />
-                <Stack.Screen name="MainTab" component={MainTabNavigator} />
+                <Stack.Screen
+                    name="ProfileScreen"
+                    component={ProfileScreen}
+                    options={{ 
+                        title: '',
+                        headerTitleAlign: 'center',
+                        headerTitleStyle: { color: '#d32f2f', fontSize: 20, fontWeight: 'bold' }
+                    }}
+                />
+                <Stack.Screen
+                    name="MainTab"
+                    component={MainTabNavigator}
+                    options={{ headerShown: false }}
+                />
             </Stack.Navigator>
         </NavigationContainer>
+        
     );
 }

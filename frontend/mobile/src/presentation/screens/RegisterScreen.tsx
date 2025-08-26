@@ -28,8 +28,8 @@ interface RegisterScreenProps {
 }
 
 import { useAuth } from '../../hooks/useAuth';
-import { Alert } from 'react-native';
 import { RegistroRequest } from '../../types/authTypes';
+import Toast from 'react-native-toast-message';
 // Lista de códigos de área internacionales
 const countryCodes = [
     { label: "México (+52)", value: "+52", maxLength: 10 },
@@ -288,26 +288,45 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             };
             try {
                 const action = await registro(registroRequest);
-                // Si el registro fue exitoso
+                // Si el registro fue exitoso y status 201
                 if (
                     action &&
+                    action.meta &&
+                    action.meta.requestStatus === 'fulfilled' &&
+                    action.meta.arg &&
                     action.payload &&
                     typeof action.payload === 'object' &&
                     'success' in action.payload &&
                     (action.payload as any).success
                 ) {
-                    Alert.alert('Registro exitoso', 'Tu cuenta ha sido creada correctamente.');
+                    Toast.show({
+                        type: 'success',
+                        text1: 'Registro exitoso',
+                        text2: 'Tu cuenta ha sido creada correctamente.'
+                    });
                     navigation.navigate('Home');
+                } else if (action && action.meta && action.meta.requestStatus !== 'fulfilled') {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Algo salió mal',
+                        text2: 'Inténtelo de nuevo'
+                    });
                 } else {
-                    Alert.alert(
-                        'Error',
-                        typeof action?.payload === 'object' && action?.payload?.message
-                            ? action.payload.message
-                            : (typeof action?.payload === 'string' ? action.payload : 'No se pudo registrar')
-                    );
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Error',
+                        text2:
+                            (typeof action?.payload === 'object' && action?.payload?.message)
+                                ? action.payload.message
+                                : (typeof action?.payload === 'string' ? action.payload : 'No se pudo registrar')
+                    });
                 }
             } catch (e: any) {
-                Alert.alert('Error', e?.message || 'No se pudo registrar');
+                Toast.show({
+                    type: 'error',
+                    text1: 'Algo salió mal',
+                    text2: 'Inténtelo de nuevo'
+                });
             }
         }
     };

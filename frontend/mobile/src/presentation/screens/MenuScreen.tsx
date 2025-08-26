@@ -1,29 +1,84 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useColorScheme, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useColorScheme, Platform, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
+import { useAuth } from '../../hooks/useAuth';
+import Toast from 'react-native-toast-message';
+import type { StackNavigationProp } from '@react-navigation/stack';
+
+type RootStackParamList = {
+	Home: undefined;
+	Register: undefined;
+	ProfileScreen: undefined;
+	MainTab: undefined;
+};
+
+type NavigationProp = StackNavigationProp<RootStackParamList>;
 
 export default function MenuScreen() {
 	const colorScheme = useColorScheme();
-	const navigation = useNavigation();
+	const navigation = useNavigation<NavigationProp>();
+	const { logout } = useAuth();
 	const styles = getStyles((colorScheme === 'light' || colorScheme === 'dark') ? colorScheme : null);
+
+	const handleLogout = () => {
+		Alert.alert(
+			'Cerrar sesión',
+			'¿Estás seguro de que quieres cerrar sesión?',
+			[
+				{
+					text: 'Cancelar',
+					style: 'cancel',
+				},
+				{
+					text: 'Cerrar sesión',
+					style: 'destructive',
+					onPress: () => {
+						logout();
+						Toast.show({
+							type: 'success',
+							text1: 'Sesión cerrada',
+							text2: 'Has cerrado sesión correctamente'
+						});
+						navigation.reset({
+							index: 0,
+							routes: [{ name: 'Home' }],
+						});
+					},
+				},
+			]
+		);
+	};
 
 	return (
 		<View style={styles.container}>
 			<View style={styles.topButtonsContainer}>
-				<TouchableOpacity style={[styles.topButton, { marginRight: 8 }]} onPress={() => {}}>
+				<TouchableOpacity style={[styles.topButton, styles.retiroButton, { marginRight: 8 }]} onPress={() => {}}>
+					<MaterialIcons name="attach-money" size={20} color="#fff" />
 					<Text style={styles.topButtonText}>Retiro</Text>
 				</TouchableOpacity>
-				<TouchableOpacity style={styles.topButton} onPress={() => {}}>
+				<TouchableOpacity style={[styles.topButton, styles.depositoButton]} onPress={() => {}}>
+					<MaterialIcons name="account-balance-wallet" size={20} color="#fff" />
 					<Text style={styles.topButtonText}>Depósito</Text>
 				</TouchableOpacity>
 			</View>
 
 			<View style={styles.menuButtonsContainer}>
-				<TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('ProfileScreen' as never)}>
+				<TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('ProfileScreen')}>
+					<Ionicons name="person-circle-outline" size={24} color={colorScheme === 'dark' ? '#fff' : '#181818'} />
 					<Text style={styles.menuButtonText}>Perfil</Text>
 				</TouchableOpacity>
 				<TouchableOpacity style={styles.menuButton} onPress={() => {}}>
+					<FontAwesome5 name="receipt" size={20} color={colorScheme === 'dark' ? '#fff' : '#181818'} />
+					<Text style={styles.menuButtonText}>Transacciones</Text>
+				</TouchableOpacity>
+				<TouchableOpacity style={styles.menuButton} onPress={() => {}}>
+					<Ionicons name="headset-outline" size={24} color={colorScheme === 'dark' ? '#fff' : '#181818'} />
 					<Text style={styles.menuButtonText}>Soporte</Text>
+				</TouchableOpacity>
+				<TouchableOpacity style={[styles.menuButton, styles.logoutButton]} onPress={handleLogout}>
+					<Ionicons name="log-out-outline" size={24} color="#d32f2f" />
+					<Text style={[styles.menuButtonText, styles.logoutButtonText]}>Cerrar sesión</Text>
 				</TouchableOpacity>
 			</View>
 		</View>
@@ -46,11 +101,19 @@ const getStyles = (colorScheme: 'light' | 'dark' | null) =>
 		},
 		topButton: {
 			flex: 1,
-			backgroundColor: '#d32f2f',
 			paddingVertical: 14,
 			borderRadius: 10,
 			alignItems: 'center',
 			elevation: 2,
+			flexDirection: 'row',
+			justifyContent: 'center',
+			gap: 8,
+		},
+		retiroButton: {
+			backgroundColor: '#d32f2f',
+		},
+		depositoButton: {
+			backgroundColor: '#757575',
 		},
 		topButtonText: {
 			color: '#fff',
@@ -70,11 +133,21 @@ const getStyles = (colorScheme: 'light' | 'dark' | null) =>
 			borderWidth: 1,
 			borderColor: colorScheme === 'dark' ? '#555' : '#ccc',
 			elevation: 1,
+			flexDirection: 'row',
+			justifyContent: 'center',
+			gap: 12,
+		},
+		logoutButton: {
+			borderColor: '#d32f2f',
+			backgroundColor: colorScheme === 'dark' ? '#1a0000' : '#fff5f5',
 		},
 		menuButtonText: {
 			color: colorScheme === 'dark' ? '#fff' : '#181818',
 			fontWeight: '600',
 			fontSize: 18,
 			letterSpacing: 1,
+		},
+		logoutButtonText: {
+			color: '#d32f2f',
 		},
 	});

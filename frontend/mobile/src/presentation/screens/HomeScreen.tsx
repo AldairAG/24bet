@@ -1,78 +1,184 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, useColorScheme } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useForm, Controller } from 'react-hook-form';
+import { useAuth } from '../../hooks/useAuth';
+import { LoginRequest } from '../../types/authTypes';
+import Toast from 'react-native-toast-message';
 
 type Props = NativeStackScreenProps<any, 'Home'>;
 
-export default function HomeScreen({ navigation }: Props) {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+interface FormData {
+    email: string;
+    password: string;
+}
 
+export default function HomeScreen({ navigation }: Props) {
     const colorScheme = useColorScheme();
     const styles = getStyles((colorScheme === 'light' || colorScheme === 'dark') ? colorScheme : null);
 
-    const validate = () => {
-        const newErrors: { email?: string; password?: string } = {};
+    // Hook de autenticación
+    const { login, loading, error } = useAuth();
 
-        if (!email.trim()) {
-            newErrors.email = 'El correo es requerido';
-        } else if (!/\S+@\S+\.\S+/.test(email)) {
-            newErrors.email = 'Formato de correo inválido';
+    // React Hook Form
+    const {
+        control,
+        handleSubmit,
+        formState: { errors, isValid, isDirty },
+        watch
+    } = useForm<FormData>({
+        defaultValues: {
+            email: '',
+            password: ''
+        },
+        mode: 'onChange' // Validación en tiempo real
+    });
+
+    // Validaciones
+    const emailValidation = {
+        required: 'El correo es requerido',
+        pattern: {
+            value: /\S+@\S+\.\S+/,
+            message: 'Formato de correo inválido'
         }
-
-        if (!password.trim()) {
-            newErrors.password = 'La contraseña es requerida';
-        } else if (password.length < 6) {
-            newErrors.password = 'Mínimo 6 caracteres';
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
     };
 
-    const handleLogin = () => {
-        if (validate()) {
-            console.log('Credenciales:', { email, password });
-            // Lógica de autenticación aquí
-            navigation.replace('MainTab');
+    const passwordValidation = {
+        required: 'La contraseña es requerida',
+        minLength: {
+            value: 6,
+            message: 'Mínimo 6 caracteres'
         }
     };
 
-    const isFormValid = email.trim() !== '' && password.trim() !== '';
+    const onSubmit = async (data: FormData) => {
+        // Crear el objeto con el campo que el backend espera
+        const loginRequest = {
+            password: data.password.trim(),
+            username: data.email.trim() // Agregar el campo username que el backend está esperando
+        } as LoginRequest & { username: string };
+
+        try {
+            const action = await login(loginRequest);
+            // Si el login fue exitoso
+            if (
+                action &&
+                action.meta &&
+                action.meta.requestStatus === 'fulfilled' &&
+                action.payload &&
+                typeof action.payload === 'object' &&
+                'success' in action.payload &&
+                (action.payload as any).success
+            ) {
+                Toast.show({
+                    type: 'success',
+                    text1: 'Inicio de sesión exitoso',
+                    text2: 'Bienvenido a 24bet'
+                });
+                navigation.replace('MainTab');
+            } else if (action && action.meta && action.meta.requestStatus !== 'fulfilled') {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error de autenticación',
+                    text2: 'No se pudo iniciar sesión'
+                });
+            } else {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Credenciales incorrectas',
+                    text2:
+                        (typeof action?.payload === 'object' && action?.payload?.message)
+                            ? action.payload.message
+                            : 'Verifica tu email y contraseña'
+                });
+            }
+        } catch (e: any) {
+            Toast.show({
+                type: 'error',
+                text1: 'Error de conexión',
+                text2: 'No se pudo iniciar sesión'
+            });
+        }
+    };
+
+    // Observar los valores para determinar si el formulario tiene datos
+    const watchedValues = watch();
+    const hasValues = watchedValues.email.trim() !== '' && watchedValues.password.trim() !== '';
 
     return (
         <View style={styles.container}>
             <Text style={styles.header}>24bet</Text>
-            <TextInput
-                style={styles.input}
-                placeholder="Ingresa tu correo"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#888'}
+
+            <Controller
+                control={control}
+                name="email"
+                rules={emailValidation}
+                render={({ field: { onChange, onBlur, value } }) => (
+                    <TextInput
+                        style={[
+                            styles.input,
+                            errors.email && styles.inputError
+                        ]}
+                        placeholder="Ingresa tu correo o usuario"
+                        value={value}
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#888'}
+                    />
+                )}
             />
-            {errors.email && <Text style={styles.error}>{errors.email}</Text>}
-            <TextInput
-                style={styles.input}
-                placeholder="Ingresa tu contraseña"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#888'}
+            {errors.email && (
+                <Text style={styles.error}>{errors.email.message}</Text>
+            )}
+
+            <Controller
+                control={control}
+                name="password"
+                rules={passwordValidation}
+                render={({ field: { onChange, onBlur, value } }) => (
+                    <TextInput
+                        style={[
+                            styles.input,
+                            errors.password && styles.inputError
+                        ]}
+                        placeholder="Ingresa tu contraseña"
+                        value={value}
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                        secureTextEntry
+                        placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#888'}
+                    />
+                )}
             />
-            {errors.password && <Text style={styles.error}>{errors.password}</Text>}
+            {errors.password && (
+                <Text style={styles.error}>{errors.password.message}</Text>
+            )}
+
             <Text style={styles.warning}>
                 🔞 El contenido de esta aplicación es exclusivo para mayores de 18 años.
             </Text>
+
             <TouchableOpacity
-                style={[styles.button, { backgroundColor: isFormValid ? '#d32f2f' : '#bdbdbd' }]}
-                onPress={handleLogin}
-                disabled={!isFormValid}
+                style={[
+                    styles.button,
+                    {
+                        backgroundColor: isValid && hasValues && !loading ? '#d32f2f' : '#bdbdbd'
+                    }
+                ]}
+                onPress={handleSubmit(onSubmit)}
+                disabled={!isValid || !hasValues || loading}
             >
-                <Text style={styles.buttonText}>Iniciar sesión</Text>
+                <Text style={styles.buttonText}>
+                    {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
+                </Text>
             </TouchableOpacity>
+
+            {error && (
+                <Text style={styles.error}>{error}</Text>
+            )}
+
             <TouchableOpacity onPress={() => navigation.navigate('Register')}>
                 <Text style={styles.registerLink}>
                     ¿No tienes cuenta? Registrar ahora
@@ -105,6 +211,9 @@ const getStyles = (colorScheme: 'light' | 'dark' | null) =>
             padding: 12,
             borderRadius: 8,
             marginBottom: 5,
+        },
+        inputError: {
+            borderColor: '#d32f2f',
         },
         error: {
             fontSize: 12,
