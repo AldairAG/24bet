@@ -7,12 +7,14 @@ import {
   ApiResponseWrapper
 } from '../types/authTypes';
 
+const BASE_URL = '/auth';
+
 export const authService = {
   registro: async (registroRequest: RegistroRequest): Promise<ApiResponseWrapper<UsuarioResponse>> => {
-    return await api.post<UsuarioResponse>('/24bet/auth/registro', registroRequest);
+    return await api.post<UsuarioResponse>(`${BASE_URL}/registro`, registroRequest);
   },
 
   login: async (loginRequest: LoginRequest): Promise<ApiResponseWrapper<JwtResponse>> => {
-    return await api.post<JwtResponse>('/24bet/auth/login', loginRequest);
+    return await api.post<JwtResponse>(`${BASE_URL}/login`, loginRequest);
   }
 };

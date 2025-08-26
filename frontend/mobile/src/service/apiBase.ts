@@ -55,8 +55,8 @@ export interface ApiResponse<T> {
 
 // Configuración base de la API
 const API_BASE_URL = __DEV__ 
-  ? 'http://localhost:8080/api' 
-  : 'https://tu-dominio-produccion.com/api';
+  ? 'http://localhost:8080/24bet' 
+  : 'http://localhost:8080/24bet';
 
 class ApiBase {
   private axiosInstance: AxiosInstance;

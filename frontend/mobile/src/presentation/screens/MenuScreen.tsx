@@ -4,16 +4,16 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useAuth } from '../../hooks/useAuth';
 import Toast from 'react-native-toast-message';
-import type { StackNavigationProp } from '@react-navigation/stack';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 
-type RootStackParamList = {
-	Home: undefined;
-	Register: undefined;
-	ProfileScreen: undefined;
-	MainTab: undefined;
+type TabParamList = {
+	Retiro: undefined;
+	Apuestas: undefined;
+	Perfil: undefined;
+	Menú: undefined;
 };
 
-type NavigationProp = StackNavigationProp<RootStackParamList>;
+type NavigationProp = BottomTabNavigationProp<TabParamList>;
 
 export default function MenuScreen() {
 	const colorScheme = useColorScheme();
@@ -40,10 +40,14 @@ export default function MenuScreen() {
 							text1: 'Sesión cerrada',
 							text2: 'Has cerrado sesión correctamente'
 						});
-						navigation.reset({
-							index: 0,
-							routes: [{ name: 'Home' }],
-						});
+						// Navegar fuera del tab navigator requiere acceso al parent navigator
+						const parentNavigation = navigation.getParent();
+						if (parentNavigation) {
+							parentNavigation.reset({
+								index: 0,
+								routes: [{ name: 'Home' }],
+							});
+						}
 					},
 				},
 			]
@@ -64,7 +68,7 @@ export default function MenuScreen() {
 			</View>
 
 			<View style={styles.menuButtonsContainer}>
-				<TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('ProfileScreen')}>
+				<TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('Perfil')}>
 					<Ionicons name="person-circle-outline" size={24} color={colorScheme === 'dark' ? '#fff' : '#181818'} />
 					<Text style={styles.menuButtonText}>Perfil</Text>
 				</TouchableOpacity>
