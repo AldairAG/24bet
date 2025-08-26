@@ -1,38 +1,23 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, useColorScheme } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, useColorScheme } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-
+import { useAuth } from '../../hooks/useAuth';
+import { useNavigation } from '@react-navigation/native';
 const initialForm = {
-    nombreCompleto: '',
-    email: '',
-    numeroTelefono: '',
+    nombreCompleto: 'Juan Pérez García',
+    email: 'juan.perez@email.com',
+    numeroTelefono: '+52 555 123 4567',
 };
 
 export default function ProfileScreen() {
+    const { user } = useAuth();
+    const navigation = useNavigation();
     const [form, setForm] = useState(initialForm);
-    const [errors, setErrors] = useState<any>({});
     const colorScheme = useColorScheme();
     const styles = getStyles((colorScheme === 'light' || colorScheme === 'dark') ? colorScheme : null);
 
-    const handleChange = (field: string, value: string) => {
-        setForm({ ...form, [field]: value });
-    };
-
-    const validate = () => {
-        let newErrors: any = {};
-
-        if (!form.nombreCompleto.trim()) newErrors.nombreCompleto = 'Nombre completo requerido';
-        if (!form.email.trim() || !/\S+@\S+\.\S+/.test(form.email)) newErrors.email = 'Correo inválido';
-        if (!form.numeroTelefono.trim() || !/^\d{10}$/.test(form.numeroTelefono)) newErrors.numeroTelefono = 'Teléfono inválido (10 dígitos)';
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
     const handleUpdate = () => {
-        if (validate()) {
-            Alert.alert('Actualizado', 'Los datos se actualizaron correctamente.');
-        }
+        navigation.navigate('EditProfile' as never);
     };
 
     const handleDocumentos = () => {
@@ -42,12 +27,6 @@ export default function ProfileScreen() {
     const handleDetallesPago = () => {
         Alert.alert('Detalles de pago', 'Próximamente disponible');
     };
-
-    // Validar en cada render para el botón
-    React.useEffect(() => {
-        validate();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [form]);
 
     return (
         <KeyboardAvoidingView
@@ -65,52 +44,33 @@ export default function ProfileScreen() {
                         <Text style={styles.cardTitle}>Información personal</Text>
                     </View>
 
-                    <View style={styles.inputContainer}>
+                    <View style={styles.infoContainer}>
                         <Ionicons name="person-outline" size={20} color={colorScheme === 'dark' ? '#aaa' : '#888'} />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Nombre completo"
-                            value={form.nombreCompleto}
-                            onChangeText={v => handleChange('nombreCompleto', v)}
-                            placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#888'}
-                        />
+                        <View style={styles.infoTextContainer}>
+                            <Text style={styles.infoLabel}>Nombre completo</Text>
+                            <Text style={styles.infoValue}>{form.nombreCompleto}</Text>
+                        </View>
                     </View>
-                    {errors.nombreCompleto && <Text style={styles.error}>{errors.nombreCompleto}</Text>}
 
-                    <View style={styles.inputContainer}>
+                    <View style={styles.infoContainer}>
                         <Ionicons name="call-outline" size={20} color={colorScheme === 'dark' ? '#aaa' : '#888'} />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Número de teléfono"
-                            value={form.numeroTelefono}
-                            onChangeText={v => handleChange('numeroTelefono', v)}
-                            keyboardType="numeric"
-                            placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#888'}
-                        />
+                        <View style={styles.infoTextContainer}>
+                            <Text style={styles.infoLabel}>Número de teléfono</Text>
+                            <Text style={styles.infoValue}>{form.numeroTelefono}</Text>
+                        </View>
                     </View>
-                    {errors.numeroTelefono && <Text style={styles.error}>{errors.numeroTelefono}</Text>}
 
-                    <View style={styles.inputContainer}>
+                    <View style={styles.infoContainer}>
                         <Ionicons name="mail-outline" size={20} color={colorScheme === 'dark' ? '#aaa' : '#888'} />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Email"
-                            value={form.email}
-                            onChangeText={v => handleChange('email', v)}
-                            keyboardType="email-address"
-                            autoCapitalize="none"
-                            placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#888'}
-                        />
+                        <View style={styles.infoTextContainer}>
+                            <Text style={styles.infoLabel}>Email</Text>
+                            <Text style={styles.infoValue}>{form.email}</Text>
+                        </View>
                     </View>
-                    {errors.email && <Text style={styles.error}>{errors.email}</Text>}
 
                     <TouchableOpacity
-                        style={[
-                            styles.button,
-                            { backgroundColor: Object.keys(errors).length === 0 && form.nombreCompleto ? '#d32f2f' : '#bdbdbd' }
-                        ]}
+                        style={[styles.button, { backgroundColor: '#d32f2f' }]}
                         onPress={handleUpdate}
-                        disabled={Object.keys(errors).length !== 0}
                     >
                         <Text style={styles.buttonText}>Actualizar información</Text>
                     </TouchableOpacity>
@@ -194,6 +154,32 @@ const getStyles = (colorScheme: 'light' | 'dark' | null) =>
             borderRadius: 8,
             paddingHorizontal: 12,
             marginBottom: 5,
+        },
+        infoContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingVertical: 16,
+            paddingHorizontal: 12,
+            marginBottom: 10,
+            backgroundColor: colorScheme === 'dark' ? '#2a2a2a' : '#f9f9f9',
+            borderRadius: 8,
+            borderWidth: 1,
+            borderColor: colorScheme === 'dark' ? '#404040' : '#e0e0e0',
+        },
+        infoTextContainer: {
+            flex: 1,
+            marginLeft: 12,
+        },
+        infoLabel: {
+            fontSize: 12,
+            color: colorScheme === 'dark' ? '#aaa' : '#666',
+            marginBottom: 4,
+            fontWeight: '500',
+        },
+        infoValue: {
+            fontSize: 16,
+            color: colorScheme === 'dark' ? '#fff' : '#333',
+            fontWeight: '600',
         },
         input: {
             flex: 1,

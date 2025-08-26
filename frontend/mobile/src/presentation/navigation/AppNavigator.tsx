@@ -5,6 +5,7 @@ import { useColorScheme } from 'react-native'; // Importante
 import HomeScreen from '../screens/HomeScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import EditProfileScreen from '../screens/EditProfileScreen';
 import MainTabNavigator from './MainTabNavigator';
 
 const Stack = createNativeStackNavigator();
@@ -33,6 +34,15 @@ export default function AppNavigator() {
                 <Stack.Screen
                     name="ProfileScreen"
                     component={ProfileScreen}
+                    options={{ 
+                        title: '',
+                        headerTitleAlign: 'center',
+                        headerTitleStyle: { color: '#d32f2f', fontSize: 20, fontWeight: 'bold' }
+                    }}
+                />
+                <Stack.Screen
+                    name="EditProfile"
+                    component={EditProfileScreen}
                     options={{ 
                         title: '',
                         headerTitleAlign: 'center',
