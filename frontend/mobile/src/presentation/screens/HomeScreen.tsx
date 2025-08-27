@@ -75,7 +75,7 @@ export default function HomeScreen({ navigation }: Props) {
                     text1: 'Inicio de sesión exitoso',
                     text2: 'Bienvenido a 24bet'
                 });
-                navigation.replace('MainTab');
+                navigation.navigate('MainApp');
             } else if (action && action.meta && action.meta.requestStatus !== 'fulfilled') {
                 Toast.show({
                     type: 'error',
