@@ -6,6 +6,8 @@ import HomeScreen from '../screens/HomeScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
+import RecoveryPasswordScreen from '../screens/RecoveryPasswordScreen';
+import SupportScreen from '../screens/SupportScreen';
 import MainTabNavigator from './MainTabNavigator';
 
 const Stack = createNativeStackNavigator();
@@ -32,6 +34,14 @@ export default function AppNavigator() {
                     options={{ title: '' }}
                 />
                 <Stack.Screen
+                    name="RecoveryPassword"
+                    component={RecoveryPasswordScreen}
+                    options={{ 
+                        headerShown: false,
+                        presentation: 'modal'
+                    }}
+                />
+                <Stack.Screen
                     name="ProfileScreen"
                     component={ProfileScreen}
                     options={{ 
@@ -47,6 +57,13 @@ export default function AppNavigator() {
                         title: '',
                         headerTitleAlign: 'center',
                         headerTitleStyle: { color: '#d32f2f', fontSize: 20, fontWeight: 'bold' }
+                    }}
+                />
+                <Stack.Screen
+                    name="Support"
+                    component={SupportScreen}
+                    options={{ 
+                        headerShown: false
                     }}
                 />
                 <Stack.Screen

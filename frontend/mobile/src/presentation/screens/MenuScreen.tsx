@@ -76,7 +76,12 @@ export default function MenuScreen() {
 					<FontAwesome5 name="receipt" size={20} color={colorScheme === 'dark' ? '#fff' : '#181818'} />
 					<Text style={styles.menuButtonText}>Transacciones</Text>
 				</TouchableOpacity>
-				<TouchableOpacity style={styles.menuButton} onPress={() => {}}>
+				<TouchableOpacity style={styles.menuButton} onPress={() => {
+					const parentNavigation = navigation.getParent();
+					if (parentNavigation) {
+						parentNavigation.navigate('Support');
+					}
+				}}>
 					<Ionicons name="headset-outline" size={24} color={colorScheme === 'dark' ? '#fff' : '#181818'} />
 					<Text style={styles.menuButtonText}>Soporte</Text>
 				</TouchableOpacity>

@@ -179,6 +179,12 @@ export default function HomeScreen({ navigation }: Props) {
                 <Text style={styles.error}>{error}</Text>
             )}
 
+            <TouchableOpacity onPress={() => navigation.navigate('RecoveryPassword')}>
+                <Text style={styles.forgotPasswordLink}>
+                    ¿Has olvidado tu contraseña?
+                </Text>
+            </TouchableOpacity>
+
             <TouchableOpacity onPress={() => navigation.navigate('Register')}>
                 <Text style={styles.registerLink}>
                     ¿No tienes cuenta? Registrar ahora
@@ -240,5 +246,12 @@ const getStyles = (colorScheme: 'light' | 'dark' | null) =>
             color: colorScheme === 'dark' ? '#ef9a9a' : '#d32f2f',
             textAlign: 'center',
             marginTop: 10,
+        },
+        forgotPasswordLink: {
+            color: colorScheme === 'dark' ? '#aaa' : '#666',
+            textAlign: 'center',
+            marginTop: 15,
+            marginBottom: 5,
+            fontSize: 14,
         },
     });
