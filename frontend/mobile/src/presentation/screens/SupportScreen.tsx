@@ -269,30 +269,23 @@ export default function SupportScreen() {
 
     return (
         <View style={styles.container}>
-            {/* Header */}
-            <View style={styles.header}>
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => navigation.goBack()}
-                >
-                    <Ionicons name="chevron-back" size={24} color="#d32f2f" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Centro de Soporte</Text>
-                <TouchableOpacity
-                    style={styles.newTicketButton}
-                    onPress={() => setShowNewTicketModal(true)}
-                >
-                    <Ionicons name="add" size={24} color="#d32f2f" />
-                </TouchableOpacity>
-            </View>
-
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                 {/* Sección de tipos de problemas */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>¿Qué tipo de problema tienes?</Text>
-                    <Text style={styles.sectionSubtitle}>
-                        Selecciona la categoría que mejor describa tu consulta
-                    </Text>
+                    <View style={styles.sectionHeaderContainer}>
+                        <View>
+                            <Text style={styles.sectionTitle}>¿Qué tipo de problema tienes?</Text>
+                            <Text style={styles.sectionSubtitle}>
+                                Selecciona la categoría que mejor describa tu consulta
+                            </Text>
+                        </View>
+                        <TouchableOpacity
+                            style={styles.newTicketFloatingButton}
+                            onPress={() => setShowNewTicketModal(true)}
+                        >
+                            <Ionicons name="add" size={24} color="#fff" />
+                        </TouchableOpacity>
+                    </View>
                     
                     <FlatList
                         data={tiposProblema}
@@ -459,9 +452,29 @@ const getStyles = (colorScheme: 'light' | 'dark' | null) =>
         content: {
             flex: 1,
             padding: 20,
+            paddingTop: 10,
         },
         section: {
             marginBottom: 30,
+        },
+        sectionHeaderContainer: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            marginBottom: 20,
+        },
+        newTicketFloatingButton: {
+            backgroundColor: '#d32f2f',
+            width: 50,
+            height: 50,
+            borderRadius: 25,
+            justifyContent: 'center',
+            alignItems: 'center',
+            elevation: 4,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 4,
         },
         sectionTitle: {
             fontSize: 20,

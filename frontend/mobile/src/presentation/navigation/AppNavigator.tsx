@@ -6,13 +6,15 @@ import { useColorScheme, View, Text, StyleSheet } from 'react-native';
 import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 
 // Importar todas las pantallas
-import HomeScreen from '../screens/HomeScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import RecoveryPasswordScreen from '../screens/RecoveryPasswordScreen';
 import SupportScreen from '../screens/SupportScreen';
+import DocumentsScreen from '../screens/DocumentsScreen';
+import DepositoScreen from '../screens/DepositoScreen';
 import MenuScreen from '../screens/MenuScreen';
+import LoginScreen from '../screens/LoginScreen';
 
 // Tipos de navegación
 export type RootStackParamList = {
@@ -21,13 +23,13 @@ export type RootStackParamList = {
 };
 
 export type AuthStackParamList = {
-    Home: undefined;
+    Login: undefined;
     Register: undefined;
     RecoveryPassword: undefined;
 };
 
 export type MainTabParamList = {
-    Retiro: undefined;
+    Deposito: undefined;
     Apuestas: undefined;
     Menu: undefined;
     ProfileStack: undefined;
@@ -37,6 +39,7 @@ export type ProfileStackParamList = {
     Profile: undefined;
     EditProfile: undefined;
     Support: undefined;
+    Documents: undefined;
 };
 
 // Constantes
@@ -46,7 +49,7 @@ const COLORS = {
 } as const;
 
 const TAB_ICONS = {
-    Retiro: (props: { color: string; size: number }) => (
+    Deposito: (props: { color: string; size: number }) => (
         <MaterialIcons name="attach-money" {...props} />
     ),
     Apuestas: (props: { color: string; size: number }) => (
@@ -76,10 +79,10 @@ const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
 // Stack de Autenticación (sin tabs)
 function AuthStackNavigator() {
     return (
-        <AuthStack.Navigator initialRouteName="Home">
+        <AuthStack.Navigator initialRouteName="Login">
             <AuthStack.Screen
-                name="Home"
-                component={HomeScreen}
+                name="Login"
+                component={LoginScreen}
                 options={{
                     title: 'Bienvenido',
                     headerTitleAlign: 'center',
@@ -150,12 +153,27 @@ function ProfileStackNavigator() {
                     }
                 }}
             />
+            <ProfileStack.Screen
+                name="Documents"
+                component={DocumentsScreen}
+                options={{ 
+                    title: 'Mis Documentos',
+                    headerTitleAlign: 'center',
+                    headerTitleStyle: { 
+                        color: COLORS.primary, 
+                        fontSize: 20, 
+                        fontWeight: 'bold' 
+                    }
+                }}
+            />
         </ProfileStack.Navigator>
     );
 }
 
 // Tab Navigator Principal (siempre visible)
 function MainTabNavigator() {
+    const colorScheme = useColorScheme();
+    
     return (
         <Tab.Navigator
             screenOptions={({ route }) => ({
@@ -167,13 +185,29 @@ function MainTabNavigator() {
                     return IconComponent ? <IconComponent color={color} size={size} /> : null;
                 },
                 tabBarLabelStyle: styles.tabBarLabel,
-                tabBarStyle: styles.tabBar,
+                tabBarStyle: [
+                    styles.tabBar,
+                    {
+                        backgroundColor: colorScheme === 'dark' ? '#222' : '#ffffff',
+                        borderTopColor: colorScheme === 'dark' ? '#333' : '#e0e0e0',
+                    }
+                ],
             })}
         >
             <Tab.Screen 
-                name="Retiro" 
-                children={() => <DummyScreen title="Retiro" />}
-                options={{ tabBarLabel: 'Retiro' }}
+                name="Deposito" 
+                component={DepositoScreen}
+                options={{ 
+                    tabBarLabel: 'Depósito',
+                    headerShown: true,
+                    headerTitle: 'Depósito',
+                    headerTitleAlign: 'center',
+                    headerTitleStyle: { 
+                        color: COLORS.primary, 
+                        fontSize: 20, 
+                        fontWeight: 'bold' 
+                    }
+                }}
             />
             <Tab.Screen 
                 name="Apuestas" 
@@ -238,9 +272,7 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     },
     tabBar: {
-        backgroundColor: '#ffffff',
         borderTopWidth: 1,
-        borderTopColor: '#e0e0e0',
         height: 60,
         paddingBottom: 8,
         paddingTop: 8,

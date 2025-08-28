@@ -23,7 +23,7 @@ export default function ProfileScreen() {
     };
 
     const handleDocumentos = () => {
-        Alert.alert('Mis documentos', 'Próximamente disponible');
+        navigation.navigate('Documents' as never);
     };
 
     const handleDetallesPago = () => {

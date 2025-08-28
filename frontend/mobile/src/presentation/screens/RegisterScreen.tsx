@@ -17,11 +17,11 @@ import { Checkbox } from "react-native-paper";
 import type { StackNavigationProp } from '@react-navigation/stack';
 
 type RootStackParamList = {
-    Home: undefined;
+    Login: undefined;
     // Agrega aquí otras pantallas si es necesario
 };
 
-type RegisterScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
+type RegisterScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
 interface RegisterScreenProps {
     navigation: RegisterScreenNavigationProp;
@@ -304,7 +304,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
                         text1: 'Registro exitoso',
                         text2: 'Tu cuenta ha sido creada correctamente.'
                     });
-                    navigation.navigate('Home');
+                    navigation.navigate('Login');
                 } else if (action && action.meta && action.meta.requestStatus !== 'fulfilled') {
                     Toast.show({
                         type: 'error',
@@ -567,7 +567,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
                 {error && (
                     <Text style={styles.errorText}>{error}</Text>
                 )}
-                <TouchableOpacity onPress={() => navigation.navigate("Home")}>
+                <TouchableOpacity onPress={() => navigation.navigate("Login")}>
                     <Text style={styles.loginText}>Ya tienes cuenta? Inicia sesión</Text>
                 </TouchableOpacity>
             </ScrollView>

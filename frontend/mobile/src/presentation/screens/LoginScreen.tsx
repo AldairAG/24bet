@@ -5,15 +5,16 @@ import { useForm, Controller } from 'react-hook-form';
 import { useAuth } from '../../hooks/useAuth';
 import { LoginRequest } from '../../types/authTypes';
 import Toast from 'react-native-toast-message';
+import { ROUTES } from '../../routes/routes';
 
-type Props = NativeStackScreenProps<any, 'Home'>;
+type Props = NativeStackScreenProps<any, 'Login'>;
 
 interface FormData {
     email: string;
     password: string;
 }
 
-export default function HomeScreen({ navigation }: Props) {
+export default function LoginScreen({ navigation }: Props) {
     const colorScheme = useColorScheme();
     const styles = getStyles((colorScheme === 'light' || colorScheme === 'dark') ? colorScheme : null);
 

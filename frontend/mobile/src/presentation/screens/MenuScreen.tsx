@@ -5,15 +5,30 @@ import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useAuth } from '../../hooks/useAuth';
 import Toast from 'react-native-toast-message';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import type { CompositeNavigationProp } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import ProfileScreen from './ProfileScreen';
+import SupportScreen from './SupportScreen';
 
-type TabParamList = {
-	Retiro: undefined;
+export type TabParamList = {
+	Deposito: undefined;
 	Apuestas: undefined;
-	Perfil: undefined;
-	Menú: undefined;
+	Menu: undefined;
+	ProfileStack: { screen: string } | undefined;
 };
 
-type NavigationProp = BottomTabNavigationProp<TabParamList>;
+export type RootStackParamList = {
+    AuthFlow: undefined;
+    MainApp: undefined;
+};
+
+type TabNavigationProp = BottomTabNavigationProp<TabParamList>;
+type RootNavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+type NavigationProp = CompositeNavigationProp<
+    TabNavigationProp,
+    RootNavigationProp
+>;
 
 export default function MenuScreen() {
 	const colorScheme = useColorScheme();
@@ -40,12 +55,12 @@ export default function MenuScreen() {
 							text1: 'Sesión cerrada',
 							text2: 'Has cerrado sesión correctamente'
 						});
-						// Navegar fuera del tab navigator requiere acceso al parent navigator
-						const parentNavigation = navigation.getParent();
-						if (parentNavigation) {
-							parentNavigation.reset({
+						// Navegar al flujo de autenticación
+						const rootNavigation = navigation.getParent()?.getParent();
+						if (rootNavigation) {
+							rootNavigation.reset({
 								index: 0,
-								routes: [{ name: 'Home' }],
+								routes: [{ name: 'AuthFlow' }],
 							});
 						}
 					},
@@ -61,14 +76,17 @@ export default function MenuScreen() {
 					<MaterialIcons name="attach-money" size={20} color="#fff" />
 					<Text style={styles.topButtonText}>Retiro</Text>
 				</TouchableOpacity>
-				<TouchableOpacity style={[styles.topButton, styles.depositoButton]} onPress={() => {}}>
+				<TouchableOpacity 
+					style={[styles.topButton, styles.depositoButton]} 
+					onPress={() => navigation.navigate('Deposito')}
+				>
 					<MaterialIcons name="account-balance-wallet" size={20} color="#fff" />
 					<Text style={styles.topButtonText}>Depósito</Text>
 				</TouchableOpacity>
 			</View>
 
 			<View style={styles.menuButtonsContainer}>
-				<TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('Perfil')}>
+				<TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('ProfileStack', { screen: 'Profile' })}>
 					<Ionicons name="person-circle-outline" size={24} color={colorScheme === 'dark' ? '#fff' : '#181818'} />
 					<Text style={styles.menuButtonText}>Perfil</Text>
 				</TouchableOpacity>
@@ -76,12 +94,7 @@ export default function MenuScreen() {
 					<FontAwesome5 name="receipt" size={20} color={colorScheme === 'dark' ? '#fff' : '#181818'} />
 					<Text style={styles.menuButtonText}>Transacciones</Text>
 				</TouchableOpacity>
-				<TouchableOpacity style={styles.menuButton} onPress={() => {
-					const parentNavigation = navigation.getParent();
-					if (parentNavigation) {
-						parentNavigation.navigate('Support');
-					}
-				}}>
+				<TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('ProfileStack', { screen: 'Support' })}>
 					<Ionicons name="headset-outline" size={24} color={colorScheme === 'dark' ? '#fff' : '#181818'} />
 					<Text style={styles.menuButtonText}>Soporte</Text>
 				</TouchableOpacity>

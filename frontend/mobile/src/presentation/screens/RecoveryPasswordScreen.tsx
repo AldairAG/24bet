@@ -140,7 +140,7 @@ export default function RecoveryPasswordScreen() {
             });
 
             setTimeout(() => {
-                navigation.navigate('Home' as never);
+                navigation.navigate('Login' as never);
             }, 1500);
         }, 2000);
     };
