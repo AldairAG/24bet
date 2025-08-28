@@ -73,7 +73,6 @@ public class InformacionPersonalRequest {
     
     // ========== INFORMACIÓN ADICIONAL ==========
     
-    private InformacionPersonal.EstadoCivil estadoCivil;
     
     @Size(max = 100, message = "La ocupación no puede exceder 100 caracteres")
     private String ocupacion;

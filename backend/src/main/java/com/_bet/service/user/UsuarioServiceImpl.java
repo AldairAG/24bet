@@ -101,14 +101,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     private InformacionPersonalResponse convertirAInformacionPersonalResponse(InformacionPersonal informacionPersonal) {
         InformacionPersonalResponse response = new InformacionPersonalResponse();
         response.setId(informacionPersonal.getId());
-        response.setPrimerNombre(informacionPersonal.getPrimerNombre());
-        response.setSegundoNombre(informacionPersonal.getSegundoNombre());
-        response.setApellidoPaterno(informacionPersonal.getApellidoPaterno());
-        response.setApellidoMaterno(informacionPersonal.getApellidoMaterno());
-        response.setFechaNacimiento(informacionPersonal.getFechaNacimiento());
         response.setGenero(informacionPersonal.getGenero());
-        response.setTelefono(informacionPersonal.getTelefono());
-        response.setTelefonoMovil(informacionPersonal.getTelefonoMovil());
         response.setCalle(informacionPersonal.getCalle());
         response.setNumeroExterior(informacionPersonal.getNumeroExterior());
         response.setNumeroInterior(informacionPersonal.getNumeroInterior());
@@ -118,15 +111,11 @@ public class UsuarioServiceImpl implements UsuarioService {
         response.setEstado(informacionPersonal.getEstado());
         response.setPais(informacionPersonal.getPais());
         response.setRfc(informacionPersonal.getRfc());
-        response.setCurp(informacionPersonal.getCurp());
-        response.setEstadoCivil(informacionPersonal.getEstadoCivil());
         response.setOcupacion(informacionPersonal.getOcupacion());
-        response.setNacionalidad(informacionPersonal.getNacionalidad());
         response.setFechaCreacion(informacionPersonal.getFechaCreacion());
         response.setFechaActualizacion(informacionPersonal.getFechaActualizacion());
         
         // Agregar campos calculados
-        response.setNombreCompleto(informacionPersonal.getNombreCompleto());
         response.setDireccionCompleta(informacionPersonal.getDireccionCompleta());
         
         return response;
@@ -145,32 +134,11 @@ public class UsuarioServiceImpl implements UsuarioService {
         }
         
         // Actualizar campos básicos
-        if (request.getPrimerNombre() != null) {
-            informacionPersonal.setPrimerNombre(request.getPrimerNombre());
-        }
-        if (request.getSegundoNombre() != null) {
-            informacionPersonal.setSegundoNombre(request.getSegundoNombre());
-        }
-        if (request.getApellidoPaterno() != null) {
-            informacionPersonal.setApellidoPaterno(request.getApellidoPaterno());
-        }
-        if (request.getApellidoMaterno() != null) {
-            informacionPersonal.setApellidoMaterno(request.getApellidoMaterno());
-        }
-        if (request.getFechaNacimiento() != null) {
-            informacionPersonal.setFechaNacimiento(request.getFechaNacimiento());
-        }
+        
         if (request.getGenero() != null) {
             informacionPersonal.setGenero(request.getGenero());
         }
-        
-        // Actualizar información de contacto
-        if (request.getTelefono() != null) {
-            informacionPersonal.setTelefono(request.getTelefono());
-        }
-        if (request.getTelefonoMovil() != null) {
-            informacionPersonal.setTelefonoMovil(request.getTelefonoMovil());
-        }
+
         
         // Actualizar dirección
         if (request.getCalle() != null) {
@@ -202,19 +170,9 @@ public class UsuarioServiceImpl implements UsuarioService {
         if (request.getRfc() != null) {
             informacionPersonal.setRfc(request.getRfc());
         }
-        if (request.getCurp() != null) {
-            informacionPersonal.setCurp(request.getCurp());
-        }
-        
-        // Actualizar información adicional
-        if (request.getEstadoCivil() != null) {
-            informacionPersonal.setEstadoCivil(request.getEstadoCivil());
-        }
+
         if (request.getOcupacion() != null) {
             informacionPersonal.setOcupacion(request.getOcupacion());
-        }
-        if (request.getNacionalidad() != null) {
-            informacionPersonal.setNacionalidad(request.getNacionalidad());
         }
     }
 
