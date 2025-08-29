@@ -13,6 +13,7 @@ import RecoveryPasswordScreen from '../screens/RecoveryPasswordScreen';
 import SupportScreen from '../screens/SupportScreen';
 import DocumentsScreen from '../screens/DocumentsScreen';
 import DepositoScreen from '../screens/DepositoScreen';
+import RetiroScreen from '../screens/RetiroScreen';
 import MenuScreen from '../screens/MenuScreen';
 import LoginScreen from '../screens/LoginScreen';
 
@@ -30,6 +31,7 @@ export type AuthStackParamList = {
 
 export type MainTabParamList = {
     Deposito: undefined;
+    Retiro: undefined;
     Apuestas: undefined;
     Menu: undefined;
     ProfileStack: undefined;
@@ -51,6 +53,9 @@ const COLORS = {
 const TAB_ICONS = {
     Deposito: (props: { color: string; size: number }) => (
         <MaterialIcons name="attach-money" {...props} />
+    ),
+    Retiro: (props: { color: string; size: number }) => (
+        <MaterialIcons name="account-balance-wallet" {...props} />
     ),
     Apuestas: (props: { color: string; size: number }) => (
         <FontAwesome5 name="dice" {...props} />
@@ -201,6 +206,21 @@ function MainTabNavigator() {
                     tabBarLabel: 'Depósito',
                     headerShown: true,
                     headerTitle: 'Depósito',
+                    headerTitleAlign: 'center',
+                    headerTitleStyle: { 
+                        color: COLORS.primary, 
+                        fontSize: 20, 
+                        fontWeight: 'bold' 
+                    }
+                }}
+            />
+            <Tab.Screen 
+                name="Retiro" 
+                component={RetiroScreen}
+                options={{ 
+                    tabBarLabel: 'Retiro',
+                    headerShown: true,
+                    headerTitle: 'Retiro',
                     headerTitleAlign: 'center',
                     headerTitleStyle: { 
                         color: COLORS.primary, 

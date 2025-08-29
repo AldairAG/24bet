@@ -12,6 +12,7 @@ import SupportScreen from './SupportScreen';
 
 export type TabParamList = {
 	Deposito: undefined;
+	Retiro: undefined;
 	Apuestas: undefined;
 	Menu: undefined;
 	ProfileStack: { screen: string } | undefined;
@@ -72,7 +73,10 @@ export default function MenuScreen() {
 	return (
 		<View style={styles.container}>
 			<View style={styles.topButtonsContainer}>
-				<TouchableOpacity style={[styles.topButton, styles.retiroButton, { marginRight: 8 }]} onPress={() => {}}>
+				<TouchableOpacity 
+					style={[styles.topButton, styles.retiroButton, { marginRight: 8 }]} 
+					onPress={() => navigation.navigate('Retiro')}
+				>
 					<MaterialIcons name="attach-money" size={20} color="#fff" />
 					<Text style={styles.topButtonText}>Retiro</Text>
 				</TouchableOpacity>
