@@ -16,6 +16,7 @@ import DepositoScreen from '../screens/DepositoScreen';
 import RetiroScreen from '../screens/RetiroScreen';
 import MenuScreen from '../screens/MenuScreen';
 import LoginScreen from '../screens/LoginScreen';
+import CasinoNavigation from './DeportesNavigation';
 
 // Tipos de navegación
 export type RootStackParamList = {
@@ -30,9 +31,9 @@ export type AuthStackParamList = {
 };
 
 export type MainTabParamList = {
+    Casino: undefined;
     Deposito: undefined;
     Retiro: undefined;
-    Apuestas: undefined;
     Menu: undefined;
     ProfileStack: undefined;
 };
@@ -51,14 +52,14 @@ const COLORS = {
 } as const;
 
 const TAB_ICONS = {
+    Casino: (props: { color: string; size: number }) => (
+        <Ionicons name="home" {...props} />
+    ),
     Deposito: (props: { color: string; size: number }) => (
         <MaterialIcons name="attach-money" {...props} />
     ),
     Retiro: (props: { color: string; size: number }) => (
         <MaterialIcons name="account-balance-wallet" {...props} />
-    ),
-    Apuestas: (props: { color: string; size: number }) => (
-        <FontAwesome5 name="dice" {...props} />
     ),
     Menu: (props: { color: string; size: number }) => (
         <Ionicons name="menu" {...props} />
@@ -200,6 +201,14 @@ function MainTabNavigator() {
             })}
         >
             <Tab.Screen 
+                name="Casino" 
+                component={CasinoNavigation}
+                options={{ 
+                    tabBarLabel: 'Casino',
+                    headerShown: false,
+                }}
+            />
+            <Tab.Screen 
                 name="Deposito" 
                 component={DepositoScreen}
                 options={{ 
@@ -228,11 +237,6 @@ function MainTabNavigator() {
                         fontWeight: 'bold' 
                     }
                 }}
-            />
-            <Tab.Screen 
-                name="Apuestas" 
-                children={() => <DummyScreen title="Apuestas" />}
-                options={{ tabBarLabel: 'Apuestas' }}
             />
             <Tab.Screen 
                 name="Menu" 
