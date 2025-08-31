@@ -6,12 +6,13 @@ import {
     ScrollView,
     TouchableOpacity,
     SafeAreaView,
-    TextInput,
+    useColorScheme,
 } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MainCasinoStackParamList } from '../navigation/DeportesNavigation';
+import EventoItem from '../components/items/EventoItem';
 
 type SportEventsScreenNavigationProp = NativeStackNavigationProp<MainCasinoStackParamList, 'SportEvents'>;
 
@@ -48,8 +49,9 @@ export default function SportEventsScreen() {
     const route = useRoute();
     const navigation = useNavigation<SportEventsScreenNavigationProp>();
     const { sport } = route.params as RouteParams;
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === 'dark';
     
-    const [searchQuery, setSearchQuery] = useState('');
     const [selectedFilter, setSelectedFilter] = useState<'all' | 'live' | 'today' | 'tomorrow'>('all');
 
     // Eventos de ejemplo para el deporte seleccionado
@@ -173,9 +175,6 @@ export default function SportEventsScreen() {
     const events = getEventsForSport(sport.id);
 
     const filteredEvents = events.filter(event => {
-        const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            event.league.toLowerCase().includes(searchQuery.toLowerCase());
-        
         let matchesFilter = true;
         switch (selectedFilter) {
             case 'live':
@@ -189,7 +188,7 @@ export default function SportEventsScreen() {
                 break;
         }
         
-        return matchesSearch && matchesFilter;
+        return matchesFilter;
     });
 
     const filters = [
@@ -203,6 +202,12 @@ export default function SportEventsScreen() {
         navigation.navigate('EventDetail', { event });
     };
 
+    const handleBetPress = (event: SportEvent, betType: 'home' | 'draw' | 'away', odds: number) => {
+        // Aquí puedes agregar la lógica para manejar la apuesta
+        console.log(`Apuesta seleccionada: ${betType} en ${event.title} con cuota ${odds}`);
+        // Por ejemplo, abrir un modal de apuesta o navegar a una pantalla de apuesta
+    };
+
     const getSportIcon = (iconName: string) => {
         const iconMap: { [key: string]: any } = {
             'football': 'football',
@@ -214,15 +219,15 @@ export default function SportEventsScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
-            {/* Header */}
-            <View style={styles.header}>
+        <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#121212' : '#f5f5f5' }]}>
+            {/* Header simplificado */}
+            <View style={[styles.header, { backgroundColor: isDark ? '#1e1e1e' : 'white' }]}>
                 <View style={styles.headerTop}>
                     <TouchableOpacity 
                         style={styles.backButton}
                         onPress={() => navigation.goBack()}
                     >
-                        <Ionicons name="arrow-back" size={24} color="#333" />
+                        <Ionicons name="arrow-back" size={24} color={isDark ? 'white' : '#333'} />
                     </TouchableOpacity>
                     <View style={styles.sportInfo}>
                         {sport.icon.includes('sports') || sport.icon === 'fitness' ? (
@@ -230,133 +235,97 @@ export default function SportEventsScreen() {
                         ) : (
                             <Ionicons name={getSportIcon(sport.icon) as any} size={28} color="#d32f2f" />
                         )}
-                        <Text style={styles.sportName}>{sport.name}</Text>
+                        <Text style={[styles.sportName, { color: isDark ? 'white' : '#333' }]}>{sport.name}</Text>
                     </View>
-                </View>
-                
-                <View style={styles.searchContainer}>
-                    <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
-                    <TextInput
-                        style={styles.searchInput}
-                        placeholder={`Buscar eventos de ${sport.name.toLowerCase()}...`}
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                    />
                 </View>
             </View>
 
-            {/* Filtros */}
-            <ScrollView 
-                horizontal 
-                showsHorizontalScrollIndicator={false}
-                style={styles.filtersContainer}
-                contentContainerStyle={styles.filtersContent}
-            >
-                {filters.map((filter) => (
-                    <TouchableOpacity
-                        key={filter.key}
-                        style={[
-                            styles.filterChip,
-                            selectedFilter === filter.key && styles.filterChipActive
-                        ]}
-                        onPress={() => setSelectedFilter(filter.key)}
-                    >
-                        <Text style={[
-                            styles.filterText,
-                            selectedFilter === filter.key && styles.filterTextActive
-                        ]}>
-                            {filter.label}
-                        </Text>
-                        <Text style={[
-                            styles.filterCount,
-                            selectedFilter === filter.key && styles.filterCountActive
-                        ]}>
-                            {filter.count}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
-            </ScrollView>
+            {/* Filtros mejorados */}
+            <View style={[styles.filtersContainer, { backgroundColor: isDark ? '#1e1e1e' : 'white' }]}>
+                <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.filtersContent}
+                >
+                    {filters.map((filter) => (
+                        <TouchableOpacity
+                            key={filter.key}
+                            style={[
+                                styles.filterChip,
+                                { 
+                                    backgroundColor: selectedFilter === filter.key 
+                                        ? '#d32f2f' 
+                                        : (isDark ? '#2a2a2a' : '#f8f9fa'),
+                                    borderColor: selectedFilter === filter.key 
+                                        ? '#d32f2f' 
+                                        : (isDark ? '#444' : '#e0e0e0'),
+                                    shadowColor: selectedFilter === filter.key ? '#d32f2f' : '#000',
+                                    shadowOpacity: selectedFilter === filter.key ? 0.3 : (isDark ? 0.05 : 0.1),
+                                }
+                            ]}
+                            onPress={() => setSelectedFilter(filter.key)}
+                            activeOpacity={0.7}
+                        >
+                            <View style={[
+                                styles.filterContent,
+                                selectedFilter === filter.key && styles.filterContentActive
+                            ]}>
+                                <Text style={[
+                                    styles.filterText,
+                                    { 
+                                        color: selectedFilter === filter.key 
+                                            ? 'white' 
+                                            : (isDark ? '#ccc' : '#333'),
+                                        fontWeight: selectedFilter === filter.key ? '700' : '600'
+                                    }
+                                ]}>
+                                    {filter.label}
+                                </Text>
+                                <View style={[
+                                    styles.filterBadge,
+                                    { 
+                                        backgroundColor: selectedFilter === filter.key 
+                                            ? 'rgba(255,255,255,0.2)' 
+                                            : '#d32f2f'
+                                    }
+                                ]}>
+                                    <Text style={[
+                                        styles.filterCount,
+                                        { 
+                                            color: selectedFilter === filter.key 
+                                                ? 'white' 
+                                                : 'white'
+                                        }
+                                    ]}>
+                                        {filter.count}
+                                    </Text>
+                                </View>
+                            </View>
+                            {selectedFilter === filter.key && (
+                                <View style={styles.selectedIndicator} />
+                            )}
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
+            </View>
 
             {/* Lista de eventos */}
             <ScrollView style={styles.eventsContainer}>
                 {filteredEvents.map((event) => (
-                    <TouchableOpacity 
-                        key={event.id} 
-                        style={styles.eventCard}
+                    <EventoItem
+                        key={event.id}
+                        event={event}
+                        variant="detailed"
                         onPress={() => navigateToEventDetail(event)}
-                    >
-                        <View style={styles.eventHeader}>
-                            <Text style={styles.leagueText}>{event.league}</Text>
-                            {event.isLive && (
-                                <View style={styles.liveIndicator}>
-                                    <View style={styles.liveDot} />
-                                    <Text style={styles.liveText}>EN VIVO</Text>
-                                </View>
-                            )}
-                        </View>
-
-                        <View style={styles.matchInfo}>
-                            <View style={styles.teamsContainer}>
-                                <Text style={styles.homeTeam}>{event.homeTeam}</Text>
-                                <Text style={styles.vs}>vs</Text>
-                                <Text style={styles.awayTeam}>{event.awayTeam}</Text>
-                            </View>
-                            
-                            {event.score && (
-                                <Text style={styles.score}>{event.score}</Text>
-                            )}
-                        </View>
-
-                        <View style={styles.eventDetails}>
-                            <View style={styles.dateTimeContainer}>
-                                <Ionicons name="calendar" size={14} color="#666" />
-                                <Text style={styles.dateText}>{event.date}</Text>
-                                <Ionicons name="time" size={14} color="#666" style={styles.timeIcon} />
-                                <Text style={styles.timeText}>{event.time}</Text>
-                            </View>
-                            {event.venue && (
-                                <View style={styles.venueContainer}>
-                                    <Ionicons name="location" size={14} color="#666" />
-                                    <Text style={styles.venueText}>{event.venue}</Text>
-                                </View>
-                            )}
-                        </View>
-
-                        <View style={styles.oddsContainer}>
-                            <TouchableOpacity style={styles.oddButton}>
-                                <Text style={styles.oddLabel}>
-                                    {sport.id === 'futbol' ? '1' : event.homeTeam.slice(0, 3)}
-                                </Text>
-                                <Text style={styles.oddValue}>{event.odds.home.toFixed(2)}</Text>
-                            </TouchableOpacity>
-                            
-                            {event.odds.draw && (
-                                <TouchableOpacity style={styles.oddButton}>
-                                    <Text style={styles.oddLabel}>X</Text>
-                                    <Text style={styles.oddValue}>{event.odds.draw.toFixed(2)}</Text>
-                                </TouchableOpacity>
-                            )}
-                            
-                            <TouchableOpacity style={styles.oddButton}>
-                                <Text style={styles.oddLabel}>
-                                    {sport.id === 'futbol' ? '2' : event.awayTeam.slice(0, 3)}
-                                </Text>
-                                <Text style={styles.oddValue}>{event.odds.away.toFixed(2)}</Text>
-                            </TouchableOpacity>
-                            
-                            <TouchableOpacity style={styles.moreOddsButton}>
-                                <Text style={styles.moreOddsText}>+{Math.floor(Math.random() * 50) + 10}</Text>
-                                <Ionicons name="chevron-forward" size={14} color="white" />
-                            </TouchableOpacity>
-                        </View>
-                    </TouchableOpacity>
+                        onBetPress={(betType, odds) => handleBetPress(event, betType, odds)}
+                    />
                 ))}
 
                 {filteredEvents.length === 0 && (
                     <View style={styles.emptyContainer}>
                         <Ionicons name="calendar-outline" size={50} color="#ccc" />
-                        <Text style={styles.emptyText}>No hay eventos disponibles</Text>
-                        <Text style={styles.emptySubtext}>
+                        <Text style={[styles.emptyText, { color: isDark ? '#999' : '#999' }]}>No hay eventos disponibles</Text>
+                        <Text style={[styles.emptySubtext, { color: isDark ? '#999' : '#999' }]}>
                             {selectedFilter === 'all' 
                                 ? `No se encontraron eventos de ${sport.name.toLowerCase()}`
                                 : `No hay eventos ${selectedFilter === 'live' ? 'en vivo' : selectedFilter} para ${sport.name.toLowerCase()}`
@@ -383,7 +352,6 @@ const styles = StyleSheet.create({
     headerTop: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 15,
     },
     backButton: {
         marginRight: 15,
@@ -398,65 +366,69 @@ const styles = StyleSheet.create({
         color: '#333',
         marginLeft: 10,
     },
-    searchContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#f0f0f0',
-        borderRadius: 10,
-        paddingHorizontal: 15,
-    },
-    searchIcon: {
-        marginRight: 10,
-    },
-    searchInput: {
-        flex: 1,
-        paddingVertical: 12,
-        fontSize: 16,
-        color: '#333',
-    },
     filtersContainer: {
         backgroundColor: 'white',
         borderBottomWidth: 1,
         borderBottomColor: '#e0e0e0',
+        paddingVertical: 5,
     },
     filtersContent: {
         paddingHorizontal: 20,
         paddingVertical: 15,
+        gap: 12,
     },
     filterChip: {
+        backgroundColor: '#f8f9fa',
+        borderWidth: 2,
+        borderColor: '#e0e0e0',
+        borderRadius: 25,
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+        marginRight: 12,
+        minWidth: 90,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 8,
+        elevation: 4,
+        position: 'relative',
+    },
+    filterContent: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'white',
-        borderWidth: 1,
-        borderColor: '#d32f2f',
-        borderRadius: 20,
-        paddingHorizontal: 15,
-        paddingVertical: 8,
-        marginRight: 10,
+        justifyContent: 'center',
     },
-    filterChipActive: {
-        backgroundColor: '#d32f2f',
+    filterContentActive: {
+        // Estilo adicional para contenido activo si es necesario
     },
     filterText: {
         fontSize: 14,
-        color: '#d32f2f',
-        fontWeight: '500',
-        marginRight: 5,
+        color: '#333',
+        fontWeight: '600',
+        marginRight: 8,
     },
-    filterTextActive: {
-        color: 'white',
+    filterBadge: {
+        backgroundColor: '#d32f2f',
+        borderRadius: 12,
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        minWidth: 24,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     filterCount: {
         fontSize: 12,
-        color: '#d32f2f',
-        backgroundColor: '#ffeee6',
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        borderRadius: 10,
+        color: 'white',
+        fontWeight: 'bold',
     },
-    filterCountActive: {
-        color: '#d32f2f',
-        backgroundColor: 'white',
+    selectedIndicator: {
+        position: 'absolute',
+        top: -2,
+        right: -2,
+        width: 12,
+        height: 12,
+        backgroundColor: '#ffd700',
+        borderRadius: 6,
+        borderWidth: 2,
+        borderColor: 'white',
     },
     eventsContainer: {
         flex: 1,

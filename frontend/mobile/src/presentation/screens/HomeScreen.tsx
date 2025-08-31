@@ -10,10 +10,92 @@ import {
     useColorScheme,
 } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import EventoItem from '../components/items/EventoItem';
 
 export default function HomeScreen() {
     const colorScheme = useColorScheme();
     const isDark = colorScheme === 'dark';
+    
+    const handleBetPress = (event: any, betType: 'home' | 'draw' | 'away', odds: number) => {
+        // Aquí puedes agregar la lógica para manejar la apuesta
+        console.log(`Apuesta seleccionada: ${betType} en ${event.title} con cuota ${odds}`);
+    };
+    
+    // Datos de eventos en vivo
+    const liveEvents = [
+        {
+            id: '1',
+            title: 'Real Madrid vs Barcelona',
+            league: 'La Liga',
+            date: '2025-08-30',
+            time: "75'",
+            status: 'live' as const,
+            isLive: true,
+            score: '2 - 1',
+            homeTeam: 'Real Madrid',
+            awayTeam: 'Barcelona',
+            sport: 'futbol',
+            viewers: 45672,
+            odds: {
+                home: 1.75,
+                draw: 3.10,
+                away: 4.20
+            }
+        },
+        {
+            id: '2',
+            title: 'Lakers vs Warriors',
+            league: 'NBA',
+            date: '2025-08-30',
+            time: 'Q3',
+            status: 'live' as const,
+            isLive: true,
+            score: '89 - 76',
+            homeTeam: 'Lakers',
+            awayTeam: 'Warriors',
+            sport: 'basquet',
+            viewers: 23451,
+            odds: {
+                home: 1.95,
+                away: 1.85
+            }
+        },
+    ];
+
+    // Datos de próximos eventos
+    const upcomingEvents = [
+        {
+            id: '3',
+            title: 'Manchester United vs Liverpool',
+            league: 'Premier League',
+            date: '2025-08-30',
+            time: '20:00',
+            status: 'upcoming' as const,
+            homeTeam: 'Manchester United',
+            awayTeam: 'Liverpool',
+            sport: 'futbol',
+            odds: {
+                home: 2.10,
+                draw: 3.40,
+                away: 3.20,
+            },
+        },
+        {
+            id: '4',
+            title: 'Celtics vs Heat',
+            league: 'NBA',
+            date: '2025-08-31',
+            time: '21:30',
+            status: 'upcoming' as const,
+            homeTeam: 'Celtics',
+            awayTeam: 'Heat',
+            sport: 'basquet',
+            odds: {
+                home: 1.85,
+                away: 1.95,
+            },
+        },
+    ];
     
     return (
         <View style={[styles.container, { backgroundColor: isDark ? '#121212' : '#f5f5f5' }]}>
@@ -50,65 +132,29 @@ export default function HomeScreen() {
                 {/* Eventos en vivo destacados */}
                 <View style={styles.section}>
                     <Text style={[styles.sectionTitle, { color: isDark ? 'white' : '#333' }]}>Eventos en Vivo</Text>
-                    <TouchableOpacity style={[styles.liveEventCard, { backgroundColor: isDark ? '#1e1e1e' : 'white' }]}>
-                        <View style={styles.liveIndicator}>
-                            <Text style={styles.liveText}>EN VIVO</Text>
-                        </View>
-                        <Text style={styles.eventTitle}>Real Madrid vs Barcelona</Text>
-                        <Text style={styles.eventTime}>75' - La Liga</Text>
-                        <View style={styles.scoreContainer}>
-                            <Text style={styles.score}>2 - 1</Text>
-                        </View>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.liveEventCard}>
-                        <View style={styles.liveIndicator}>
-                            <Text style={styles.liveText}>EN VIVO</Text>
-                        </View>
-                        <Text style={styles.eventTitle}>Lakers vs Warriors</Text>
-                        <Text style={styles.eventTime}>Q3 - NBA</Text>
-                        <View style={styles.scoreContainer}>
-                            <Text style={styles.score}>89 - 76</Text>
-                        </View>
-                    </TouchableOpacity>
+                    {liveEvents.map((event) => (
+                        <EventoItem
+                            key={event.id}
+                            event={event}
+                            variant="normal"
+                            onPress={() => console.log('Evento presionado:', event.title)}
+                            onBetPress={(betType, odds) => handleBetPress(event, betType, odds)}
+                        />
+                    ))}
                 </View>
 
                 {/* Próximos eventos */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Próximos Eventos</Text>
-                    <TouchableOpacity style={styles.upcomingEventCard}>
-                        <Text style={styles.eventTitle}>Manchester United vs Liverpool</Text>
-                        <Text style={styles.eventTime}>Hoy 20:00 - Premier League</Text>
-                        <View style={styles.oddsContainer}>
-                            <View style={styles.oddItem}>
-                                <Text style={styles.oddLabel}>1</Text>
-                                <Text style={styles.oddValue}>2.10</Text>
-                            </View>
-                            <View style={styles.oddItem}>
-                                <Text style={styles.oddLabel}>X</Text>
-                                <Text style={styles.oddValue}>3.40</Text>
-                            </View>
-                            <View style={styles.oddItem}>
-                                <Text style={styles.oddLabel}>2</Text>
-                                <Text style={styles.oddValue}>3.20</Text>
-                            </View>
-                        </View>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.upcomingEventCard}>
-                        <Text style={styles.eventTitle}>Celtics vs Heat</Text>
-                        <Text style={styles.eventTime}>Mañana 21:30 - NBA</Text>
-                        <View style={styles.oddsContainer}>
-                            <View style={styles.oddItem}>
-                                <Text style={styles.oddLabel}>Local</Text>
-                                <Text style={styles.oddValue}>1.85</Text>
-                            </View>
-                            <View style={styles.oddItem}>
-                                <Text style={styles.oddLabel}>Visitante</Text>
-                                <Text style={styles.oddValue}>1.95</Text>
-                            </View>
-                        </View>
-                    </TouchableOpacity>
+                    <Text style={[styles.sectionTitle, { color: isDark ? 'white' : '#333' }]}>Próximos Eventos</Text>
+                    {upcomingEvents.map((event) => (
+                        <EventoItem
+                            key={event.id}
+                            event={event}
+                            variant="detailed"
+                            onPress={() => console.log('Evento presionado:', event.title)}
+                            onBetPress={(betType, odds) => handleBetPress(event, betType, odds)}
+                        />
+                    ))}
                 </View>
             </ScrollView>
         </View>

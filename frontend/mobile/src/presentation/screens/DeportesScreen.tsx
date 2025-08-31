@@ -7,11 +7,13 @@ import {
     TouchableOpacity,
     SafeAreaView,
     TextInput,
+    useColorScheme,
 } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MainCasinoStackParamList } from '../navigation/DeportesNavigation';
+import EventoItem from '../components/items/EventoItem';
 
 type DeportesScreenNavigationProp = NativeStackNavigationProp<MainCasinoStackParamList>;
 
@@ -47,6 +49,13 @@ export default function DeportesScreen() {
     const navigation = useNavigation<DeportesScreenNavigationProp>();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedView, setSelectedView] = useState<'sports' | 'events'>('sports');
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === 'dark';
+
+    const handleBetPress = (event: Event, betType: 'home' | 'draw' | 'away', odds: number) => {
+        // Aquí puedes agregar la lógica para manejar la apuesta
+        console.log(`Apuesta seleccionada: ${betType} en ${event.title} con cuota ${odds}`);
+    };
 
     const sports: Sport[] = [
         { id: 'futbol', name: 'Fútbol', icon: 'football', eventCount: 156, popularidad: 95 },
@@ -295,7 +304,15 @@ export default function DeportesScreen() {
                     </View>
                 ) : (
                     <View style={styles.eventsContainer}>
-                        {filteredEvents.map(renderEventCard)}
+                        {filteredEvents.map((event) => (
+                            <EventoItem
+                                key={event.id}
+                                event={event}
+                                variant="normal"
+                                onPress={() => navigateToEventDetail(event)}
+                                onBetPress={(betType, odds) => handleBetPress(event, betType, odds)}
+                            />
+                        ))}
                     </View>
                 )}
 
