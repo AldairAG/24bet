@@ -5,8 +5,8 @@ services:
       dockerfile: Dockerfile
     expose:
       - "8080"  # importante: no necesitas publicar el puerto
-    networks:
-      - my_custom_network
+#    networks:
+#      - my_custom_network
     environment:
       DB_URL: jdbc:postgresql://200.58.100.28:5432/db_lbf
       DB_USER_NAME: postgres
@@ -31,6 +31,6 @@ services:
 #    networks:
 #      - my_custom_network
 #
-networks:
-  my_custom_network:
-  driver: bridge
+#networks:
+#  my_custom_network:
+#  driver: bridge
