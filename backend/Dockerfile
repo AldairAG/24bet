@@ -16,7 +16,7 @@ RUN mvn clean package -DskipTests
 FROM openjdk:19-jdk
 WORKDIR /app
 # Copia el archivo JAR generado desde la etapa anterior
-COPY --from=builder /app/target/24bet-1.0.0.jar app_24bet.jar
+COPY --from=builder /app/target/24bet-0.0.1.jar app_24bet.jar
 # Expone el puerto 8080 (puerto predeterminado de Spring Boot)
 EXPOSE 8080
 # Ejecuta el archivo JAR
