@@ -10,7 +10,7 @@ services:
     environment:
       DB_URL: jdbc:postgresql://149.50.142.217:5432/db_casino
       DB_USER_NAME: postgres
-      DB_PASSWORD: 1234
+      DB_PASSWORD: root
       TZ: Etc/GMT+6
     restart: always
 
