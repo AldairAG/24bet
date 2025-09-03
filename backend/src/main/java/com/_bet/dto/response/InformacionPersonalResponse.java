@@ -43,7 +43,6 @@ public class InformacionPersonalResponse {
     
     // ========== INFORMACIÓN ADICIONAL ==========
     
-    private InformacionPersonal.EstadoCivil estadoCivil;
     private String ocupacion;
     private String nacionalidad;
     

@@ -52,7 +52,8 @@ public class AuthServiceImpl implements AuthService {
                     usuario.getId(),
                     usuario.getUsername(),
                     usuario.getEmail(),
-                    usuario.getRol().name()
+                    usuario.getRol().name(),
+                    usuario
             );
 
         } catch (AuthenticationException e) {

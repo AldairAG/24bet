@@ -17,16 +17,19 @@ import { Checkbox } from "react-native-paper";
 import type { StackNavigationProp } from '@react-navigation/stack';
 
 type RootStackParamList = {
-    Home: undefined;
+    Login: undefined;
     // Agrega aquí otras pantallas si es necesario
 };
 
-type RegisterScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
+type RegisterScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
 interface RegisterScreenProps {
     navigation: RegisterScreenNavigationProp;
 }
 
+import { useAuth } from '../../hooks/useAuth';
+import { RegistroRequest } from '../../types/authTypes';
+import Toast from 'react-native-toast-message';
 // Lista de códigos de área internacionales
 const countryCodes = [
     { label: "México (+52)", value: "+52", maxLength: 10 },
@@ -80,6 +83,7 @@ const days = generateDays();
 const months = generateMonths();
 const years = generateYears();
 
+
 export default function RegisterScreen({ navigation }: RegisterScreenProps) {
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
@@ -112,6 +116,9 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
     // Obtener la configuración del país seleccionado
     const selectedCountry = countryCodes.find(country => country.value === countryCode);
     const maxPhoneLength = selectedCountry?.maxLength || 10;
+
+    // Hook de autenticación
+    const { registro, loading, error } = useAuth();
 
     // Función para actualizar la fecha de nacimiento completa
     const updateBirthDate = (day: number | null, month: number | null, year: number | null) => {
@@ -265,11 +272,62 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
         setShowYearPicker(false);
     };
 
-    const handleRegister = () => {
+
+    const handleRegister = async () => {
         if (isFormValid) {
-            console.log(`Número completo: ${countryCode} ${phone}`);
-            console.log(`Fecha de nacimiento: ${birthDate?.toLocaleDateString()}`);
-            navigation.navigate("Home");
+            const fechaNacimiento = birthDate ? birthDate.toISOString().split('T')[0] : '';
+            const registroRequest: RegistroRequest = {
+                username,
+                email,
+                password,
+                nombre: firstName,
+                apellido: lastName,
+                ladaTelefono: countryCode,
+                numeroTelefono: phone,
+                fechaNacimiento,
+            };
+            try {
+                const action = await registro(registroRequest);
+                // Si el registro fue exitoso y status 201
+                if (
+                    action &&
+                    action.meta &&
+                    action.meta.requestStatus === 'fulfilled' &&
+                    action.meta.arg &&
+                    action.payload &&
+                    typeof action.payload === 'object' &&
+                    'success' in action.payload &&
+                    (action.payload as any).success
+                ) {
+                    Toast.show({
+                        type: 'success',
+                        text1: 'Registro exitoso',
+                        text2: 'Tu cuenta ha sido creada correctamente.'
+                    });
+                    navigation.navigate('Login');
+                } else if (action && action.meta && action.meta.requestStatus !== 'fulfilled') {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Algo salió mal',
+                        text2: 'Inténtelo de nuevo'
+                    });
+                } else {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Error',
+                        text2:
+                            (typeof action?.payload === 'object' && action?.payload?.message)
+                                ? action.payload.message
+                                : (typeof action?.payload === 'string' ? action.payload : 'No se pudo registrar')
+                    });
+                }
+            } catch (e: any) {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Algo salió mal',
+                    text2: 'Inténtelo de nuevo'
+                });
+            }
         }
     };
 
@@ -500,13 +558,16 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
                     </Text>
                 </View>
                 <TouchableOpacity
-                    style={[styles.button, { backgroundColor: isFormValid ? "#d32f2f" : "#bdbdbd" }]}
+                    style={[styles.button, { backgroundColor: isFormValid && !loading ? "#d32f2f" : "#bdbdbd" }]}
                     onPress={handleRegister}
-                    disabled={!isFormValid}
+                    disabled={!isFormValid || loading}
                 >
-                    <Text style={styles.buttonText}>Registrarse</Text>
+                    <Text style={styles.buttonText}>{loading ? 'Registrando...' : 'Registrarse'}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.navigate("Home")}>
+                {error && (
+                    <Text style={styles.errorText}>{error}</Text>
+                )}
+                <TouchableOpacity onPress={() => navigation.navigate("Login")}>
                     <Text style={styles.loginText}>Ya tienes cuenta? Inicia sesión</Text>
                 </TouchableOpacity>
             </ScrollView>

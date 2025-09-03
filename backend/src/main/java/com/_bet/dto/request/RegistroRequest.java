@@ -1,11 +1,13 @@
 package com._bet.dto.request;
 
+import java.util.Date;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-
-import java.time.LocalDateTime;
 
 @Data
 public class RegistroRequest {
@@ -32,5 +34,6 @@ public class RegistroRequest {
     @Size(min = 7, max = 11, message = "El número de teléfono debe tener entre 7 y 10 dígitos")
     private String numeroTelefono;
     
-    private LocalDateTime fechaNacimiento;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private Date fechaNacimiento;
 }

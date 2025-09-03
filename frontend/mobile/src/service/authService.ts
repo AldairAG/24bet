@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { api } from './apiBase';
 import {
   LoginRequest,
   RegistroRequest,
@@ -7,22 +7,14 @@ import {
   ApiResponseWrapper
 } from '../types/authTypes';
 
-const API_URL = 'http://localhost:8080/24bet/auth'; // Cambia la URL si es necesario
+const BASE_URL = '/auth';
 
 export const authService = {
   registro: async (registroRequest: RegistroRequest): Promise<ApiResponseWrapper<UsuarioResponse>> => {
-    const response = await axios.post<ApiResponseWrapper<UsuarioResponse>>(
-      `${API_URL}/registro`,
-      registroRequest
-    );
-    return response.data;
+    return await api.post<UsuarioResponse>(`${BASE_URL}/registro`, registroRequest);
   },
 
   login: async (loginRequest: LoginRequest): Promise<ApiResponseWrapper<JwtResponse>> => {
-    const response = await axios.post<ApiResponseWrapper<JwtResponse>>(
-      `${API_URL}/login`,
-      loginRequest
-    );
-    return response.data;
+    return await api.post<JwtResponse>(`${BASE_URL}/login`, loginRequest);
   }
 };

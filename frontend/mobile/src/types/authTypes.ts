@@ -1,5 +1,7 @@
+import { DocumentoKyc, InformacionPersonal } from "./kycTypes";
+
 export interface LoginRequest {
-  usernameOrEmail: string;
+  username: string;
   password: string;
 }
 
@@ -19,8 +21,39 @@ export interface RegistroRequest {
 export interface JwtResponse {
   token: string;
   type: string;
-  // Agrega otros campos si el backend los retorna
+  user: Usuario;
 }
+
+export interface Usuario {
+  id: number;
+
+  username: string;
+
+  email: string;
+
+  nombre: string;
+
+  apellido: string;
+
+  ladaTelefono: string;
+
+  numeroTelefono: string;
+
+  fechaNacimiento: Date;
+
+  activo: boolean;
+
+  fechaCreacion: string;
+
+  fechaActualizacion: string;
+
+  rol: string;
+
+  informacionPersonal: InformacionPersonal;
+
+  documentosKyc: DocumentoKyc[];
+}
+
 
 export interface UsuarioResponse {
   id: number;
@@ -32,6 +65,7 @@ export interface UsuarioResponse {
   ladaTelefono: string;
   numeroTelefono: string;
   fechaNacimiento: string;
+
   // Agrega otros campos según la respuesta del backend
 }
 

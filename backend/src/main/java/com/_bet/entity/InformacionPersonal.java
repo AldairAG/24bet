@@ -17,39 +17,9 @@ public class InformacionPersonal {
     
     // ========== INFORMACIÓN BÁSICA ==========
     
-    @Column(name = "primer_nombre", length = 50)
-    @Size(max = 50, message = "El primer nombre no puede exceder 50 caracteres")
-    private String primerNombre;
-    
-    @Column(name = "segundo_nombre", length = 50)
-    @Size(max = 50, message = "El segundo nombre no puede exceder 50 caracteres")
-    private String segundoNombre;
-    
-    @Column(name = "apellido_paterno", length = 50)
-    @Size(max = 50, message = "El apellido paterno no puede exceder 50 caracteres")
-    private String apellidoPaterno;
-    
-    @Column(name = "apellido_materno", length = 50)
-    @Size(max = 50, message = "El apellido materno no puede exceder 50 caracteres")
-    private String apellidoMaterno;
-    
-    @Column(name = "fecha_nacimiento")
-    @Past(message = "La fecha de nacimiento debe ser en el pasado")
-    private LocalDate fechaNacimiento;
-    
     @Enumerated(EnumType.STRING)
     @Column(name = "genero", length = 20)
     private Genero genero;
-    
-    // ========== INFORMACIÓN DE CONTACTO ==========
-    
-    @Column(name = "telefono", length = 15)
-    @Pattern(regexp = "^[0-9+\\-\\s()]*$", message = "El teléfono solo puede contener números y caracteres válidos")
-    private String telefono;
-    
-    @Column(name = "telefono_movil", length = 15)
-    @Pattern(regexp = "^[0-9+\\-\\s()]*$", message = "El teléfono móvil solo puede contener números y caracteres válidos")
-    private String telefonoMovil;
     
     // ========== DIRECCIÓN ==========
     
@@ -91,24 +61,11 @@ public class InformacionPersonal {
     @Pattern(regexp = "^[A-ZÑ&]{3,4}[0-9]{6}[A-Z0-9]{3}$", message = "El RFC no tiene un formato válido")
     private String rfc;
     
-    @Column(name = "curp", length = 18, unique = true)
-    @Pattern(regexp = "^[A-Z]{1}[AEIOUX]{1}[A-Z]{2}[0-9]{2}[0-1][0-9][0-3][0-9][HM]{1}[A-Z]{2}[BCDFGHJKLMNPQRSTVWXYZ]{3}[A-Z0-9]{1}[0-9]{1}$", 
-             message = "La CURP no tiene un formato válido")
-    private String curp;
-    
     // ========== INFORMACIÓN ADICIONAL ==========
-    
-    @Enumerated(EnumType.STRING)
-    @Column(name = "estado_civil", length = 20)
-    private EstadoCivil estadoCivil;
     
     @Column(name = "ocupacion", length = 100)
     @Size(max = 100, message = "La ocupación no puede exceder 100 caracteres")
     private String ocupacion;
-    
-    @Column(name = "nacionalidad", length = 50)
-    @Size(max = 50, message = "La nacionalidad no puede exceder 50 caracteres")
-    private String nacionalidad;
     
     // ========== METADATOS ==========
     
@@ -131,17 +88,6 @@ public class InformacionPersonal {
         OTRO,
         NO_ESPECIFICADO
     }
-    
-    public enum EstadoCivil {
-        SOLTERO,
-        CASADO,
-        DIVORCIADO,
-        VIUDO,
-        UNION_LIBRE,
-        SEPARADO,
-        NO_ESPECIFICADO
-    }
-    
     // ========== MÉTODOS DE CICLO DE VIDA ==========
     
     @PrePersist
@@ -156,32 +102,6 @@ public class InformacionPersonal {
     }
     
     // ========== MÉTODOS AUXILIARES ==========
-    
-    /**
-     * Obtiene el nombre completo del usuario
-     * @return String con el nombre completo
-     */
-    public String getNombreCompleto() {
-        StringBuilder nombreCompleto = new StringBuilder();
-        
-        if (primerNombre != null) {
-            nombreCompleto.append(primerNombre);
-        }
-        
-        if (segundoNombre != null && !segundoNombre.isEmpty()) {
-            nombreCompleto.append(" ").append(segundoNombre);
-        }
-        
-        if (apellidoPaterno != null) {
-            nombreCompleto.append(" ").append(apellidoPaterno);
-        }
-        
-        if (apellidoMaterno != null) {
-            nombreCompleto.append(" ").append(apellidoMaterno);
-        }
-        
-        return nombreCompleto.toString().trim();
-    }
     
     /**
      * Obtiene la dirección completa
