@@ -33,4 +33,4 @@ services:
 #
 networks:
   my_custom_network:
-  driver: bridge
+    driver: bridge
