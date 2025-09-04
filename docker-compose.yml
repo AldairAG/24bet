@@ -1,10 +1,10 @@
 services:
   app_24bet:
-    build: 
+    build:
       context: backend
       dockerfile: Dockerfile
-    expose:
-      - "8080"  # importante: no necesitas publicar el puerto
+    ports:
+      - "8080:8080"
     networks:
       - my_custom_network
     environment:
