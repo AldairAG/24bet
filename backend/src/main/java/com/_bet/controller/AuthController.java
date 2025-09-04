@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/24bet/auth")
 @RequiredArgsConstructor
 @Tag(name = "Autenticación", description = "Endpoints para registro y login de usuarios")
-@CrossOrigin(origins = "*")
 public class AuthController {
 
     private final AuthService authService;
