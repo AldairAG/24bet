@@ -24,7 +24,7 @@ services:
     depends_on:
       - app_24bet
     volumes:
-      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./frontend/web/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
     environment:
       - VITE_API_BASE_URL=https://24bet.mx/24bet
