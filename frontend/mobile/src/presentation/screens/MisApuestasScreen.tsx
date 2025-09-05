@@ -204,14 +204,12 @@ export default function MisApuestasScreen() {
     ];
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#121212' : '#f5f5f5' }]}>
             {/* Header */}
-            <View style={styles.header}>
-                <Text style={styles.headerTitle}>Mis Apuestas</Text>
-            </View>
+            
 
             {/* Tabs */}
-            <View style={styles.tabsContainer}>
+            <View style={[styles.tabsContainer, { backgroundColor: isDark ? '#1e1e1e' : 'white' }]}>
                 {tabs.map((tab) => (
                     <TouchableOpacity
                         key={tab.key}
@@ -223,16 +221,22 @@ export default function MisApuestasScreen() {
                     >
                         <Text style={[
                             styles.tabText,
+                            { color: isDark ? '#ccc' : '#666' },
                             activeTab === tab.key && styles.activeTabText
                         ]}>
                             {tab.label}
                         </Text>
-                        <Text style={[
-                            styles.tabCount,
-                            activeTab === tab.key && styles.activeTabCount
+                        <View style={[
+                            styles.tabCountBadge,
+                            { backgroundColor: activeTab === tab.key ? '#d32f2f' : (isDark ? '#333' : '#f0f0f0') }
                         ]}>
-                            {tab.count}
-                        </Text>
+                            <Text style={[
+                                styles.tabCount,
+                                { color: activeTab === tab.key ? 'white' : (isDark ? '#888' : '#999') }
+                            ]}>
+                                {tab.count}
+                            </Text>
+                        </View>
                     </TouchableOpacity>
                 ))}
             </View>
@@ -245,14 +249,37 @@ export default function MisApuestasScreen() {
                 }
             >
                 {filteredBets.map((bet) => (
-                    <TouchableOpacity key={bet.id} style={styles.betCard}>
+                    <TouchableOpacity 
+                        key={bet.id} 
+                        style={[
+                            styles.betCard,
+                            { 
+                                backgroundColor: isDark ? '#2a2a2a' : 'white',
+                                shadowColor: isDark ? '#000' : '#000',
+                                shadowOpacity: isDark ? 0.3 : 0.1,
+                            }
+                        ]}
+                        activeOpacity={0.7}
+                    >
                         <View style={styles.betHeader}>
                             <View style={styles.betInfo}>
-                                <Text style={styles.betId}>#{bet.id}</Text>
+                                <View style={[styles.betIdContainer, { backgroundColor: isDark ? '#333' : '#f8f9fa' }]}>
+                                    <Text style={[styles.betId, { color: isDark ? '#ccc' : '#666' }]}>#{bet.id}</Text>
+                                </View>
                                 <View style={[
                                     styles.betTypeChip,
-                                    { backgroundColor: bet.type === 'simple' ? '#e3f2fd' : '#fff3e0' }
+                                    { 
+                                        backgroundColor: bet.type === 'simple' 
+                                            ? (isDark ? '#1a237e' : '#e3f2fd') 
+                                            : (isDark ? '#e65100' : '#fff3e0') 
+                                    }
                                 ]}>
+                                    <Ionicons 
+                                        name={bet.type === 'simple' ? 'radio-button-on' : 'layers'} 
+                                        size={12} 
+                                        color={bet.type === 'simple' ? '#1976d2' : '#f57c00'} 
+                                        style={{ marginRight: 4 }}
+                                    />
                                     <Text style={[
                                         styles.betTypeText,
                                         { color: bet.type === 'simple' ? '#1976d2' : '#f57c00' }
@@ -263,8 +290,16 @@ export default function MisApuestasScreen() {
                             </View>
                             <View style={[
                                 styles.statusChip,
-                                { backgroundColor: `${getStatusColor(bet.status)}20` }
+                                { 
+                                    backgroundColor: `${getStatusColor(bet.status)}${isDark ? '30' : '20'}`,
+                                    borderWidth: 1,
+                                    borderColor: `${getStatusColor(bet.status)}${isDark ? '60' : '40'}`
+                                }
                             ]}>
+                                <View style={[
+                                    styles.statusDot,
+                                    { backgroundColor: getStatusColor(bet.status) }
+                                ]} />
                                 <Text style={[
                                     styles.statusText,
                                     { color: getStatusColor(bet.status) }
@@ -275,24 +310,54 @@ export default function MisApuestasScreen() {
                         </View>
 
                         <View style={styles.betDetails}>
-                            <Text style={styles.betDate}>{bet.date}</Text>
+                            <View style={styles.dateTimeContainer}>
+                                <Ionicons name="time-outline" size={14} color={isDark ? '#888' : '#999'} />
+                                <Text style={[styles.betDate, { color: isDark ? '#888' : '#666' }]}>{bet.date}</Text>
+                            </View>
                         </View>
 
                         {/* Eventos */}
-                        <View style={styles.eventsContainer}>
+                        <View style={[styles.eventsContainer, { backgroundColor: isDark ? '#333' : '#f8f9fa' }]}>
+                            <View style={styles.eventsHeader}>
+                                <Text style={[styles.eventsTitle, { color: isDark ? '#ccc' : '#666' }]}>
+                                    Eventos ({bet.events.length})
+                                </Text>
+                            </View>
                             {bet.events.map((event, index) => (
-                                <View key={index} style={styles.eventRow}>
-                                    <View style={styles.eventInfo}>
-                                        <Text style={styles.eventTitle}>{event.title}</Text>
-                                        <Text style={styles.eventSelection}>{event.selection}</Text>
+                                <View key={index} style={[
+                                    styles.eventRow,
+                                    { borderBottomColor: isDark ? '#444' : '#f0f0f0' }
+                                ]}>
+                                    <View style={styles.eventLeft}>
+                                        <View style={styles.eventIconContainer}>
+                                            <MaterialIcons name="sports-soccer" size={16} color="#d32f2f" />
+                                        </View>
+                                        <View style={styles.eventInfo}>
+                                            <Text style={[styles.eventTitle, { color: isDark ? '#fff' : '#333' }]}>
+                                                {event.title}
+                                            </Text>
+                                            <Text style={[styles.eventSelection, { color: isDark ? '#bbb' : '#666' }]}>
+                                                {event.selection}
+                                            </Text>
+                                        </View>
                                     </View>
-                                    <View style={styles.eventOdds}>
-                                        <Text style={styles.oddsText}>{event.odds.toFixed(2)}</Text>
+                                    <View style={styles.eventRight}>
+                                        <View style={[styles.oddsContainer, { backgroundColor: isDark ? '#2a2a2a' : 'white' }]}>
+                                            <Text style={[styles.oddsText, { color: isDark ? '#ff6b6b' : '#d32f2f' }]}>
+                                                {event.odds.toFixed(2)}
+                                            </Text>
+                                        </View>
                                         {event.result && (
                                             <View style={[
                                                 styles.resultIndicator,
                                                 { backgroundColor: getStatusColor(event.result as BetStatus) }
-                                            ]} />
+                                            ]}>
+                                                <Ionicons 
+                                                    name={event.result === 'ganada' ? 'checkmark' : 'close'} 
+                                                    size={10} 
+                                                    color="white" 
+                                                />
+                                            </View>
                                         )}
                                     </View>
                                 </View>
@@ -300,17 +365,29 @@ export default function MisApuestasScreen() {
                         </View>
 
                         {/* Montos */}
-                        <View style={styles.amountsContainer}>
+                        <View style={[styles.amountsContainer, { backgroundColor: isDark ? '#1e1e1e' : '#f8f9fa' }]}>
                             <View style={styles.amountRow}>
-                                <Text style={styles.amountLabel}>Apostado:</Text>
-                                <Text style={styles.amountValue}>${bet.amount}</Text>
+                                <View style={styles.amountLabelContainer}>
+                                    <Ionicons name="wallet-outline" size={16} color={isDark ? '#888' : '#666'} />
+                                    <Text style={[styles.amountLabel, { color: isDark ? '#888' : '#666' }]}>Apostado:</Text>
+                                </View>
+                                <Text style={[styles.amountValue, { color: isDark ? '#fff' : '#333' }]}>${bet.amount}</Text>
                             </View>
+                            <View style={styles.divider} />
                             <View style={styles.amountRow}>
-                                <Text style={styles.amountLabel}>
-                                    {bet.status === 'pendiente' ? 'Ganancia potencial:' : 'Resultado:'}
-                                </Text>
+                                <View style={styles.amountLabelContainer}>
+                                    <Ionicons 
+                                        name={bet.status === 'pendiente' ? 'trending-up-outline' : 'trophy-outline'} 
+                                        size={16} 
+                                        color={isDark ? '#888' : '#666'} 
+                                    />
+                                    <Text style={[styles.amountLabel, { color: isDark ? '#888' : '#666' }]}>
+                                        {bet.status === 'pendiente' ? 'Ganancia potencial:' : 'Resultado:'}
+                                    </Text>
+                                </View>
                                 <Text style={[
                                     styles.amountValue,
+                                    { color: isDark ? '#fff' : '#333' },
                                     bet.status === 'ganada' && styles.winAmount,
                                     bet.status === 'perdida' && styles.loseAmount
                                 ]}>
@@ -320,9 +397,16 @@ export default function MisApuestasScreen() {
                         </View>
 
                         {bet.status === 'pendiente' && (
-                            <TouchableOpacity style={styles.cashOutButton}>
+                            <TouchableOpacity style={[
+                                styles.cashOutButton,
+                                { 
+                                    backgroundColor: isDark ? '#2a2a2a' : '#fff3e0',
+                                    borderColor: isDark ? '#FF9800' : '#FF9800'
+                                }
+                            ]}>
                                 <Ionicons name="cash" size={16} color="#FF9800" />
-                                <Text style={styles.cashOutText}>Cash Out</Text>
+                                <Text style={styles.cashOutText}>Cash Out Disponible</Text>
+                                <Ionicons name="chevron-forward" size={16} color="#FF9800" />
                             </TouchableOpacity>
                         )}
                     </TouchableOpacity>
@@ -330,15 +414,21 @@ export default function MisApuestasScreen() {
 
                 {filteredBets.length === 0 && (
                     <View style={styles.emptyContainer}>
-                        <Ionicons name="receipt-outline" size={60} color="#ccc" />
-                        <Text style={styles.emptyText}>No tienes apuestas</Text>
-                        <Text style={styles.emptySubtext}>
+                        <View style={[styles.emptyIconContainer, { backgroundColor: isDark ? '#2a2a2a' : '#f8f9fa' }]}>
+                            <Ionicons name="receipt-outline" size={60} color={isDark ? '#666' : '#ccc'} />
+                        </View>
+                        <Text style={[styles.emptyText, { color: isDark ? '#888' : '#999' }]}>No tienes apuestas</Text>
+                        <Text style={[styles.emptySubtext, { color: isDark ? '#666' : '#999' }]}>
                             {activeTab === 'todas' 
                                 ? 'Cuando realices tus primeras apuestas aparecerán aquí'
                                 : `No tienes apuestas ${activeTab}`
                             }
                         </Text>
-                        <TouchableOpacity style={styles.startBettingButton}>
+                        <TouchableOpacity style={[
+                            styles.startBettingButton,
+                            { backgroundColor: isDark ? '#d32f2f' : '#d32f2f' }
+                        ]}>
+                            <Ionicons name="add-circle-outline" size={20} color="white" style={{ marginRight: 8 }} />
                             <Text style={styles.startBettingText}>Comenzar a apostar</Text>
                         </TouchableOpacity>
                     </View>
@@ -369,12 +459,14 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         borderBottomWidth: 1,
         borderBottomColor: '#e0e0e0',
+        paddingHorizontal: 10,
     },
     tab: {
         flex: 1,
         paddingVertical: 15,
+        paddingHorizontal: 10,
         alignItems: 'center',
-        borderBottomWidth: 2,
+        borderBottomWidth: 3,
         borderBottomColor: 'transparent',
     },
     activeTab: {
@@ -383,19 +475,25 @@ const styles = StyleSheet.create({
     tabText: {
         fontSize: 16,
         color: '#666',
-        fontWeight: '500',
+        fontWeight: '600',
+        marginBottom: 6,
     },
     activeTabText: {
         color: '#d32f2f',
         fontWeight: 'bold',
     },
+    tabCountBadge: {
+        backgroundColor: '#f0f0f0',
+        borderRadius: 12,
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        minWidth: 24,
+        alignItems: 'center',
+    },
     tabCount: {
         fontSize: 12,
         color: '#999',
-        marginTop: 2,
-    },
-    activeTabCount: {
-        color: '#d32f2f',
+        fontWeight: 'bold',
     },
     betsContainer: {
         flex: 1,
@@ -403,84 +501,149 @@ const styles = StyleSheet.create({
     },
     betCard: {
         backgroundColor: 'white',
-        borderRadius: 12,
-        padding: 15,
-        marginBottom: 15,
+        borderRadius: 16,
+        padding: 20,
+        marginBottom: 16,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        shadowRadius: 8,
+        elevation: 5,
+        borderWidth: 1,
+        borderColor: '#f0f0f0',
     },
     betHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 10,
+        marginBottom: 16,
     },
     betInfo: {
         flexDirection: 'row',
         alignItems: 'center',
+        flex: 1,
+    },
+    betIdContainer: {
+        backgroundColor: '#f8f9fa',
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        marginRight: 12,
     },
     betId: {
-        fontSize: 14,
+        fontSize: 12,
         fontWeight: 'bold',
         color: '#666',
-        marginRight: 10,
     },
     betTypeChip: {
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 16,
     },
     betTypeText: {
-        fontSize: 10,
+        fontSize: 11,
         fontWeight: 'bold',
     },
     statusChip: {
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        borderRadius: 15,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
+    },
+    statusDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        marginRight: 6,
     },
     statusText: {
         fontSize: 12,
         fontWeight: 'bold',
     },
     betDetails: {
-        marginBottom: 15,
+        marginBottom: 16,
+    },
+    dateTimeContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     betDate: {
-        fontSize: 12,
+        fontSize: 13,
         color: '#666',
+        marginLeft: 6,
     },
     eventsContainer: {
-        marginBottom: 15,
+        backgroundColor: '#f8f9fa',
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 16,
+    },
+    eventsHeader: {
+        marginBottom: 12,
+    },
+    eventsTitle: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#666',
     },
     eventRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingVertical: 8,
+        paddingVertical: 12,
         borderBottomWidth: 1,
         borderBottomColor: '#f0f0f0',
     },
+    eventLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+    eventIconContainer: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: '#fff',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
+    },
     eventInfo: {
         flex: 1,
-        marginRight: 10,
     },
     eventTitle: {
         fontSize: 14,
         fontWeight: '600',
         color: '#333',
-        marginBottom: 2,
+        marginBottom: 4,
     },
     eventSelection: {
         fontSize: 12,
         color: '#666',
     },
-    eventOdds: {
-        alignItems: 'center',
+    eventRight: {
         flexDirection: 'row',
+        alignItems: 'center',
+    },
+    oddsContainer: {
+        backgroundColor: 'white',
+        borderRadius: 8,
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        marginRight: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
     },
     oddsText: {
         fontSize: 14,
@@ -488,30 +651,42 @@ const styles = StyleSheet.create({
         color: '#d32f2f',
     },
     resultIndicator: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        marginLeft: 5,
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     amountsContainer: {
         backgroundColor: '#f8f9fa',
-        padding: 12,
-        borderRadius: 8,
-        marginBottom: 10,
+        padding: 16,
+        borderRadius: 12,
+        marginBottom: 12,
     },
     amountRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 5,
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    amountLabelContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     amountLabel: {
         fontSize: 14,
         color: '#666',
+        marginLeft: 6,
     },
     amountValue: {
-        fontSize: 14,
+        fontSize: 16,
         fontWeight: 'bold',
         color: '#333',
+    },
+    divider: {
+        height: 1,
+        backgroundColor: '#e0e0e0',
+        marginVertical: 8,
     },
     winAmount: {
         color: '#4CAF50',
@@ -524,42 +699,61 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: '#fff3e0',
-        paddingVertical: 10,
-        borderRadius: 8,
+        paddingVertical: 12,
+        borderRadius: 12,
         borderWidth: 1,
         borderColor: '#FF9800',
     },
     cashOutText: {
-        marginLeft: 5,
+        marginHorizontal: 8,
         color: '#FF9800',
         fontWeight: 'bold',
+        fontSize: 14,
     },
     emptyContainer: {
         alignItems: 'center',
         justifyContent: 'center',
         paddingVertical: 60,
     },
+    emptyIconContainer: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: '#f8f9fa',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 20,
+    },
     emptyText: {
         fontSize: 18,
         fontWeight: 'bold',
         color: '#999',
-        marginTop: 15,
+        marginBottom: 8,
     },
     emptySubtext: {
         fontSize: 14,
         color: '#999',
         textAlign: 'center',
-        marginTop: 5,
-        marginBottom: 20,
+        marginBottom: 24,
+        lineHeight: 20,
+        paddingHorizontal: 20,
     },
     startBettingButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
         backgroundColor: '#d32f2f',
-        paddingHorizontal: 20,
+        paddingHorizontal: 24,
         paddingVertical: 12,
-        borderRadius: 8,
+        borderRadius: 12,
+        shadowColor: '#d32f2f',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 3,
     },
     startBettingText: {
         color: 'white',
         fontWeight: 'bold',
+        fontSize: 16,
     },
 });
