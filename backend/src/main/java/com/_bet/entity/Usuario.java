@@ -84,6 +84,11 @@ public class Usuario implements UserDetails {
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<DocumentoKyc> documentosKyc;
     
+    // ========== RELACIÓN CON CRYPTO WALLETS ==========
+    
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<CryptoWallet> cryptoWallets;
+    
     @PrePersist
     protected void onCreate() {
         fechaCreacion = LocalDateTime.now();
