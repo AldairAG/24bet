@@ -1,5 +1,6 @@
 import { api } from './apiBase';
 import { ApiResponseWrapper, UsuarioResponse } from '../types/authTypes';
+import { EditUserProfile } from '../types/userTypes';
 
 // Tipos específicos para el servicio de usuario
 export interface CambiarPasswordRequest {
@@ -7,12 +8,6 @@ export interface CambiarPasswordRequest {
   passwordNuevo: string;
 }
 
-export interface EditarPerfilRequest {
-  nombre: string;
-  apellido: string;
-  ladaTelefono: string;
-  numeroTelefono: string;
-}
 
 export interface EditarUsuarioAdminRequest {
   username: string;
@@ -41,7 +36,7 @@ export const usuarioService = {
   },
 
   // Editar perfil del usuario actual
-  editarPerfil: async (datos: EditarPerfilRequest): Promise<ApiResponseWrapper<UsuarioResponse>> => {
+  editarPerfil: async (datos: EditUserProfile): Promise<ApiResponseWrapper<UsuarioResponse>> => {
     return await api.put<UsuarioResponse>('/24bet/usuarios/me', datos);
   },
 
