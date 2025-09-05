@@ -6,12 +6,14 @@ import {
   UsuarioResponse,
   ApiResponseWrapper
 } from '../types/authTypes';
+import { getExchangeRates } from './crypto/cryptoService';
 
 const BASE_URL = '/auth';
 
 export const authService = {
   registro: async (registroRequest: RegistroRequest): Promise<ApiResponseWrapper<UsuarioResponse>> => {
-    return await api.post<UsuarioResponse>(`${BASE_URL}/registro`, registroRequest);
+    const response = await api.post<UsuarioResponse>(`${BASE_URL}/registro`, registroRequest);
+    return response;
   },
 
   login: async (loginRequest: LoginRequest): Promise<ApiResponseWrapper<JwtResponse>> => {

@@ -19,7 +19,6 @@ export type MainCasinoStackParamList = {
             name: string;
             icon: string;
             eventCount: number;
-            popularidad: number;
         };
     };
     EventDetail: {

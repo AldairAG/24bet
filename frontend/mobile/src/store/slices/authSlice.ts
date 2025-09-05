@@ -1,6 +1,7 @@
 
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { authService } from '../../service/authService';
+import { getExchangeRates } from '../../service/crypto/cryptoService';
 import {
 	LoginRequest,
 	RegistroRequest,
