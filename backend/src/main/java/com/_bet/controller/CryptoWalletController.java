@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/crypto-wallets")
+@RequestMapping("/24bet/crypto-wallets")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class CryptoWalletController {

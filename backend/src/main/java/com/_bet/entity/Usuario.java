@@ -13,6 +13,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Date;
@@ -73,6 +74,11 @@ public class Usuario implements UserDetails {
     @Column(name = "rol")
     private Rol rol = Rol.USER;
     
+    // ========== SALDO GENERAL PARA APUESTAS ==========
+    
+    @Column(name = "saldo_usd", precision = 19, scale = 2, nullable = false)
+    private BigDecimal saldoUsd = BigDecimal.ZERO;
+    
     // ========== RELACIÓN CON INFORMACIÓN PERSONAL ==========
     
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -88,6 +94,11 @@ public class Usuario implements UserDetails {
     
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<CryptoWallet> cryptoWallets;
+    
+    // ========== RELACIÓN CON TRANSACCIONES ==========
+    
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<TransaccionCrypto> transacciones;
     
     @PrePersist
     protected void onCreate() {
