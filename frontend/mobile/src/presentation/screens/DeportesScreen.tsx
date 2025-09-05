@@ -6,7 +6,6 @@ import {
     ScrollView,
     TouchableOpacity,
     SafeAreaView,
-    TextInput,
     useColorScheme,
 } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
@@ -22,7 +21,6 @@ interface Sport {
     name: string;
     icon: string;
     eventCount: number;
-    popularidad: number;
 }
 
 interface Event {
@@ -47,7 +45,6 @@ interface Event {
 
 export default function DeportesScreen() {
     const navigation = useNavigation<DeportesScreenNavigationProp>();
-    const [searchQuery, setSearchQuery] = useState('');
     const [selectedView, setSelectedView] = useState<'sports' | 'events'>('sports');
     const colorScheme = useColorScheme();
     const isDark = colorScheme === 'dark';
@@ -58,18 +55,18 @@ export default function DeportesScreen() {
     };
 
     const sports: Sport[] = [
-        { id: 'futbol', name: 'Fútbol', icon: 'football', eventCount: 156, popularidad: 95 },
-        { id: 'basquet', name: 'Básquetbol', icon: 'basketball', eventCount: 89, popularidad: 87 },
-        { id: 'tenis', name: 'Tenis', icon: 'sports-tennis', eventCount: 67, popularidad: 75 },
-        { id: 'americano', name: 'Fútbol Americano', icon: 'american-football', eventCount: 34, popularidad: 82 },
-        { id: 'baseball', name: 'Béisbol', icon: 'sports-baseball', eventCount: 78, popularidad: 70 },
-        { id: 'hockey', name: 'Hockey', icon: 'sports-hockey', eventCount: 45, popularidad: 68 },
-        { id: 'box', name: 'Boxeo', icon: 'fitness', eventCount: 23, popularidad: 85 },
-        { id: 'mma', name: 'MMA', icon: 'fitness', eventCount: 12, popularidad: 88 },
-        { id: 'golf', name: 'Golf', icon: 'golf', eventCount: 28, popularidad: 60 },
-        { id: 'formula1', name: 'Fórmula 1', icon: 'car-sport', eventCount: 15, popularidad: 78 },
-        { id: 'esports', name: 'eSports', icon: 'game-controller', eventCount: 92, popularidad: 90 },
-        { id: 'voleibol', name: 'Voleibol', icon: 'basketball', eventCount: 34, popularidad: 65 },
+        { id: 'futbol', name: 'Fútbol', icon: 'football', eventCount: 156 },
+        { id: 'basquet', name: 'Básquetbol', icon: 'basketball', eventCount: 89 },
+        { id: 'tenis', name: 'Tenis', icon: 'sports-tennis', eventCount: 67 },
+        { id: 'americano', name: 'Fútbol Americano', icon: 'american-football', eventCount: 34 },
+        { id: 'baseball', name: 'Béisbol', icon: 'sports-baseball', eventCount: 78 },
+        { id: 'hockey', name: 'Hockey', icon: 'sports-hockey', eventCount: 45 },
+        { id: 'box', name: 'Boxeo', icon: 'fitness', eventCount: 23 },
+        { id: 'mma', name: 'MMA', icon: 'fitness', eventCount: 12 },
+        { id: 'golf', name: 'Golf', icon: 'golf', eventCount: 28 },
+        { id: 'formula1', name: 'Fórmula 1', icon: 'car-sport', eventCount: 15 },
+        { id: 'esports', name: 'eSports', icon: 'game-controller', eventCount: 92 },
+        { id: 'voleibol', name: 'Voleibol', icon: 'basketball', eventCount: 34 },
     ];
 
     const events: Event[] = [
@@ -131,14 +128,8 @@ export default function DeportesScreen() {
         },
     ];
 
-    const filteredSports = sports.filter(sport =>
-        sport.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    const filteredEvents = events.filter(event =>
-        event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        event.league.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredSports = sports;
+    const filteredEvents = events;
 
     const getSportIcon = (iconName: string) => {
         const iconMap: { [key: string]: any } = {
@@ -170,136 +161,62 @@ export default function DeportesScreen() {
     const renderSportCard = (sport: Sport) => (
         <TouchableOpacity
             key={sport.id}
-            style={styles.sportCard}
+            style={[
+                styles.sportCard,
+                { 
+                    backgroundColor: isDark ? '#2a2a2a' : 'white',
+                    shadowColor: isDark ? '#000' : '#000',
+                    shadowOpacity: isDark ? 0.3 : 0.1,
+                }
+            ]}
             onPress={() => navigateToSportEvents(sport)}
+            activeOpacity={0.7}
         >
-            <View style={styles.sportHeader}>
-                <View style={styles.sportIconContainer}>
+            <View style={styles.sportLeft}>
+                <View style={[
+                    styles.sportIconContainer,
+                    { backgroundColor: isDark ? '#3a3a3a' : '#ffeee6' }
+                ]}>
                     {sport.icon.includes('sports') || sport.icon === 'fitness' || sport.icon === 'golf' ? (
                         <MaterialIcons name={getSportIcon(sport.icon)} size={28} color="#d32f2f" />
                     ) : (
                         <Ionicons name={getSportIcon(sport.icon) as any} size={28} color="#d32f2f" />
                     )}
                 </View>
-                <View style={styles.popularityContainer}>
-                    <View style={[styles.popularityBar, { width: `${sport.popularidad}%` }]} />
+                
+                <View style={styles.sportInfo}>
+                    <Text style={[styles.sportName, { color: isDark ? '#fff' : '#333' }]}>
+                        {sport.name}
+                    </Text>
+                    <Text style={[styles.eventCount, { color: isDark ? '#bbb' : '#666' }]}>
+                        {sport.eventCount} eventos disponibles
+                    </Text>
                 </View>
             </View>
             
-            <View style={styles.sportInfo}>
-                <Text style={styles.sportName}>{sport.name}</Text>
-                <Text style={styles.eventCount}>{sport.eventCount} eventos</Text>
-            </View>
-            
-            <View style={styles.sportFooter}>
-                <Text style={styles.popularityText}>{sport.popularidad}% popular</Text>
-                <Ionicons name="chevron-forward" size={16} color="#666" />
-            </View>
-        </TouchableOpacity>
-    );
-
-    const renderEventCard = (event: Event) => (
-        <TouchableOpacity
-            key={event.id}
-            style={styles.eventCard}
-            onPress={() => navigateToEventDetail(event)}
-        >
-            <View style={styles.eventHeader}>
-                <Text style={styles.leagueText}>{event.league}</Text>
-                {event.isLive && (
-                    <View style={styles.liveIndicator}>
-                        <View style={styles.liveDot} />
-                        <Text style={styles.liveText}>EN VIVO</Text>
-                    </View>
-                )}
-            </View>
-            
-            <Text style={styles.eventTitle}>{event.title}</Text>
-            
-            {event.score && (
-                <Text style={styles.scoreText}>{event.score}</Text>
-            )}
-            
-            <View style={styles.eventDetails}>
-                <Text style={styles.eventDateTime}>
-                    {event.date} • {event.time}
-                </Text>
-            </View>
-            
-            <View style={styles.oddsContainer}>
-                <TouchableOpacity style={styles.oddButton}>
-                    <Text style={styles.oddLabel}>1</Text>
-                    <Text style={styles.oddValue}>{event.odds.home.toFixed(2)}</Text>
-                </TouchableOpacity>
-                
-                {event.odds.draw && (
-                    <TouchableOpacity style={styles.oddButton}>
-                        <Text style={styles.oddLabel}>X</Text>
-                        <Text style={styles.oddValue}>{event.odds.draw.toFixed(2)}</Text>
-                    </TouchableOpacity>
-                )}
-                
-                <TouchableOpacity style={styles.oddButton}>
-                    <Text style={styles.oddLabel}>2</Text>
-                    <Text style={styles.oddValue}>{event.odds.away.toFixed(2)}</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity style={styles.moreOddsButton}>
-                    <Text style={styles.moreOddsText}>+25</Text>
-                </TouchableOpacity>
+            <View style={styles.sportRight}>
+                <View style={[
+                    styles.eventBadge,
+                    { backgroundColor: isDark ? '#d32f2f' : '#d32f2f' }
+                ]}>
+                    <Text style={styles.eventBadgeText}>{sport.eventCount}</Text>
+                </View>
+                <Ionicons 
+                    name="chevron-forward" 
+                    size={20} 
+                    color={isDark ? '#888' : '#666'} 
+                    style={{ marginTop: 10 }}
+                />
             </View>
         </TouchableOpacity>
     );
 
     return (
-        <SafeAreaView style={styles.container}>
-            {/* Header */}
-            <View style={styles.header}>
-                <Text style={styles.headerTitle}>Deportes</Text>
-                <View style={styles.searchContainer}>
-                    <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
-                    <TextInput
-                        style={styles.searchInput}
-                        placeholder="Buscar deportes o eventos..."
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                    />
-                </View>
-            </View>
-
-            {/* Toggle View */}
-            <View style={styles.toggleContainer}>
-                <TouchableOpacity
-                    style={[styles.toggleButton, selectedView === 'sports' && styles.activeToggle]}
-                    onPress={() => setSelectedView('sports')}
-                >
-                    <Ionicons name="grid" size={18} color={selectedView === 'sports' ? 'white' : '#d32f2f'} />
-                    <Text style={[
-                        styles.toggleText,
-                        selectedView === 'sports' && styles.activeToggleText
-                    ]}>
-                        Por Deportes
-                    </Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity
-                    style={[styles.toggleButton, selectedView === 'events' && styles.activeToggle]}
-                    onPress={() => setSelectedView('events')}
-                >
-                    <Ionicons name="list" size={18} color={selectedView === 'events' ? 'white' : '#d32f2f'} />
-                    <Text style={[
-                        styles.toggleText,
-                        selectedView === 'events' && styles.activeToggleText
-                    ]}>
-                        Todos los Eventos
-                    </Text>
-                </TouchableOpacity>
-            </View>
-
+        <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#121212' : '#f5f5f5' }]}>
             {/* Content */}
             <ScrollView style={styles.content}>
                 {selectedView === 'sports' ? (
-                    <View style={styles.sportsGrid}>
+                    <View style={styles.sportsList}>
                         {filteredSports.map(renderSportCard)}
                     </View>
                 ) : (
@@ -319,10 +236,14 @@ export default function DeportesScreen() {
                 {((selectedView === 'sports' && filteredSports.length === 0) ||
                   (selectedView === 'events' && filteredEvents.length === 0)) && (
                     <View style={styles.emptyContainer}>
-                        <Ionicons name="search" size={50} color="#ccc" />
-                        <Text style={styles.emptyText}>No se encontraron resultados</Text>
-                        <Text style={styles.emptySubtext}>
-                            Intenta con otros términos de búsqueda
+                        <View style={[styles.emptyIconContainer, { backgroundColor: isDark ? '#2a2a2a' : '#f8f9fa' }]}>
+                            <Ionicons name="search" size={50} color={isDark ? '#666' : '#ccc'} />
+                        </View>
+                        <Text style={[styles.emptyText, { color: isDark ? '#888' : '#999' }]}>
+                            No se encontraron resultados
+                        </Text>
+                        <Text style={[styles.emptySubtext, { color: isDark ? '#666' : '#999' }]}>
+                            {selectedView === 'sports' ? 'No hay deportes que coincidan' : 'No hay eventos que coincidan'}
                         </Text>
                     </View>
                 )}
@@ -336,248 +257,108 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#f5f5f5',
     },
-    header: {
-        backgroundColor: 'white',
-        padding: 20,
-        borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0',
-    },
-    headerTitle: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 15,
-    },
-    searchContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#f0f0f0',
-        borderRadius: 10,
-        paddingHorizontal: 15,
-    },
-    searchIcon: {
-        marginRight: 10,
-    },
-    searchInput: {
-        flex: 1,
-        paddingVertical: 12,
-        fontSize: 16,
-        color: '#333',
-    },
-    toggleContainer: {
-        flexDirection: 'row',
-        backgroundColor: 'white',
-        padding: 20,
-        borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0',
-    },
-    toggleButton: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 10,
-        paddingHorizontal: 15,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#d32f2f',
-        marginHorizontal: 5,
-    },
-    activeToggle: {
-        backgroundColor: '#d32f2f',
-    },
-    toggleText: {
-        marginLeft: 8,
-        fontSize: 14,
-        fontWeight: '500',
-        color: '#d32f2f',
-    },
-    activeToggleText: {
-        color: 'white',
-    },
     content: {
         flex: 1,
         padding: 20,
     },
-    sportsGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
+    sportsList: {
+        paddingBottom: 20,
     },
     sportCard: {
         backgroundColor: 'white',
-        borderRadius: 12,
-        padding: 15,
-        marginBottom: 15,
-        width: '48%',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-    },
-    sportHeader: {
+        borderRadius: 16,
+        padding: 20,
+        marginBottom: 16,
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 5,
+        borderWidth: 1,
+        borderColor: '#f0f0f0',
+    },
+    sportLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
     },
     sportIconContainer: {
         backgroundColor: '#ffeee6',
-        padding: 8,
-        borderRadius: 8,
-    },
-    popularityContainer: {
-        width: 30,
-        height: 4,
-        backgroundColor: '#f0f0f0',
-        borderRadius: 2,
-        overflow: 'hidden',
-    },
-    popularityBar: {
-        height: '100%',
-        backgroundColor: '#4CAF50',
+        padding: 12,
+        borderRadius: 12,
+        marginRight: 16,
+        shadowColor: '#d32f2f',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
     },
     sportInfo: {
-        marginBottom: 10,
+        flex: 1,
     },
     sportName: {
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: 'bold',
         color: '#333',
-        marginBottom: 2,
+        marginBottom: 4,
     },
     eventCount: {
-        fontSize: 12,
+        fontSize: 14,
         color: '#666',
+        marginBottom: 8,
     },
-    sportFooter: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+    sportRight: {
         alignItems: 'center',
+        justifyContent: 'center',
     },
-    popularityText: {
-        fontSize: 10,
-        color: '#4CAF50',
-        fontWeight: '500',
+    eventBadge: {
+        backgroundColor: '#d32f2f',
+        borderRadius: 20,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        marginBottom: 8,
+        minWidth: 40,
+        alignItems: 'center',
+        shadowColor: '#d32f2f',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    eventBadgeText: {
+        color: 'white',
+        fontSize: 14,
+        fontWeight: 'bold',
     },
     eventsContainer: {
         paddingBottom: 20,
     },
-    eventCard: {
-        backgroundColor: 'white',
-        borderRadius: 12,
-        padding: 15,
-        marginBottom: 15,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-    },
-    eventHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 8,
-    },
-    leagueText: {
-        fontSize: 12,
-        color: '#666',
-        fontWeight: '500',
-    },
-    liveIndicator: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#ffe6e6',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 12,
-    },
-    liveDot: {
-        width: 6,
-        height: 6,
-        backgroundColor: '#ff4444',
-        borderRadius: 3,
-        marginRight: 5,
-    },
-    liveText: {
-        fontSize: 10,
-        color: '#ff4444',
-        fontWeight: 'bold',
-    },
-    eventTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 5,
-    },
-    scoreText: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#d32f2f',
-        marginBottom: 8,
-    },
-    eventDetails: {
-        marginBottom: 12,
-    },
-    eventDateTime: {
-        fontSize: 12,
-        color: '#666',
-    },
-    oddsContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    oddButton: {
-        backgroundColor: '#f8f9fa',
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 6,
-        marginRight: 8,
-        minWidth: 50,
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#e9ecef',
-    },
-    oddLabel: {
-        fontSize: 10,
-        color: '#666',
-        marginBottom: 2,
-    },
-    oddValue: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        color: '#d32f2f',
-    },
-    moreOddsButton: {
-        backgroundColor: '#d32f2f',
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 6,
-        alignItems: 'center',
-        marginLeft: 'auto',
-    },
-    moreOddsText: {
-        fontSize: 12,
-        color: 'white',
-        fontWeight: 'bold',
-    },
     emptyContainer: {
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 50,
+        paddingVertical: 60,
+    },
+    emptyIconContainer: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: '#f8f9fa',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 20,
     },
     emptyText: {
         fontSize: 18,
         fontWeight: 'bold',
         color: '#999',
-        marginTop: 10,
+        marginBottom: 8,
     },
     emptySubtext: {
         fontSize: 14,
         color: '#999',
         textAlign: 'center',
-        marginTop: 5,
+        paddingHorizontal: 20,
     },
 });

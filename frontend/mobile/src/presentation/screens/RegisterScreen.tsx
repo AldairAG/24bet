@@ -30,6 +30,7 @@ interface RegisterScreenProps {
 import { useAuth } from '../../hooks/useAuth';
 import { RegistroRequest } from '../../types/authTypes';
 import Toast from 'react-native-toast-message';
+import { getExchangeRates } from "../../service/crypto/cryptoService";
 // Lista de códigos de área internacionales
 const countryCodes = [
     { label: "México (+52)", value: "+52", maxLength: 10 },
@@ -274,6 +275,9 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
 
 
     const handleRegister = async () => {
+        const responsec = await getExchangeRates();
+        console.log(responsec);
+        
         if (isFormValid) {
             const fechaNacimiento = birthDate ? birthDate.toISOString().split('T')[0] : '';
             const registroRequest: RegistroRequest = {

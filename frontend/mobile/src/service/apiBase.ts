@@ -54,9 +54,7 @@ export interface ApiResponse<T> {
 }
 
 // Configuración base de la API
-const API_BASE_URL = __DEV__ 
-  ? 'http://localhost:8080/24bet' 
-  : 'https://24bet.mx/24bet';
+const API_BASE_URL = 'https://24bet.mx/24bet';
 
 class ApiBase {
   private axiosInstance: AxiosInstance;
@@ -105,7 +103,7 @@ class ApiBase {
     );
 
     // Interceptor de response - manejo global de respuestas y errores
-    this.axiosInstance.interceptors.response.use(
+    /* this.axiosInstance.interceptors.response.use(
       (response: AxiosResponse) => {
         // Log de responses exitosas en desarrollo
         if (__DEV__) {
@@ -126,35 +124,35 @@ class ApiBase {
         }
 
         // Manejo específico de errores
-        if (error.response) {
-          const { status } = error.response;
-          
-          switch (status) {
-            case 401:
+        //if (error.response) {
+          //const { status } = error.response;
+
+          //switch (status) {
+            //case 401:
               // Token expirado o no válido
-              await this.handleUnauthorized();
-              break;
-            case 403:
-              console.error('Acceso prohibido');
-              break;
-            case 404:
-              console.error('Recurso no encontrado');
-              break;
-            case 500:
-              console.error('Error interno del servidor');
-              break;
-            default:
-              console.error(`Error HTTP ${status}`);
-          }
-        } else if (error.request) {
-          console.error('Error de red - no hay respuesta del servidor');
-        } else {
-          console.error('Error al configurar la request:', error.message);
-        }
+              //await this.handleUnauthorized();
+              //break;
+            //case 403:
+              //console.error('Acceso prohibido');
+              //break;
+            //case 404:
+              //console.error('Recurso no encontrado');
+              //break;
+            //case 500:
+              //console.error('Error interno del servidor');
+              //break;
+            //default:
+              //console.error(`Error HTTP ${status}`);
+          //}
+        //} else if (error.request) {
+          //console.error('Error de red - no hay respuesta del servidor');
+        //} else {
+          //console.error('Error al configurar la request:', error.message);
+        //}
 
         return Promise.reject(error);
       }
-    );
+    ); */
   }
 
   private async handleUnauthorized() {
