@@ -7,10 +7,12 @@ import {
 	RegistroRequest,
 	JwtResponse,
 	UsuarioResponse,
-	ApiResponseWrapper
+	ApiResponseWrapper,
+	Usuario
 } from '../../types/authTypes';
 
 interface AuthState {
+	usuario: Usuario | null;
 	user: UsuarioResponse | null;
 	token: string | null;
 	loading: boolean;
@@ -24,6 +26,7 @@ const initialState: AuthState = {
 	loading: false,
 	error: null,
 	isAuthenticated: false,
+	usuario: null
 };
 
 export const registro = createAsyncThunk<
@@ -107,6 +110,7 @@ const authSlice = createSlice({
 				state.token = action.payload.data.token;
 				state.isAuthenticated = true;
 				state.error = null;
+				state.usuario = action.payload.data.user;
 			})
 			.addCase(login.rejected, (state, action) => {
 				state.loading = false;

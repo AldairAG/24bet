@@ -59,7 +59,6 @@ export interface UsuarioResponse {
   id: number;
   username: string;
   email: string;
-  password: string;
   nombre: string;
   apellido: string;
   ladaTelefono: string;

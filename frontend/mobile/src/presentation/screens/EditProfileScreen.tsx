@@ -101,7 +101,7 @@ const validationSchema = Yup.object().shape({
 
 export default function EditProfileScreen() {
     const navigation = useNavigation();
-    const { user } = useAuth();
+    const { usuario } = useAuth();
     const colorScheme = useColorScheme();
     const isDark = colorScheme === 'dark';
     const [showCountryPicker, setShowCountryPicker] = useState(false);
@@ -109,29 +109,29 @@ export default function EditProfileScreen() {
 
     // Valores iniciales basados en el usuario actual
     const initialValues: EditUserProfile = {
-        username: user?.username || '',
-        email: user?.email || '',
-        nombre: user?.nombre || '',
-        apellido: user?.apellido || '',
-        ladaTelefono: user?.ladaTelefono || '+52',
-        numeroTelefono: user?.numeroTelefono || '',
-        fechaNacimiento: user?.fechaNacimiento 
-            ? (typeof user.fechaNacimiento === 'string' ? new Date(user.fechaNacimiento) : user.fechaNacimiento)
+        username: usuario?.username || '',
+        email: usuario?.email || '',
+        nombre: usuario?.nombre || '',
+        apellido: usuario?.apellido || '',
+        ladaTelefono: usuario?.ladaTelefono || '+52',
+        numeroTelefono: usuario?.numeroTelefono || '',
+        fechaNacimiento: usuario?.fechaNacimiento
+            ? (typeof usuario.fechaNacimiento === 'string' ? new Date(usuario.fechaNacimiento) : usuario.fechaNacimiento)
             : new Date(),
         informacionPersonal: {
             id: 0,
             genero: Genero.MASCULINO,
-            calle: '',
-            numeroExterior: '',
-            numeroInterior: '',
-            colonia: '',
-            codigoPostal: '',
-            ciudad: '',
-            estado: '',
-            pais: '',
-            rfc: '',
-            ocupacion: '',
-            nacionalidad: '',
+            calle: usuario?.informacionPersonal?.calle || '',
+            numeroExterior: usuario?.informacionPersonal?.numeroExterior || '',
+            numeroInterior: usuario?.informacionPersonal?.numeroInterior || '',
+            colonia: usuario?.informacionPersonal?.colonia || '',
+            codigoPostal: usuario?.informacionPersonal?.codigoPostal || '',
+            ciudad: usuario?.informacionPersonal?.ciudad || '',
+            estado: usuario?.informacionPersonal?.estado || '',
+            pais: usuario?.informacionPersonal?.pais || '',
+            rfc: usuario?.informacionPersonal?.rfc || '',
+            ocupacion: usuario?.informacionPersonal?.ocupacion || '',
+            nacionalidad: usuario?.informacionPersonal?.nacionalidad || '',
             fechaCreacion: new Date(),
             fechaActualizacion: new Date(),
         },
