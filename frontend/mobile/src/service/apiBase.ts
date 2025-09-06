@@ -54,7 +54,9 @@ export interface ApiResponse<T> {
 }
 
 // Configuración base de la API
-const API_BASE_URL = 'https://24bet.mx/24bet';
+const API_BASE_URL = 'http://localhost:8000/24bet';
+//const API_BASE_URL = 'https://24bet.mx/24bet';
+
 
 class ApiBase {
   private axiosInstance: AxiosInstance;

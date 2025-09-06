@@ -9,7 +9,7 @@ export const useUser = () => {
     const dispatch = useDispatch();
 
     const editarPerfil = async (data: EditUserProfile) => {
-        const response = await usuarioService.editarPerfil(data);
+        const response = await usuarioService.editarPerfil(data,user!.id);
         dispatch(setUsuario(response.data));
     };
 

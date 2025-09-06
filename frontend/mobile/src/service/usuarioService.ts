@@ -36,8 +36,8 @@ export const usuarioService = {
   },
 
   // Editar perfil del usuario actual
-  editarPerfil: async (datos: EditUserProfile): Promise<ApiResponseWrapper<Usuario>> => {
-    return await api.put<Usuario>('/24bet/usuarios/me', datos);
+  editarPerfil: async (datos: EditUserProfile,id:number): Promise<ApiResponseWrapper<Usuario>> => {
+    return await api.put<Usuario>(`/usuarios/${id}/perfil`, datos);
   },
 
   // Cambiar contraseña
