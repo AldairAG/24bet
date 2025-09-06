@@ -19,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 @Service
@@ -72,6 +73,10 @@ public class UsuarioServiceImpl implements UsuarioService {
         usuario.setFechaNacimiento(registroRequest.getFechaNacimiento());
         usuario.setActivo(true);
         usuario.setRol(Usuario.Rol.USER);
+        usuario.setSaldoUsd(BigDecimal.ZERO);
+        
+        usuario.setInformacionPersonal(new InformacionPersonal());
+        usuario.getInformacionPersonal().setUsuario(usuario);
 
         Usuario usuarioGuardado = usuarioRepository.save(usuario);
 

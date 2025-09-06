@@ -8,6 +8,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -76,13 +77,14 @@ public class Usuario implements UserDetails {
     
     // ========== SALDO GENERAL PARA APUESTAS ==========
     
-    @Column(name = "saldo_usd", precision = 19, scale = 2, nullable = false)
+    @Column(name = "saldo_usd", precision = 19, scale = 2)
     private BigDecimal saldoUsd = BigDecimal.ZERO;
     
     // ========== RELACIÓN CON INFORMACIÓN PERSONAL ==========
     
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "informacion_personal_id")
+    @JsonManagedReference
     private InformacionPersonal informacionPersonal;
     
     // ========== RELACIÓN CON DOCUMENTOS KYC ==========
