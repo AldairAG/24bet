@@ -21,6 +21,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { EditUserProfile } from '../../types/userTypes';
 import { Genero } from '../../types/kycTypes';
 import Toast from 'react-native-toast-message';
+import { useUser } from '../../hooks/useUser';
 
 // Lista de códigos de área internacionales (simplificada)
 const countryCodes = [
@@ -106,6 +107,7 @@ export default function EditProfileScreen() {
     const isDark = colorScheme === 'dark';
     const [showCountryPicker, setShowCountryPicker] = useState(false);
     const [showGeneroPicker, setShowGeneroPicker] = useState(false);
+    const { editarPerfil } = useUser();
 
     // Valores iniciales basados en el usuario actual
     const initialValues: EditUserProfile = {
@@ -141,6 +143,7 @@ export default function EditProfileScreen() {
         try {
             // Aquí implementarías la llamada al API para actualizar el usuario
             console.log('Actualizando usuario:', values);
+            await editarPerfil(values);
             
             Toast.show({
                 type: 'success',

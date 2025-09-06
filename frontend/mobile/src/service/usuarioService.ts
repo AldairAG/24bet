@@ -1,5 +1,5 @@
 import { api } from './apiBase';
-import { ApiResponseWrapper, UsuarioResponse } from '../types/authTypes';
+import { ApiResponseWrapper, Usuario, UsuarioResponse } from '../types/authTypes';
 import { EditUserProfile } from '../types/userTypes';
 
 // Tipos específicos para el servicio de usuario
@@ -36,8 +36,8 @@ export const usuarioService = {
   },
 
   // Editar perfil del usuario actual
-  editarPerfil: async (datos: EditUserProfile): Promise<ApiResponseWrapper<UsuarioResponse>> => {
-    return await api.put<UsuarioResponse>('/24bet/usuarios/me', datos);
+  editarPerfil: async (datos: EditUserProfile): Promise<ApiResponseWrapper<Usuario>> => {
+    return await api.put<Usuario>('/24bet/usuarios/me', datos);
   },
 
   // Cambiar contraseña
