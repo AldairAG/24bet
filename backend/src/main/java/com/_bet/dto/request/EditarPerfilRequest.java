@@ -24,10 +24,15 @@ public class EditarPerfilRequest {
     @Size(min = 7, max = 10, message = "El número de teléfono debe tener entre 7 y 10 dígitos")
     private String numeroTelefono;
     
-    private Date fechaNacimiento;
     
     // ========== INFORMACIÓN PERSONAL ==========
     
     @Valid
     private InformacionPersonalRequest informacionPersonal;
+
+
+    public Object getFechaNacimiento() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getFechaNacimiento'");
+    }
 }

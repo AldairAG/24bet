@@ -65,7 +65,6 @@ const criptomonedas: CriptomonedaInfo[] = [
 ];
 
 export default function DepositoScreen() {
-    const navigation = useNavigation();
     const colorScheme = useColorScheme();
     const styles = getStyles((colorScheme === 'light' || colorScheme === 'dark') ? colorScheme : null);
 

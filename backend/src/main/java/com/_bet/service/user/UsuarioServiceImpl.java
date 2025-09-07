@@ -225,9 +225,6 @@ public class UsuarioServiceImpl implements UsuarioService {
         if (request.getNumeroTelefono() != null) {
             usuario.setNumeroTelefono(request.getNumeroTelefono());
         }
-        if (request.getFechaNacimiento() != null) {
-            usuario.setFechaNacimiento(request.getFechaNacimiento());
-        }
         
         // Actualizar información personal
         actualizarInformacionPersonal(usuario, request.getInformacionPersonal());
