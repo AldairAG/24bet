@@ -66,40 +66,33 @@ function CasinoTabNavigator() {
     const isDark = colorScheme === 'dark';
     
     return (
-        <View style={[styles.casinoContainer, { backgroundColor: isDark ? '#121212' : '#f5f5f5' }]}>
-            {/* Header del Casino */}
-            <View style={[styles.casinoHeader, { backgroundColor: isDark ? '#1e1e1e' : 'white' }]}>
-                <HeaderIcon />
-            </View>
-            
-            {/* Top Tabs Navigator */}
-            <CasinoTab.Navigator
-                screenOptions={{
-                    tabBarActiveTintColor: '#d32f2f',
-                    tabBarInactiveTintColor: isDark ? '#888' : '#666',
-                    tabBarStyle: {
-                        backgroundColor: isDark ? '#1e1e1e' : 'white',
-                        borderBottomWidth: 1,
-                        borderBottomColor: isDark ? '#333' : '#e0e0e0',
-                        elevation: 4,
-                        shadowOffset: { width: 0, height: 2 },
-                        shadowOpacity: 0.1,
-                        shadowRadius: 4,
-                    },
-                    tabBarLabelStyle: {
-                        fontSize: 14,
-                        fontWeight: '600',
-                        textTransform: 'none',
-                    },
-                    tabBarIndicatorStyle: {
-                        backgroundColor: '#d32f2f',
-                        height: 3,
-                        borderRadius: 1.5,
-                    },
-                    tabBarPressColor: isDark ? '#333' : '#f0f0f0',
-                    tabBarScrollEnabled: false,
-                }}
-            >
+        <CasinoTab.Navigator
+            screenOptions={{
+                tabBarActiveTintColor: '#d32f2f',
+                tabBarInactiveTintColor: isDark ? '#888' : '#666',
+                tabBarStyle: {
+                    backgroundColor: isDark ? '#1e1e1e' : 'white',
+                    borderBottomWidth: 1,
+                    borderBottomColor: isDark ? '#333' : '#e0e0e0',
+                    elevation: 4,
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 4,
+                },
+                tabBarLabelStyle: {
+                    fontSize: 14,
+                    fontWeight: '600',
+                    textTransform: 'none',
+                },
+                tabBarIndicatorStyle: {
+                    backgroundColor: '#d32f2f',
+                    height: 3,
+                    borderRadius: 1.5,
+                },
+                tabBarPressColor: isDark ? '#333' : '#f0f0f0',
+                tabBarScrollEnabled: false,
+            }}
+        >
                 <CasinoTab.Screen 
                     name="Inicio" 
                     component={HomeScreen}
@@ -129,7 +122,6 @@ function CasinoTabNavigator() {
                     }}
                 />
             </CasinoTab.Navigator>
-        </View>
     );
 }
 
@@ -145,7 +137,10 @@ export default function CasinoNavigation() {
                 name="CasinoTabs" 
                 component={CasinoTabNavigator}
                 options={{
-                    headerShown: false,
+                    headerShown: true,
+                    title: '',
+                    headerTitle: () => <HeaderIcon />,
+                    headerTitleAlign: 'center'
                 }}
             />
             <MainCasinoStack.Screen 
@@ -168,23 +163,12 @@ export default function CasinoNavigation() {
 
 // Estilos para el contenedor del casino
 const styles = StyleSheet.create({
-    casinoContainer: {
-        flex: 1,
-    },
-    casinoHeader: {
-
-    },
-    casinoHeaderTitle: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        textAlign: 'center',
-    },
     headerIconContainer: {
         alignItems: 'center',
         justifyContent: 'center',
     },
     headerIcon: {
-        width: 80,
-        height: 80,
+        width: 100,
+        height: 100,
     },
 });
