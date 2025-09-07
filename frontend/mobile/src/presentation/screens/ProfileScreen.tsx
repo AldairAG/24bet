@@ -37,8 +37,6 @@ export default function ProfileScreen() {
             keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
         >
             <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-                <Text style={styles.header}>Perfil</Text>
-
                 {/* Card 1: Información Personal */}
                 <View style={styles.card}>
                     <View style={styles.cardHeader}>
@@ -109,13 +107,6 @@ const getStyles = (colorScheme: 'light' | 'dark' | null) =>
             paddingBottom: 40,
             backgroundColor: colorScheme === 'dark' ? '#181818' : '#fff',
             flexGrow: 1
-        },
-        header: {
-            fontSize: 28,
-            fontWeight: 'bold',
-            color: '#d32f2f',
-            marginBottom: 20,
-            textAlign: 'center'
         },
         card: {
             backgroundColor: colorScheme === 'dark' ? '#222' : '#fff',

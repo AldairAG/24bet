@@ -207,15 +207,22 @@ export default function RetiroScreen() {
         const cantidadCripto = calcularCantidadCripto(values.cantidadUSD, walletSeleccionada.criptomoneda);
 
         Alert.alert(
-            'Confirmar solicitud de retiro',
-            `¿Deseas solicitar el retiro de $${values.cantidadUSD} USD (${cantidadCripto.toFixed(8)} ${walletSeleccionada.simbolo}) a tu wallet "${walletSeleccionada.nombre}"?`,
+            '💰 Confirmar Retiro de Fondos',
+            `🔔 IMPORTANTE: El dinero será enviado directamente a tu wallet seleccionada.\n\n` +
+            `💵 Monto a retirar: $${values.cantidadUSD} USD\n` +
+            `₿ Equivale a: ${cantidadCripto.toFixed(8)} ${walletSeleccionada.simbolo}\n\n` +
+            `📱 Wallet destino:\n"${walletSeleccionada.nombre}"\n` +
+            `📍 Dirección: ${walletSeleccionada.direccion.substring(0, 20)}...${walletSeleccionada.direccion.substring(walletSeleccionada.direccion.length - 6)}\n\n` +
+            `⚠️ Una vez confirmado, no podrás cancelar esta operación.\n` +
+            `¿Deseas proceder con el retiro?`,
             [
                 {
                     text: 'Cancelar',
                     style: 'cancel'
                 },
                 {
-                    text: 'Confirmar',
+                    text: 'Confirmar Retiro',
+                    style: 'destructive',
                     onPress: () => {
                         const nuevaSolicitud: SolicitudRetiro = {
                             id: Date.now().toString(),
@@ -232,8 +239,8 @@ export default function RetiroScreen() {
 
                         Toast.show({
                             type: 'success',
-                            text1: 'Solicitud enviada',
-                            text2: 'Tu solicitud de retiro está siendo procesada'
+                            text1: '✅ Solicitud Enviada',
+                            text2: `El retiro de $${values.cantidadUSD} USD será procesado a "${walletSeleccionada.nombre}"`
                         });
                     }
                 }
@@ -553,11 +560,28 @@ export default function RetiroScreen() {
                                             {walletSeleccionada && (
                                                 <>
                                                     <View style={styles.walletSelectedInfo}>
-                                                        <Text style={styles.walletSelectedTitle}>Wallet seleccionada:</Text>
-                                                        <Text style={styles.walletSelectedName}>{walletSeleccionada.nombre}</Text>
-                                                        <Text style={styles.walletSelectedAddress} numberOfLines={1}>
-                                                            {walletSeleccionada.direccion}
-                                                        </Text>
+                                                        <View style={styles.walletSelectedHeader}>
+                                                            <Ionicons name="wallet-outline" size={20} color="#d32f2f" />
+                                                            <Text style={styles.walletSelectedTitle}>💰 Wallet de destino:</Text>
+                                                        </View>
+                                                        <View style={styles.walletSelectedDetails}>
+                                                            <View style={[styles.walletSelectedIcon, { backgroundColor: walletSeleccionada.color }]}>
+                                                                <Ionicons name={walletSeleccionada.icono as any} size={16} color="#fff" />
+                                                            </View>
+                                                            <View style={styles.walletSelectedTextContainer}>
+                                                                <Text style={styles.walletSelectedName}>"{walletSeleccionada.nombre}"</Text>
+                                                                <Text style={styles.walletSelectedSymbol}>{walletSeleccionada.simbolo}</Text>
+                                                                <Text style={styles.walletSelectedAddress} numberOfLines={1}>
+                                                                    📍 {walletSeleccionada.direccion}
+                                                                </Text>
+                                                            </View>
+                                                        </View>
+                                                        <View style={styles.alertBox}>
+                                                            <Ionicons name="alert-circle-outline" size={16} color="#FF9800" />
+                                                            <Text style={styles.alertText}>
+                                                                El dinero será enviado directamente a esta wallet
+                                                            </Text>
+                                                        </View>
                                                     </View>
 
                                                     <View style={styles.cantidadSection}>
@@ -624,11 +648,12 @@ export default function RetiroScreen() {
                                                 onPress={() => handleSubmit()}
                                                 disabled={!isValid}
                                             >
+                                                <Ionicons name="send-outline" size={16} color={!isValid ? (colorScheme === 'dark' ? '#666' : '#999') : '#fff'} />
                                                 <Text style={[
                                                     styles.withdrawButtonText,
                                                     !isValid && styles.disabledButtonText
                                                 ]}>
-                                                    Solicitar Retiro
+                                                    💰 Retirar a Mi Wallet
                                                 </Text>
                                             </TouchableOpacity>
                                         </View>
@@ -990,25 +1015,69 @@ const getStyles = (colorScheme: 'light' | 'dark' | null) =>
         // Información de wallet seleccionada
         walletSelectedInfo: {
             backgroundColor: colorScheme === 'dark' ? '#2a2a2a' : '#f9f9f9',
-            borderRadius: 8,
+            borderRadius: 12,
             padding: 16,
             marginBottom: 20,
+            borderWidth: 2,
+            borderColor: colorScheme === 'dark' ? '#d32f2f' : '#ffebee',
+        },
+        walletSelectedHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: 12,
+            gap: 8,
         },
         walletSelectedTitle: {
-            fontSize: 14,
-            color: colorScheme === 'dark' ? '#aaa' : '#666',
-            marginBottom: 4,
+            fontSize: 16,
+            fontWeight: '600',
+            color: colorScheme === 'dark' ? '#d32f2f' : '#d32f2f',
+        },
+        walletSelectedDetails: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: 12,
+            gap: 12,
+        },
+        walletSelectedIcon: {
+            width: 32,
+            height: 32,
+            borderRadius: 16,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        walletSelectedTextContainer: {
+            flex: 1,
         },
         walletSelectedName: {
             fontSize: 16,
             fontWeight: '600',
             color: colorScheme === 'dark' ? '#fff' : '#181818',
+            marginBottom: 2,
+        },
+        walletSelectedSymbol: {
+            fontSize: 14,
+            fontWeight: '500',
+            color: colorScheme === 'dark' ? '#ccc' : '#555',
             marginBottom: 4,
         },
         walletSelectedAddress: {
             fontSize: 12,
             color: colorScheme === 'dark' ? '#aaa' : '#666',
             fontFamily: 'monospace',
+        },
+        alertBox: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: colorScheme === 'dark' ? '#332200' : '#fff3e0',
+            borderRadius: 8,
+            padding: 12,
+            gap: 8,
+        },
+        alertText: {
+            flex: 1,
+            fontSize: 13,
+            color: '#FF9800',
+            fontWeight: '500',
         },
 
         // Cantidad
@@ -1117,6 +1186,10 @@ const getStyles = (colorScheme: 'light' | 'dark' | null) =>
         },
         withdrawButton: {
             backgroundColor: '#d32f2f',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
         },
         withdrawButtonText: {
             color: '#fff',

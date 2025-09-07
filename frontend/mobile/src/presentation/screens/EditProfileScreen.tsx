@@ -62,9 +62,6 @@ const validationSchema = Yup.object().shape({
     numeroTelefono: Yup.string()
         .matches(/^\d+$/, 'Solo se permiten números')
         .required('El número de teléfono es requerido'),
-    fechaNacimiento: Yup.date()
-        .max(new Date(Date.now() - 18 * 365 * 24 * 60 * 60 * 1000), 'Debes ser mayor de 18 años')
-        .required('La fecha de nacimiento es requerida'),
     // Validaciones para InformacionPersonal
     informacionPersonal: Yup.object().shape({
         genero: Yup.string()
@@ -94,10 +91,7 @@ const validationSchema = Yup.object().shape({
             .matches(/^[A-Z&Ñ]{3,4}[0-9]{6}[A-Z0-9]{3}$/, 'RFC inválido'),
         ocupacion: Yup.string()
             .min(2, 'La ocupación debe tener al menos 2 caracteres')
-            .required('La ocupación es requerida'),
-        nacionalidad: Yup.string()
-            .min(2, 'La nacionalidad debe tener al menos 2 caracteres')
-            .required('La nacionalidad es requerida'),*/
+            .required('La ocupación es requerida'),*/
     })
 
 export default function EditProfileScreen() {
@@ -117,9 +111,6 @@ export default function EditProfileScreen() {
         apellido: usuario?.apellido || '',
         ladaTelefono: usuario?.ladaTelefono || '+52',
         numeroTelefono: usuario?.numeroTelefono || '',
-        fechaNacimiento: usuario?.fechaNacimiento
-            ? (typeof usuario.fechaNacimiento === 'string' ? new Date(usuario.fechaNacimiento) : usuario.fechaNacimiento)
-            : new Date(),
         informacionPersonal: {
             id: 0,
             genero: Genero.MASCULINO,
@@ -133,7 +124,6 @@ export default function EditProfileScreen() {
             pais: usuario?.informacionPersonal?.pais || '',
             rfc: usuario?.informacionPersonal?.rfc || '',
             ocupacion: usuario?.informacionPersonal?.ocupacion || '',
-            nacionalidad: usuario?.informacionPersonal?.nacionalidad || '',
             fechaCreacion: new Date(),
             fechaActualizacion: new Date(),
         },
@@ -191,20 +181,6 @@ export default function EditProfileScreen() {
                             contentContainerStyle={styles.scrollContent}
                             keyboardShouldPersistTaps="handled"
                         >
-                            {/* Header */}
-                            <View style={[styles.header, { backgroundColor: isDark ? '#1e1e1e' : 'white' }]}>
-                                <TouchableOpacity 
-                                    style={styles.backButton}
-                                    onPress={() => navigation.goBack()}
-                                >
-                                    <Ionicons name="arrow-back" size={24} color={isDark ? '#fff' : '#333'} />
-                                </TouchableOpacity>
-                                <Text style={[styles.headerTitle, { color: isDark ? '#fff' : '#333' }]}>
-                                    Editar Perfil
-                                </Text>
-                                <View style={styles.placeholder} />
-                            </View>
-
                             <View style={styles.content}>
                                 {/* Información de cuenta */}
                                 <View style={[styles.section, { backgroundColor: isDark ? '#2a2a2a' : 'white' }]}>
@@ -314,38 +290,6 @@ export default function EditProfileScreen() {
                                         />
                                         {touched.apellido && errors.apellido && (
                                             <Text style={styles.errorText}>{errors.apellido}</Text>
-                                        )}
-                                    </View>
-
-                                    <View style={styles.inputContainer}>
-                                        <Text style={[styles.label, { color: isDark ? '#fff' : '#333' }]}>
-                                            Fecha de nacimiento *
-                                        </Text>
-                                        <TouchableOpacity
-                                            style={[
-                                                styles.dateInput,
-                                                {
-                                                    backgroundColor: isDark ? '#3a3a3a' : '#f8f9fa',
-                                                    borderColor: touched.fechaNacimiento && errors.fechaNacimiento ? '#f44336' : (isDark ? '#555' : '#e0e0e0'),
-                                                }
-                                            ]}
-                                            onPress={() => {
-                                                // Aquí podrías agregar un date picker nativo
-                                                // Por ahora mostramos la fecha actual
-                                            }}
-                                        >
-                                            <Text style={[styles.dateText, { color: isDark ? '#fff' : '#333' }]}>
-                                                {values.fechaNacimiento instanceof Date 
-                                                    ? values.fechaNacimiento.toLocaleDateString('es-ES')
-                                                    : new Date(values.fechaNacimiento).toLocaleDateString('es-ES')
-                                                }
-                                            </Text>
-                                            <Ionicons name="calendar-outline" size={20} color={isDark ? '#aaa' : '#666'} />
-                                        </TouchableOpacity>
-                                        {touched.fechaNacimiento && errors.fechaNacimiento && (
-                                            <Text style={styles.errorText}>
-                                                {typeof errors.fechaNacimiento === 'string' ? errors.fechaNacimiento : 'Fecha inválida'}
-                                            </Text>
                                         )}
                                     </View>
                                 </View>
@@ -473,32 +417,6 @@ export default function EditProfileScreen() {
                                         {touched.informacionPersonal?.ocupacion && errors.informacionPersonal?.ocupacion && (
                                             <Text style={styles.errorText}>
                                                 {typeof errors.informacionPersonal.ocupacion === 'string' ? errors.informacionPersonal.ocupacion : 'Ocupación requerida'}
-                                            </Text>
-                                        )}
-                                    </View>
-
-                                    <View style={styles.inputContainer}>
-                                        <Text style={[styles.label, { color: isDark ? '#fff' : '#333' }]}>
-                                            Nacionalidad *
-                                        </Text>
-                                        <TextInput
-                                            style={[
-                                                styles.input,
-                                                {
-                                                    backgroundColor: isDark ? '#3a3a3a' : '#f8f9fa',
-                                                    borderColor: touched.informacionPersonal?.nacionalidad && errors.informacionPersonal?.nacionalidad ? '#f44336' : (isDark ? '#555' : '#e0e0e0'),
-                                                    color: isDark ? '#fff' : '#333'
-                                                }
-                                            ]}
-                                            value={values.informacionPersonal.nacionalidad}
-                                            onChangeText={(text) => setFieldValue('informacionPersonal.nacionalidad', text)}
-                                            onBlur={handleBlur('informacionPersonal.nacionalidad')}
-                                            placeholder="Ingresa tu nacionalidad"
-                                            placeholderTextColor={isDark ? '#aaa' : '#666'}
-                                        />
-                                        {touched.informacionPersonal?.nacionalidad && errors.informacionPersonal?.nacionalidad && (
-                                            <Text style={styles.errorText}>
-                                                {typeof errors.informacionPersonal.nacionalidad === 'string' ? errors.informacionPersonal.nacionalidad : 'Nacionalidad requerida'}
                                             </Text>
                                         )}
                                     </View>
@@ -906,32 +824,6 @@ const styles = StyleSheet.create({
         flexGrow: 1,
         paddingBottom: 20,
     },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        backgroundColor: 'white',
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-    },
-    backButton: {
-        padding: 8,
-        borderRadius: 20,
-        backgroundColor: 'rgba(211, 47, 47, 0.1)',
-    },
-    headerTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#333',
-    },
-    placeholder: {
-        width: 40,
-    },
     content: {
         padding: 20,
     },
@@ -977,21 +869,6 @@ const styles = StyleSheet.create({
         fontSize: 12,
         marginTop: 4,
         marginLeft: 4,
-    },
-    dateInput: {
-        borderWidth: 1.5,
-        borderColor: '#e0e0e0',
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        paddingVertical: 14,
-        backgroundColor: '#f8f9fa',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    dateText: {
-        fontSize: 16,
-        color: '#333',
     },
     countrySelector: {
         borderWidth: 1.5,

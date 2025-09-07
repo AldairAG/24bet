@@ -1,4 +1,4 @@
 import { Usuario } from "./authTypes";
 
-export interface EditUserProfile extends Omit<Usuario, 'id' | 'activo' | 'fechaCreacion' | 'fechaActualizacion' | 'rol' |'documentosKyc' > {
+export interface EditUserProfile extends Omit<Usuario, 'id' | 'activo' | 'fechaCreacion' | 'fechaActualizacion' | 'rol' |'documentosKyc' | 'fechaNacimiento' > {
 }

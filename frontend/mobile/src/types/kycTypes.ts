@@ -31,8 +31,6 @@ export interface InformacionPersonal {
 
     ocupacion: string;
 
-    nacionalidad: string;
-
     // ========== METADATOS ==========
     fechaCreacion: Date;
 
@@ -40,10 +38,10 @@ export interface InformacionPersonal {
 }
 
 export enum Genero {
-    MASCULINO = "Masculino",
-    FEMENINO = "Femenino",
-    OTRO = "Otro",
-    NO_ESPECIFICADO = "No Especificado"
+    MASCULINO = "MASCULINO",
+    FEMENINO = "FEMENINO",
+    OTRO = "OTRO",
+    NO_ESPECIFICADO = "NO ESPECIFICADO"
 }
 
 export interface DocumentoKyc {

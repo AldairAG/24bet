@@ -1,7 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import { View, Text, StyleSheet, useColorScheme } from 'react-native';
+import { View, Text, StyleSheet, useColorScheme, Image } from 'react-native';
 import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import HomeScreen from '../screens/HomeScreen';
 import EventosEnVivoScreen from '../screens/EventosEnVivoScreen';
@@ -9,6 +9,17 @@ import MisApuestasScreen from '../screens/MisApuestasScreen';
 import DeportesScreen from '../screens/DeportesScreen';
 import SportEventsScreen from '../screens/SportEventsScreen';
 import EventDetailScreen from '../screens/EventDetailScreen';
+
+// Componente del icono del header
+const HeaderIcon = React.memo(() => (
+    <View style={styles.headerIconContainer}>
+        <Image
+            source={require('../../assets/Mesa-de-trabajo.png')}
+            style={styles.headerIcon}
+            resizeMode="contain"
+        />
+    </View>
+));
 
 // Tipos de navegación para el stack principal
 export type MainCasinoStackParamList = {
@@ -58,9 +69,7 @@ function CasinoTabNavigator() {
         <View style={[styles.casinoContainer, { backgroundColor: isDark ? '#121212' : '#f5f5f5' }]}>
             {/* Header del Casino */}
             <View style={[styles.casinoHeader, { backgroundColor: isDark ? '#1e1e1e' : 'white' }]}>
-                <Text style={[styles.casinoHeaderTitle, { color: isDark ? 'white' : '#333' }]}>
-                    Casino 24bet
-                </Text>
+                <HeaderIcon />
             </View>
             
             {/* Top Tabs Navigator */}
@@ -163,18 +172,19 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     casinoHeader: {
-        paddingVertical: 15,
-        paddingHorizontal: 20,
-        borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0',
-        elevation: 2,
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
+
     },
     casinoHeaderTitle: {
         fontSize: 24,
         fontWeight: 'bold',
         textAlign: 'center',
+    },
+    headerIconContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    headerIcon: {
+        width: 80,
+        height: 80,
     },
 });
