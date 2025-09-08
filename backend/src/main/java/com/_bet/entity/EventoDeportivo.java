@@ -4,6 +4,12 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.ToString;
+import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -22,6 +28,12 @@ import java.time.LocalDateTime;
     @Index(name = "idx_evento_liga_id", columnList = "liga_id"),
     @Index(name = "idx_evento_equipos", columnList = "equipoLocal_id, equipoVisitante_id")
 })
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString(exclude = {"liga", "equipoLocal", "equipoVisitante"})
+@EqualsAndHashCode(exclude = {"liga", "equipoLocal", "equipoVisitante"})
 public class EventoDeportivo {
 
     @Id
@@ -165,12 +177,14 @@ public class EventoDeportivo {
     /**
      * Indica si es un evento postemporada
      */
+    @Builder.Default
     @Column(name = "es_postemporada")
     private Boolean esPostemporada = false;
 
     /**
      * Indica si el evento está activo/disponible
      */
+    @Builder.Default
     @Column(name = "activo", nullable = false)
     private Boolean activo = true;
 
@@ -209,273 +223,4 @@ public class EventoDeportivo {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "equipoVisitante_id")
     private Equipo equipoVisitante;
-
-    /**
-     * Constructores
-     */
-    public EventoDeportivo() {}
-
-    public EventoDeportivo(String sportsDbId, String nombre, Liga liga, LocalDateTime fechaEvento) {
-        this.sportsDbId = sportsDbId;
-        this.nombre = nombre;
-        this.liga = liga;
-        this.fechaEvento = fechaEvento;
-        this.activo = true;
-        this.esPostemporada = false;
-    }
-
-    // Getters y Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getSportsDbId() {
-        return sportsDbId;
-    }
-
-    public void setSportsDbId(String sportsDbId) {
-        this.sportsDbId = sportsDbId;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public String getDescripcion() {
-        return descripcion;
-    }
-
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
-
-    public LocalDateTime getFechaEvento() {
-        return fechaEvento;
-    }
-
-    public void setFechaEvento(LocalDateTime fechaEvento) {
-        this.fechaEvento = fechaEvento;
-    }
-
-    public String getTemporada() {
-        return temporada;
-    }
-
-    public void setTemporada(String temporada) {
-        this.temporada = temporada;
-    }
-
-    public String getJornada() {
-        return jornada;
-    }
-
-    public void setJornada(String jornada) {
-        this.jornada = jornada;
-    }
-
-    public Integer getSemana() {
-        return semana;
-    }
-
-    public void setSemana(Integer semana) {
-        this.semana = semana;
-    }
-
-    public String getEstado() {
-        return estado;
-    }
-
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
-
-    public Integer getResultadoLocal() {
-        return resultadoLocal;
-    }
-
-    public void setResultadoLocal(Integer resultadoLocal) {
-        this.resultadoLocal = resultadoLocal;
-    }
-
-    public Integer getResultadoVisitante() {
-        return resultadoVisitante;
-    }
-
-    public void setResultadoVisitante(Integer resultadoVisitante) {
-        this.resultadoVisitante = resultadoVisitante;
-    }
-
-    public Integer getResultadoMedioLocal() {
-        return resultadoMedioLocal;
-    }
-
-    public void setResultadoMedioLocal(Integer resultadoMedioLocal) {
-        this.resultadoMedioLocal = resultadoMedioLocal;
-    }
-
-    public Integer getResultadoMedioVisitante() {
-        return resultadoMedioVisitante;
-    }
-
-    public void setResultadoMedioVisitante(Integer resultadoMedioVisitante) {
-        this.resultadoMedioVisitante = resultadoMedioVisitante;
-    }
-
-    public Integer getEspectadores() {
-        return espectadores;
-    }
-
-    public void setEspectadores(Integer espectadores) {
-        this.espectadores = espectadores;
-    }
-
-    public String getTiempoPartido() {
-        return tiempoPartido;
-    }
-
-    public void setTiempoPartido(String tiempoPartido) {
-        this.tiempoPartido = tiempoPartido;
-    }
-
-    public String getThumbUrl() {
-        return thumbUrl;
-    }
-
-    public void setThumbUrl(String thumbUrl) {
-        this.thumbUrl = thumbUrl;
-    }
-
-    public String getBannerUrl() {
-        return bannerUrl;
-    }
-
-    public void setBannerUrl(String bannerUrl) {
-        this.bannerUrl = bannerUrl;
-    }
-
-    public String getVideoUrl() {
-        return videoUrl;
-    }
-
-    public void setVideoUrl(String videoUrl) {
-        this.videoUrl = videoUrl;
-    }
-
-    public String getUbicacion() {
-        return ubicacion;
-    }
-
-    public void setUbicacion(String ubicacion) {
-        this.ubicacion = ubicacion;
-    }
-
-    public String getPais() {
-        return pais;
-    }
-
-    public void setPais(String pais) {
-        this.pais = pais;
-    }
-
-    public String getCiudad() {
-        return ciudad;
-    }
-
-    public void setCiudad(String ciudad) {
-        this.ciudad = ciudad;
-    }
-
-    public BigDecimal getLatitud() {
-        return latitud;
-    }
-
-    public void setLatitud(BigDecimal latitud) {
-        this.latitud = latitud;
-    }
-
-    public BigDecimal getLongitud() {
-        return longitud;
-    }
-
-    public void setLongitud(BigDecimal longitud) {
-        this.longitud = longitud;
-    }
-
-    public Boolean getEsPostemporada() {
-        return esPostemporada;
-    }
-
-    public void setEsPostemporada(Boolean esPostemporada) {
-        this.esPostemporada = esPostemporada;
-    }
-
-    public Boolean getActivo() {
-        return activo;
-    }
-
-    public void setActivo(Boolean activo) {
-        this.activo = activo;
-    }
-
-    public LocalDateTime getFechaCreacion() {
-        return fechaCreacion;
-    }
-
-    public void setFechaCreacion(LocalDateTime fechaCreacion) {
-        this.fechaCreacion = fechaCreacion;
-    }
-
-    public LocalDateTime getFechaActualizacion() {
-        return fechaActualizacion;
-    }
-
-    public void setFechaActualizacion(LocalDateTime fechaActualizacion) {
-        this.fechaActualizacion = fechaActualizacion;
-    }
-
-    public Liga getLiga() {
-        return liga;
-    }
-
-    public void setLiga(Liga liga) {
-        this.liga = liga;
-    }
-
-    public Equipo getEquipoLocal() {
-        return equipoLocal;
-    }
-
-    public void setEquipoLocal(Equipo equipoLocal) {
-        this.equipoLocal = equipoLocal;
-    }
-
-    public Equipo getEquipoVisitante() {
-        return equipoVisitante;
-    }
-
-    public void setEquipoVisitante(Equipo equipoVisitante) {
-        this.equipoVisitante = equipoVisitante;
-    }
-
-    @Override
-    public String toString() {
-        return "EventoDeportivo{" +
-                "id=" + id +
-                ", sportsDbId='" + sportsDbId + '\'' +
-                ", nombre='" + nombre + '\'' +
-                ", fechaEvento=" + fechaEvento +
-                ", estado='" + estado + '\'' +
-                ", resultadoLocal=" + resultadoLocal +
-                ", resultadoVisitante=" + resultadoVisitante +
-                ", activo=" + activo +
-                '}';
-    }
 }

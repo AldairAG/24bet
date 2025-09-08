@@ -4,6 +4,12 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.ToString;
+import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -20,6 +26,12 @@ import java.util.List;
     @Index(name = "idx_liga_nombre", columnList = "nombre"),
     @Index(name = "idx_liga_deporte_id", columnList = "deporte_id")
 })
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString(exclude = {"equipos", "eventos", "deporte"})
+@EqualsAndHashCode(exclude = {"equipos", "eventos", "deporte"})
 public class Liga {
 
     @Id
@@ -139,6 +151,7 @@ public class Liga {
     /**
      * Indica si la liga está activa/disponible
      */
+    @Builder.Default
     @Column(name = "activa", nullable = false)
     private Boolean activa = true;
 
@@ -175,228 +188,4 @@ public class Liga {
      */
     @OneToMany(mappedBy = "liga", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<EventoDeportivo> eventos;
-
-    /**
-     * Constructores
-     */
-    public Liga() {}
-
-    public Liga(String sportsDbId, String nombre, Deporte deporte) {
-        this.sportsDbId = sportsDbId;
-        this.nombre = nombre;
-        this.deporte = deporte;
-        this.activa = true;
-    }
-
-    // Getters y Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getSportsDbId() {
-        return sportsDbId;
-    }
-
-    public void setSportsDbId(String sportsDbId) {
-        this.sportsDbId = sportsDbId;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public String getNombreAlternativo() {
-        return nombreAlternativo;
-    }
-
-    public void setNombreAlternativo(String nombreAlternativo) {
-        this.nombreAlternativo = nombreAlternativo;
-    }
-
-    public String getDescripcion() {
-        return descripcion;
-    }
-
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
-
-    public String getPais() {
-        return pais;
-    }
-
-    public void setPais(String pais) {
-        this.pais = pais;
-    }
-
-    public String getLogoUrl() {
-        return logoUrl;
-    }
-
-    public void setLogoUrl(String logoUrl) {
-        this.logoUrl = logoUrl;
-    }
-
-    public String getBadgeUrl() {
-        return badgeUrl;
-    }
-
-    public void setBadgeUrl(String badgeUrl) {
-        this.badgeUrl = badgeUrl;
-    }
-
-    public String getBannerUrl() {
-        return bannerUrl;
-    }
-
-    public void setBannerUrl(String bannerUrl) {
-        this.bannerUrl = bannerUrl;
-    }
-
-    public String getPosterUrl() {
-        return posterUrl;
-    }
-
-    public void setPosterUrl(String posterUrl) {
-        this.posterUrl = posterUrl;
-    }
-
-    public String getTrophyUrl() {
-        return trophyUrl;
-    }
-
-    public void setTrophyUrl(String trophyUrl) {
-        this.trophyUrl = trophyUrl;
-    }
-
-    public Integer getAnoFundacion() {
-        return anoFundacion;
-    }
-
-    public void setAnoFundacion(Integer anoFundacion) {
-        this.anoFundacion = anoFundacion;
-    }
-
-    public String getTemporadaActual() {
-        return temporadaActual;
-    }
-
-    public void setTemporadaActual(String temporadaActual) {
-        this.temporadaActual = temporadaActual;
-    }
-
-    public String getSitioWeb() {
-        return sitioWeb;
-    }
-
-    public void setSitioWeb(String sitioWeb) {
-        this.sitioWeb = sitioWeb;
-    }
-
-    public String getFacebook() {
-        return facebook;
-    }
-
-    public void setFacebook(String facebook) {
-        this.facebook = facebook;
-    }
-
-    public String getTwitter() {
-        return twitter;
-    }
-
-    public void setTwitter(String twitter) {
-        this.twitter = twitter;
-    }
-
-    public String getYoutube() {
-        return youtube;
-    }
-
-    public void setYoutube(String youtube) {
-        this.youtube = youtube;
-    }
-
-    public String getRss() {
-        return rss;
-    }
-
-    public void setRss(String rss) {
-        this.rss = rss;
-    }
-
-    public String getGenero() {
-        return genero;
-    }
-
-    public void setGenero(String genero) {
-        this.genero = genero;
-    }
-
-    public Boolean getActiva() {
-        return activa;
-    }
-
-    public void setActiva(Boolean activa) {
-        this.activa = activa;
-    }
-
-    public LocalDateTime getFechaCreacion() {
-        return fechaCreacion;
-    }
-
-    public void setFechaCreacion(LocalDateTime fechaCreacion) {
-        this.fechaCreacion = fechaCreacion;
-    }
-
-    public LocalDateTime getFechaActualizacion() {
-        return fechaActualizacion;
-    }
-
-    public void setFechaActualizacion(LocalDateTime fechaActualizacion) {
-        this.fechaActualizacion = fechaActualizacion;
-    }
-
-    public Deporte getDeporte() {
-        return deporte;
-    }
-
-    public void setDeporte(Deporte deporte) {
-        this.deporte = deporte;
-    }
-
-    public List<Equipo> getEquipos() {
-        return equipos;
-    }
-
-    public void setEquipos(List<Equipo> equipos) {
-        this.equipos = equipos;
-    }
-
-    public List<EventoDeportivo> getEventos() {
-        return eventos;
-    }
-
-    public void setEventos(List<EventoDeportivo> eventos) {
-        this.eventos = eventos;
-    }
-
-    @Override
-    public String toString() {
-        return "Liga{" +
-                "id=" + id +
-                ", sportsDbId='" + sportsDbId + '\'' +
-                ", nombre='" + nombre + '\'' +
-                ", pais='" + pais + '\'' +
-                ", activa=" + activa +
-                '}';
-    }
 }

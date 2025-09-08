@@ -1,0 +1,43 @@
+package com._bet.repository;
+
+import com._bet.entity.Deporte;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Repositorio para la entidad Deporte
+ */
+@Repository
+public interface DeporteRepository extends JpaRepository<Deporte, Long> {
+    
+    /**
+     * Busca un deporte por su ID en TheSportsDB
+     */
+    Optional<Deporte> findBySportsDbId(String sportsDbId);
+    
+    /**
+     * Busca deportes por nombre (case insensitive)
+     */
+    @Query("SELECT d FROM Deporte d WHERE UPPER(d.nombre) LIKE UPPER(CONCAT('%', :nombre, '%'))")
+    List<Deporte> findByNombreContainingIgnoreCase(@Param("nombre") String nombre);
+    
+    /**
+     * Busca deportes activos
+     */
+    List<Deporte> findByActivoTrue();
+    
+    /**
+     * Busca deportes por formato
+     */
+    List<Deporte> findByFormato(String formato);
+    
+    /**
+     * Verifica si existe un deporte con el ID de TheSportsDB
+     */
+    boolean existsBySportsDbId(String sportsDbId);
+}
