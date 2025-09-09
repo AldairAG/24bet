@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -420,11 +419,10 @@ public class TheSportsDbService {
     }
 
     /**
-     * Tarea programada para sincronización automática cada 6 horas
+     * Sincronización automática de eventos deportivos
+     * Llamado desde el scheduler
      */
-    @Scheduled(fixedRate = 21600000) // 6 horas en milisegundos
-    @Async
-    public void sincronizacionAutomatica() {
+    public void sincronizacionEventosAutomatica() {
         log.info("Iniciando sincronización automática de eventos deportivos");
         
         try {
@@ -446,6 +444,123 @@ public class TheSportsDbService {
             log.info("Sincronización automática completada");
         } catch (Exception e) {
             log.error("Error en la sincronización automática: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Sincronización de datos maestros (deportes, ligas, equipos)
+     */
+    public void sincronizacionDatosMaestros() {
+        log.info("Iniciando sincronización de datos maestros");
+        
+        try {
+            // 1. Sincronizar deportes
+            sincronizarDeportes().join();
+            
+            // 2. Sincronizar ligas para cada deporte
+            List<Deporte> deportes = deporteRepository.findByActivoTrue();
+            for (Deporte deporte : deportes) {
+                sincronizarLigasPorDeporte(deporte.getNombreIngles()).join();
+                Thread.sleep(500); // Pausa entre llamadas
+            }
+            
+            // 3. Sincronizar equipos para cada liga activa
+            List<Liga> ligas = ligaRepository.findByActivaTrue();
+            for (Liga liga : ligas) {
+                sincronizarEquiposPorLiga(liga.getSportsDbId()).join();
+                Thread.sleep(500); // Pausa entre llamadas
+            }
+            
+            log.info("Sincronización de datos maestros completada");
+        } catch (Exception e) {
+            log.error("Error en la sincronización de datos maestros: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Verifica si es necesaria una sincronización inicial
+     */
+    public boolean necesitaSincronizacionInicial() {
+        long deportes = deporteRepository.count();
+        long ligas = ligaRepository.count();
+        long equipos = equipoRepository.count();
+        
+        // Si hay menos de 5 deportes, consideramos que necesita sincronización inicial
+        return deportes < 5 || ligas < 10 || equipos < 50;
+    }
+
+    /**
+     * Sincronización inicial completa para aplicación nueva
+     */
+    public void sincronizacionInicialCompleta() {
+        log.info("Iniciando sincronización inicial completa");
+        
+        try {
+            sincronizacionCompleta().join();
+            log.info("Sincronización inicial completa finalizada");
+        } catch (Exception e) {
+            log.error("Error en la sincronización inicial completa: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Sincronizar eventos que están actualmente en vivo
+     */
+    public void sincronizarEventosEnVivo() {
+        try {
+            // Obtener eventos que deberían estar en vivo (últimas 3 horas)
+            LocalDateTime hace3Horas = LocalDateTime.now().minusHours(3);
+            LocalDateTime ahora = LocalDateTime.now();
+            
+            List<EventoDeportivo> eventosActivos = eventoDeportivoRepository
+                .findEventosEnRangoFechas(hace3Horas, ahora);
+            
+            if (!eventosActivos.isEmpty()) {
+                log.debug("Actualizando {} eventos potencialmente en vivo", eventosActivos.size());
+                
+                // Agrupar eventos por liga para optimizar las llamadas a la API
+                var eventosPorLiga = eventosActivos.stream()
+                    .collect(java.util.stream.Collectors.groupingBy(
+                        evento -> evento.getLiga().getSportsDbId()
+                    ));
+                
+                for (String ligaId : eventosPorLiga.keySet()) {
+                    // Sincronizar eventos próximos de la liga (incluye eventos en vivo)
+                    sincronizarEventosProximosPorLiga(ligaId);
+                    Thread.sleep(2000); // Pausa más larga para eventos en vivo
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error en la sincronización de eventos en vivo: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Limpia datos antiguos del sistema
+     */
+    public void limpiarDatosAntiguos() {
+        log.info("Iniciando limpieza de datos antiguos");
+        
+        try {
+            // Desactivar eventos antiguos (más de 2 años)
+            LocalDateTime fechaLimite = LocalDateTime.now().minusYears(2);
+            List<EventoDeportivo> eventosAntiguos = eventoDeportivoRepository.findEventosPasados(fechaLimite);
+            
+            int eventosDesactivados = 0;
+            for (EventoDeportivo evento : eventosAntiguos) {
+                if (evento.getFechaEvento() != null && evento.getFechaEvento().isBefore(fechaLimite)) {
+                    evento.setActivo(false);
+                    eventosDesactivados++;
+                }
+            }
+            
+            if (eventosDesactivados > 0) {
+                eventoDeportivoRepository.saveAll(eventosAntiguos);
+            }
+            
+            log.info("Limpieza completada. Eventos desactivados: {}", eventosDesactivados);
+        } catch (Exception e) {
+            log.error("Error en la limpieza de datos antiguos: {}", e.getMessage(), e);
         }
     }
 

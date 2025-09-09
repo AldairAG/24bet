@@ -164,7 +164,7 @@ public class SyncStatusService {
      * Limpia datos antiguos
      */
     @Transactional
-    public Map<String, Integer> limpiarDatosAntiguos() {
+    public Map<String, Object> limpiarDatosAntiguos() {
         log.info("Iniciando limpieza de datos antiguos");
         
         // Desactivar eventos antiguos (más de 1 año)

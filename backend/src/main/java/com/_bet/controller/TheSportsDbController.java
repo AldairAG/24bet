@@ -142,7 +142,7 @@ public class TheSportsDbController {
         
         CompletableFuture.runAsync(() -> {
             try {
-                theSportsDbService.sincronizacionAutomatica();
+                theSportsDbService.sincronizacionEventosAutomatica();
             } catch (Exception e) {
                 log.error("Error en sincronización automática: {}", e.getMessage(), e);
             }
@@ -181,7 +181,7 @@ public class TheSportsDbController {
      * Limpia datos antiguos
      */
     @PostMapping("/maintenance/cleanup")
-    public ResponseEntity<Map<String, Integer>> limpiarDatosAntiguos() {
+    public ResponseEntity<Map<String, Object>> limpiarDatosAntiguos() {
         log.info("Iniciando limpieza de datos antiguos");
         return ResponseEntity.ok(syncStatusService.limpiarDatosAntiguos());
     }

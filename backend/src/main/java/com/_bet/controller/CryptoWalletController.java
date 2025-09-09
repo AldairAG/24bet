@@ -4,7 +4,7 @@ import com._bet.dto.CryptoWalletDto;
 import com._bet.entity.CryptoWallet;
 import com._bet.service.CryptoWalletService;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,12 +17,12 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/24bet/crypto-wallets")
-@RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class CryptoWalletController {
     
-    private final CryptoWalletService cryptoWalletService;
-    
+    @Autowired
+    private CryptoWalletService cryptoWalletService;
+
     /**
      * Crea un nuevo wallet crypto para un usuario
      */
