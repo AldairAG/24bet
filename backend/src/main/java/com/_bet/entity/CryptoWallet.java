@@ -13,6 +13,8 @@ import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 @Entity
 @Table(name = "crypto_wallets")
 @Data
@@ -68,6 +70,7 @@ public class CryptoWallet {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id", nullable = false)
     @NotNull(message = "El usuario es obligatorio")
+    @JsonBackReference
     private Usuario usuario;
     
     @PrePersist

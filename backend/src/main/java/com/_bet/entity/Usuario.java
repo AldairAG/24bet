@@ -95,6 +95,7 @@ public class Usuario implements UserDetails {
     // ========== RELACIÓN CON CRYPTO WALLETS ==========
     
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private List<CryptoWallet> cryptoWallets;
     
     // ========== RELACIÓN CON TRANSACCIONES ==========
