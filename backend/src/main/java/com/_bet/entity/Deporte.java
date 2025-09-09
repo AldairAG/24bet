@@ -3,6 +3,12 @@ package com._bet.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.ToString;
+import lombok.EqualsAndHashCode;
+import lombok.Builder;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -18,6 +24,12 @@ import java.util.List;
     @Index(name = "idx_deporte_sports_db_id", columnList = "sportsDbId"),
     @Index(name = "idx_deporte_nombre", columnList = "nombre")
 })
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString(exclude = "ligas")
+@EqualsAndHashCode(exclude = "ligas")
 public class Deporte {
 
     @Id
@@ -77,6 +89,7 @@ public class Deporte {
     /**
      * Indica si el deporte está activo/disponible
      */
+    @Builder.Default
     @Column(name = "activo", nullable = false)
     private Boolean activo = true;
 
@@ -99,132 +112,4 @@ public class Deporte {
      */
     @OneToMany(mappedBy = "deporte", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Liga> ligas;
-
-    /**
-     * Constructores
-     */
-    public Deporte() {}
-
-    public Deporte(String sportsDbId, String nombre, String nombreIngles) {
-        this.sportsDbId = sportsDbId;
-        this.nombre = nombre;
-        this.nombreIngles = nombreIngles;
-        this.activo = true;
-    }
-
-    // Getters y Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getSportsDbId() {
-        return sportsDbId;
-    }
-
-    public void setSportsDbId(String sportsDbId) {
-        this.sportsDbId = sportsDbId;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public String getNombreIngles() {
-        return nombreIngles;
-    }
-
-    public void setNombreIngles(String nombreIngles) {
-        this.nombreIngles = nombreIngles;
-    }
-
-    public String getDescripcion() {
-        return descripcion;
-    }
-
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
-
-    public String getImagenUrl() {
-        return imagenUrl;
-    }
-
-    public void setImagenUrl(String imagenUrl) {
-        this.imagenUrl = imagenUrl;
-    }
-
-    public String getThumbUrl() {
-        return thumbUrl;
-    }
-
-    public void setThumbUrl(String thumbUrl) {
-        this.thumbUrl = thumbUrl;
-    }
-
-    public String getFormato() {
-        return formato;
-    }
-
-    public void setFormato(String formato) {
-        this.formato = formato;
-    }
-
-    public String getGenero() {
-        return genero;
-    }
-
-    public void setGenero(String genero) {
-        this.genero = genero;
-    }
-
-    public Boolean getActivo() {
-        return activo;
-    }
-
-    public void setActivo(Boolean activo) {
-        this.activo = activo;
-    }
-
-    public LocalDateTime getFechaCreacion() {
-        return fechaCreacion;
-    }
-
-    public void setFechaCreacion(LocalDateTime fechaCreacion) {
-        this.fechaCreacion = fechaCreacion;
-    }
-
-    public LocalDateTime getFechaActualizacion() {
-        return fechaActualizacion;
-    }
-
-    public void setFechaActualizacion(LocalDateTime fechaActualizacion) {
-        this.fechaActualizacion = fechaActualizacion;
-    }
-
-    public List<Liga> getLigas() {
-        return ligas;
-    }
-
-    public void setLigas(List<Liga> ligas) {
-        this.ligas = ligas;
-    }
-
-    @Override
-    public String toString() {
-        return "Deporte{" +
-                "id=" + id +
-                ", sportsDbId='" + sportsDbId + '\'' +
-                ", nombre='" + nombre + '\'' +
-                ", nombreIngles='" + nombreIngles + '\'' +
-                ", activo=" + activo +
-                '}';
-    }
 }

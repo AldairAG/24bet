@@ -68,6 +68,7 @@ public class SecurityConfig {
                         // Endpoints públicos de autenticación
                         .requestMatchers("/24bet/auth/**").permitAll()
                         .requestMatchers("/24bet/usuarios/**").permitAll()
+                        .requestMatchers("/24bet/usuarios/**").permitAll()
 
                         // Swagger y documentación
                         //.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
