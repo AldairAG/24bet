@@ -26,6 +26,8 @@ import {
     CriptomonedaConfig,
     CriptomonedaType
 } from '../../types/withdrawTypes';
+import { useWallet } from '../../hooks/useWallet';
+import { CreateCryptoWalletDto, TipoCrypto } from '../../types/walletTypes';
 
 const criptomonedas: Record<CriptomonedaType, CriptomonedaConfig> = {
     'bitcoin': {
@@ -87,6 +89,23 @@ export default function RetiroScreen() {
     const styles = getStyles((colorScheme === 'light' || colorScheme === 'dark') ? colorScheme : null);
     const [exchangeRates, setExchangeRates] = useState<CryptoPrice | null>(null);
 
+    // Hook para gestión de wallets
+    const {
+        createWallet,
+        isCreatingWallet,
+        createdWallet,
+        createWalletError,
+        validationError,
+        availableCryptoTypes,
+        getCryptoName,
+        getCryptoOptions,
+        validateWallet,
+        clearCreateError,
+        clearValidationError,
+        clearWallet,
+        TipoCrypto,
+    } = useWallet();
+
     useEffect(() => {
         getExchangeRates().then((data) => {
             setExchangeRates(data);
@@ -109,6 +128,27 @@ export default function RetiroScreen() {
         cargarWallets();
         cargarSolicitudesRetiro();
     }, []);
+
+    // Manejar errores del wallet hook
+    useEffect(() => {
+        if (createWalletError) {
+            Toast.show({
+                type: 'error',
+                text1: 'Error al crear wallet',
+                text2: createWalletError
+            });
+        }
+    }, [createWalletError]);
+
+    useEffect(() => {
+        if (validationError) {
+            Toast.show({
+                type: 'error',
+                text1: 'Error de validación',
+                text2: validationError
+            });
+        }
+    }, [validationError]);
 
     const cargarWallets = () => {
         // Simular wallets guardadas (en producción vendría de la API)
@@ -165,30 +205,108 @@ export default function RetiroScreen() {
 
     const cerrarModalAgregar = () => {
         setModalAgregarVisible(false);
+        // Limpiar errores cuando se cierra el modal
+        clearCreateError();
+        clearValidationError();
     };
 
-    const guardarWallet = (values: WalletFormValues) => {
-        const criptoInfo = criptomonedas[values.criptomoneda as CriptomonedaType];
-        if (!criptoInfo) return;
-
-        const nuevaWalletInfo: WalletInfo = {
-            id: Date.now().toString(),
-            nombre: values.nombre.trim(),
-            direccion: values.direccion.trim(),
-            criptomoneda: values.criptomoneda,
-            simbolo: criptoInfo.simbolo,
-            icono: criptoInfo.icono,
-            color: criptoInfo.color,
+    // Función para mapear criptomonedas del sistema actual al nuevo sistema
+    const mapearCriptomonedaATipo = (criptomoneda: string): TipoCrypto | null => {
+        const mapping: Record<string, TipoCrypto> = {
+            'bitcoin': TipoCrypto.BITCOIN,
+            'ethereum': TipoCrypto.ETHEREUM,
+            'usdt': TipoCrypto.USDT,
+            'solana': TipoCrypto.SOLANA,
         };
+        return mapping[criptomoneda] || null;
+    };
 
-        setWallets(prev => [...prev, nuevaWalletInfo]);
-        cerrarModalAgregar();
-        
-        Toast.show({
-            type: 'success',
-            text1: 'Wallet agregada',
-            text2: 'Tu wallet ha sido guardada correctamente'
-        });
+    // Función para obtener ID de usuario (placeholder - debería venir del auth)
+    const getUserId = (): number => {
+        // TODO: Implementar obtención de ID real del usuario autenticado
+        return 1; // Valor temporal
+    };
+
+    const guardarWallet = async (values: WalletFormValues) => {
+        try {
+            // Limpiar errores previos
+            clearCreateError();
+            clearValidationError();
+
+            // Mapear el tipo de criptomoneda
+            const tipoCrypto = mapearCriptomonedaATipo(values.criptomoneda);
+            if (!tipoCrypto) {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: 'Tipo de criptomoneda no soportado'
+                });
+                return;
+            }
+
+            // Crear datos para la API
+            const walletData: CreateCryptoWalletDto = {
+                nombre: values.nombre.trim(),
+                address: values.direccion.trim(),
+                tipoCrypto: tipoCrypto,
+            };
+
+            // Validar datos antes de enviar
+            const validationError = validateWallet(walletData);
+            if (validationError) {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error de validación',
+                    text2: validationError
+                });
+                return;
+            }
+
+            // Crear wallet usando el hook
+            const userId = getUserId();
+            const result = await createWallet(userId, walletData);
+
+            if (result.type === 'wallet/createCryptoWallet/fulfilled') {
+                // Wallet creada exitosamente
+                const createdWalletData = result.payload;
+                
+                // Convertir a formato local para la UI existente
+                const criptoInfo = criptomonedas[values.criptomoneda as CriptomonedaType];
+                const nuevaWalletInfo: WalletInfo = {
+                    id: createdWalletData.id.toString(),
+                    nombre: createdWalletData.nombre,
+                    direccion: createdWalletData.address,
+                    criptomoneda: values.criptomoneda,
+                    simbolo: criptoInfo?.simbolo || tipoCrypto,
+                    icono: criptoInfo?.icono || 'wallet-outline',
+                    color: criptoInfo?.color || '#666',
+                };
+
+                // Actualizar estado local
+                setWallets(prev => [...prev, nuevaWalletInfo]);
+                cerrarModalAgregar();
+                
+                // Limpiar wallet creada del estado global
+                clearWallet();
+
+                Toast.show({
+                    type: 'success',
+                    text1: '✅ Wallet creada exitosamente',
+                    text2: `"${createdWalletData.nombre}" ha sido registrada correctamente`
+                });
+            } else {
+                // Error en la creación
+                throw new Error('Error al crear la wallet');
+            }
+
+        } catch (error) {
+            console.error('Error creating wallet:', error);
+            Toast.show({
+                type: 'error',
+                text1: 'Error al crear wallet',
+                text2: createWalletError || 'No se pudo crear la wallet. Intenta nuevamente.'
+            });
+        }
     };
 
     const abrirModalRetiro = (wallet: WalletInfo) => {
@@ -496,17 +614,28 @@ export default function RetiroScreen() {
                                             style={[
                                                 styles.modalButton, 
                                                 styles.saveButton,
-                                                !isValid && styles.disabledButton
+                                                (!isValid || isCreatingWallet) && styles.disabledButton
                                             ]} 
                                             onPress={() => handleSubmit()}
-                                            disabled={!isValid}
+                                            disabled={!isValid || isCreatingWallet}
                                         >
-                                            <Text style={[
-                                                styles.saveButtonText,
-                                                !isValid && styles.disabledButtonText
-                                            ]}>
-                                                Guardar
-                                            </Text>
+                                            {isCreatingWallet ? (
+                                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                                    <Text style={[
+                                                        styles.saveButtonText,
+                                                        (!isValid || isCreatingWallet) && styles.disabledButtonText
+                                                    ]}>
+                                                        Creando...
+                                                    </Text>
+                                                </View>
+                                            ) : (
+                                                <Text style={[
+                                                    styles.saveButtonText,
+                                                    (!isValid || isCreatingWallet) && styles.disabledButtonText
+                                                ]}>
+                                                    Guardar
+                                                </Text>
+                                            )}
                                         </TouchableOpacity>
                                     </View>
                                 </>

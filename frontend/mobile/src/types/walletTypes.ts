@@ -22,6 +22,15 @@ export interface CryptoWalletDto {
     ultimaTransaccion: Date;
 }
 
+export interface CreateCryptoWalletDto {
+
+    nombre: string;
+
+    address: string;
+
+    tipoCrypto: TipoCrypto;
+
+}
 
 export enum TipoCrypto {
         BITCOIN = "BTC",

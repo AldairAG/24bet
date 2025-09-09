@@ -313,7 +313,8 @@ class ApiBase {
 export const apiBase = new ApiBase();
 
 // Exportar la clase para casos donde se necesite crear múltiples instancias
-export { ApiBase };
+// Exportar la clase para casos donde se necesite crear múltiples instancias
+export { ApiBase, API_BASE_URL };
 
 // Helper functions para facilitar el uso
 export const api = {
