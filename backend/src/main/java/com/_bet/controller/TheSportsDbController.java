@@ -1,7 +1,8 @@
 package com._bet.controller;
 
-import com._bet.service.TheSportsDbService;
 import com._bet.service.SyncStatusService;
+import com._bet.service.theSportsDb.TheSportsDbService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

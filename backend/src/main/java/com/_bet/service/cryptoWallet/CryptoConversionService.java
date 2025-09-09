@@ -1,4 +1,4 @@
-package com._bet.service;
+package com._bet.service.cryptoWallet;
 
 import com._bet.entity.CryptoWallet;
 import lombok.RequiredArgsConstructor;

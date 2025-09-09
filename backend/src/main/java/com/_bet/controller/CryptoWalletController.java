@@ -2,7 +2,7 @@ package com._bet.controller;
 
 import com._bet.dto.CryptoWalletDto;
 import com._bet.entity.CryptoWallet;
-import com._bet.service.CryptoWalletService;
+import com._bet.service.cryptoWallet.CryptoWalletService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
