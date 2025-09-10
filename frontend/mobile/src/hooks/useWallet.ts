@@ -5,17 +5,27 @@ import {
     // Thunks
     createCryptoWallet,
     loadAvailableCryptoTypes,
+    getUserWallets,
+    deactivateWallet,
     // Actions
     clearCreateWalletError,
+    clearLoadUserWalletsError,
+    clearDeactivateWalletError,
     clearValidationError,
     clearCreatedWallet,
+    clearUserWallets,
     clearWalletData,
     setValidationError,
     // Selectors
     selectWalletState,
     selectIsCreatingWallet,
+    selectIsLoadingUserWallets,
+    selectIsDeactivatingWallet,
     selectCreatedWallet,
+    selectUserWallets,
     selectCreateWalletError,
+    selectLoadUserWalletsError,
+    selectDeactivateWalletError,
     selectValidationError,
     selectAvailableCryptoTypes,
     selectWalletErrors,
@@ -34,8 +44,13 @@ export const useWallet = () => {
     // ========== SELECTORES ==========
     const walletState = useSelector(selectWalletState);
     const isCreatingWallet = useSelector(selectIsCreatingWallet);
+    const isLoadingUserWallets = useSelector(selectIsLoadingUserWallets);
+    const isDeactivatingWallet = useSelector(selectIsDeactivatingWallet);
     const createdWallet = useSelector(selectCreatedWallet);
+    const userWallets = useSelector(selectUserWallets);
     const createWalletError = useSelector(selectCreateWalletError);
+    const loadUserWalletsError = useSelector(selectLoadUserWalletsError);
+    const deactivateWalletError = useSelector(selectDeactivateWalletError);
     const validationError = useSelector(selectValidationError);
     const availableCryptoTypes = useSelector(selectAvailableCryptoTypes);
     const walletErrors = useSelector(selectWalletErrors);
@@ -64,6 +79,28 @@ export const useWallet = () => {
         return result;
     }, [dispatch]);
 
+    /**
+     * Carga todas las wallets de un usuario
+     */
+    const loadUserWallets = useCallback(
+        async (usuarioId: number) => {
+            const result = await dispatch(getUserWallets(usuarioId) as any);
+            return result;
+        },
+        [dispatch]
+    );
+
+    /**
+     * Desactiva (elimina) un wallet
+     */
+    const deleteWallet = useCallback(
+        async (walletId: number) => {
+            const result = await dispatch(deactivateWallet(walletId) as any);
+            return result;
+        },
+        [dispatch]
+    );
+
     // ========== ACCIONES DE LIMPIEZA ==========
 
     /**
@@ -71,6 +108,20 @@ export const useWallet = () => {
      */
     const clearCreateError = useCallback(() => {
         dispatch(clearCreateWalletError());
+    }, [dispatch]);
+
+    /**
+     * Limpia el error de carga de wallets del usuario
+     */
+    const clearLoadWalletsError = useCallback(() => {
+        dispatch(clearLoadUserWalletsError());
+    }, [dispatch]);
+
+    /**
+     * Limpia el error de desactivación de wallet
+     */
+    const clearDeactivateError = useCallback(() => {
+        dispatch(clearDeactivateWalletError());
     }, [dispatch]);
 
     /**
@@ -85,6 +136,13 @@ export const useWallet = () => {
      */
     const clearWallet = useCallback(() => {
         dispatch(clearCreatedWallet());
+    }, [dispatch]);
+
+    /**
+     * Limpia las wallets del usuario cargadas
+     */
+    const clearWallets = useCallback(() => {
+        dispatch(clearUserWallets());
     }, [dispatch]);
 
     /**
@@ -145,8 +203,8 @@ export const useWallet = () => {
      * Verifica si hay algún error activo
      */
     const hasErrors = useCallback((): boolean => {
-        return !!(createWalletError || validationError);
-    }, [createWalletError, validationError]);
+        return !!(createWalletError || loadUserWalletsError || deactivateWalletError || validationError);
+    }, [createWalletError, loadUserWalletsError, deactivateWalletError, validationError]);
 
     /**
      * Obtiene todos los errores activos
@@ -154,9 +212,11 @@ export const useWallet = () => {
     const getAllErrors = useCallback((): string[] => {
         const errors: string[] = [];
         if (createWalletError) errors.push(createWalletError);
+        if (loadUserWalletsError) errors.push(loadUserWalletsError);
+        if (deactivateWalletError) errors.push(deactivateWalletError);
         if (validationError) errors.push(validationError);
         return errors;
-    }, [createWalletError, validationError]);
+    }, [createWalletError, loadUserWalletsError, deactivateWalletError, validationError]);
 
     /**
      * Resetea todos los estados a su valor inicial
@@ -183,15 +243,20 @@ export const useWallet = () => {
 
         // Estados de carga
         isCreatingWallet,
-        isLoading: isCreatingWallet,
+        isLoadingUserWallets,
+        isDeactivatingWallet,
+        isLoading: isCreatingWallet || isLoadingUserWallets || isDeactivatingWallet,
         loading: walletLoading,
 
         // Datos
         createdWallet,
+        userWallets,
         availableCryptoTypes,
 
         // Errores
         createWalletError,
+        loadUserWalletsError,
+        deactivateWalletError,
         validationError,
         errors: walletErrors,
         hasErrors: hasErrors(),
@@ -200,11 +265,16 @@ export const useWallet = () => {
         // Acciones principales
         createWallet,
         loadCryptoTypes,
+        loadUserWallets,
+        deleteWallet,
 
         // Acciones de limpieza
         clearCreateError,
+        clearLoadWalletsError,
+        clearDeactivateError,
         clearValidationError: clearValidationErr,
         clearWallet,
+        clearWallets,
         clearAllWalletData,
         setValidationError: setValidationErr,
         resetWalletState,

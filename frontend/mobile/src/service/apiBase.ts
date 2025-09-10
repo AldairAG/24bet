@@ -1,4 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import { store } from '../store'; // Importar tu store de Redux
+import { logout } from '../store/slices/authSlice'; // Importar action de logout
 
 // Storage wrapper para funcionar tanto en React Native como en Web
 class StorageWrapper {
@@ -77,24 +79,29 @@ class ApiBase {
   }
 
   private setupInterceptors() {
-    // Interceptor de request - agregar token de autenticación
+    // Interceptor de request mejorado
     this.axiosInstance.interceptors.request.use(
       async (config) => {
         try {
-          const token = await storage.getItem('token');
+          // 1. Prioridad: obtener token desde Redux
+          let token = this.getTokenFromRedux();
+          
+          // 2. Fallback: obtener desde storage si Redux no está disponible
+          if (!token) {
+            token = await storage.getItem('token');
+          }
+
           if (token) {
             config.headers.Authorization = `Bearer ${token}`;
+            
+            if (__DEV__) {
+              console.log(`🔐 Request with auth: ${config.method?.toUpperCase()} ${config.url}`);
+            }
+          } else if (__DEV__) {
+            console.log(`🔓 Request without auth: ${config.method?.toUpperCase()} ${config.url}`);
           }
         } catch (error) {
           console.error('Error al obtener el token:', error);
-        }
-        
-        // Log de requests en desarrollo
-        if (__DEV__) {
-          console.log(`🚀 ${config.method?.toUpperCase()} ${config.url}`, {
-            data: config.data,
-            params: config.params,
-          });
         }
         
         return config;
@@ -104,70 +111,85 @@ class ApiBase {
       }
     );
 
-    // Interceptor de response - manejo global de respuestas y errores
-    /* this.axiosInstance.interceptors.response.use(
-      (response: AxiosResponse) => {
-        // Log de responses exitosas en desarrollo
+    // Interceptor de response para manejo de errores
+    this.axiosInstance.interceptors.response.use(
+      (response) => {
         if (__DEV__) {
           console.log(`✅ ${response.config.method?.toUpperCase()} ${response.config.url}`, {
             status: response.status,
-            data: response.data,
           });
         }
         return response;
       },
       async (error) => {
-        // Log de errores en desarrollo
         if (__DEV__) {
           console.error(`❌ ${error.config?.method?.toUpperCase()} ${error.config?.url}`, {
             status: error.response?.status,
-            data: error.response?.data,
+            message: error.response?.data?.message,
           });
         }
 
-        // Manejo específico de errores
-        //if (error.response) {
-          //const { status } = error.response;
-
-          //switch (status) {
-            //case 401:
-              // Token expirado o no válido
-              //await this.handleUnauthorized();
-              //break;
-            //case 403:
-              //console.error('Acceso prohibido');
-              //break;
-            //case 404:
-              //console.error('Recurso no encontrado');
-              //break;
-            //case 500:
-              //console.error('Error interno del servidor');
-              //break;
-            //default:
-              //console.error(`Error HTTP ${status}`);
-          //}
-        //} else if (error.request) {
-          //console.error('Error de red - no hay respuesta del servidor');
-        //} else {
-          //console.error('Error al configurar la request:', error.message);
-        //}
+        // Manejo específico de errores de autenticación
+        if (error.response?.status === 401) {
+          console.log('🚪 Token expirado o inválido - cerrando sesión');
+          await this.handleUnauthorized();
+        }
 
         return Promise.reject(error);
       }
-    ); */
+    );
   }
 
+  // Obtener token desde Redux store
+  private getTokenFromRedux(): string | null {
+    try {
+      const state = store.getState();
+      return state.auth.token || null;
+    } catch (error) {
+      console.warn('No se pudo obtener token desde Redux:', error);
+      return null;
+    }
+  }
+
+  // Manejo mejorado de 401
   private async handleUnauthorized() {
     try {
-      // Limpiar token del storage
+      // 1. Limpiar storage
       await storage.removeItem('token');
       await storage.removeItem('user');
       
-      // Aquí podrías dispatch una acción de logout al store
-      // o navegar a la pantalla de login
-      console.log('Usuario no autorizado - limpiando sesión');
+      // 2. Limpiar headers de axios
+      delete this.axiosInstance.defaults.headers.common['Authorization'];
+      
+      // 3. Dispatch logout en Redux
+      store.dispatch(logout());
+      
+      console.log('✅ Sesión limpiada completamente');
     } catch (error) {
       console.error('Error al limpiar la sesión:', error);
+    }
+  }
+
+  // Método para sincronizar token desde Redux
+  public syncTokenFromRedux(): void {
+    const token = this.getTokenFromRedux();
+    if (token) {
+      this.axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    } else {
+      delete this.axiosInstance.defaults.headers.common['Authorization'];
+    }
+  }
+
+  // Método para inicializar token desde storage al arranque
+  public async initializeAuthFromStorage(): Promise<void> {
+    try {
+      const token = await storage.getItem('token');
+      if (token) {
+        this.axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        console.log('🔐 Token inicializado desde storage');
+      }
+    } catch (error) {
+      console.error('Error al inicializar token:', error);
     }
   }
 

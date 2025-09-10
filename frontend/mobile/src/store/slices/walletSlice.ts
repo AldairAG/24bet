@@ -6,13 +6,18 @@ import { walletService } from '../../service/walletService';
 interface WalletState {
     // Estados de carga
     isCreatingWallet: boolean;
+    isLoadingUserWallets: boolean;
+    isDeactivatingWallet: boolean;
     
     // Datos
     createdWallet: CryptoWalletDto | null;
+    userWallets: CryptoWalletDto[];
     availableCryptoTypes: TipoCrypto[];
     
     // Errores
     createWalletError: string | null;
+    loadUserWalletsError: string | null;
+    deactivateWalletError: string | null;
     
     // Estados de validación
     validationError: string | null;
@@ -20,9 +25,14 @@ interface WalletState {
 
 const initialState: WalletState = {
     isCreatingWallet: false,
+    isLoadingUserWallets: false,
+    isDeactivatingWallet: false,
     createdWallet: null,
+    userWallets: [],
     availableCryptoTypes: [],
     createWalletError: null,
+    loadUserWalletsError: null,
+    deactivateWalletError: null,
     validationError: null,
 };
 
@@ -73,6 +83,46 @@ export const loadAvailableCryptoTypes = createAsyncThunk<
     }
 );
 
+/**
+ * Thunk para obtener todas las wallets de un usuario
+ */
+export const getUserWallets = createAsyncThunk<
+    CryptoWalletDto[], // Tipo de retorno
+    number, // Tipo de parámetros: usuarioId
+    { rejectValue: string } // Tipo del error
+>(
+    'wallet/getUserWallets',
+    async (usuarioId, { rejectWithValue }) => {
+        try {
+            const wallets = await walletService.getWalletsByUsuario(usuarioId)||[];
+            return wallets;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Error al cargar wallets del usuario';
+            return rejectWithValue(errorMessage);
+        }
+    }
+);
+
+/**
+ * Thunk para desactivar un wallet
+ */
+export const deactivateWallet = createAsyncThunk<
+    number, // Tipo de retorno: walletId
+    number, // Tipo de parámetros: walletId
+    { rejectValue: string } // Tipo del error
+>(
+    'wallet/deactivateWallet',
+    async (walletId, { rejectWithValue }) => {
+        try {
+            await walletService.deactivateWallet(walletId);
+            return walletId;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Error al desactivar wallet';
+            return rejectWithValue(errorMessage);
+        }
+    }
+);
+
 // ========== SLICE ==========
 const walletSlice = createSlice({
     name: 'wallet',
@@ -81,6 +131,14 @@ const walletSlice = createSlice({
         // Limpiar errores
         clearCreateWalletError: (state) => {
             state.createWalletError = null;
+        },
+        
+        clearLoadUserWalletsError: (state) => {
+            state.loadUserWalletsError = null;
+        },
+
+        clearDeactivateWalletError: (state) => {
+            state.deactivateWalletError = null;
         },
         
         clearValidationError: (state) => {
@@ -92,10 +150,18 @@ const walletSlice = createSlice({
             state.createdWallet = null;
         },
         
+        // Limpiar wallets del usuario
+        clearUserWallets: (state) => {
+            state.userWallets = [];
+        },
+        
         // Limpiar todos los datos del wallet
         clearWalletData: (state) => {
             state.createdWallet = null;
+            state.userWallets = [];
             state.createWalletError = null;
+            state.loadUserWalletsError = null;
+            state.deactivateWalletError = null;
             state.validationError = null;
         },
         
@@ -133,6 +199,40 @@ const walletSlice = createSlice({
                 // En caso de error, usar los tipos por defecto
                 state.availableCryptoTypes = Object.values(TipoCrypto);
             });
+
+        // ========== GET USER WALLETS ==========
+        builder
+            .addCase(getUserWallets.pending, (state) => {
+                state.isLoadingUserWallets = true;
+                state.loadUserWalletsError = null;
+            })
+            .addCase(getUserWallets.fulfilled, (state, action) => {
+                state.isLoadingUserWallets = false;
+                state.userWallets = action.payload;
+                state.loadUserWalletsError = null;
+            })
+            .addCase(getUserWallets.rejected, (state, action) => {
+                state.isLoadingUserWallets = false;
+                state.loadUserWalletsError = action.payload || 'Error al cargar wallets del usuario';
+                state.userWallets = [];
+            });
+
+        // ========== DEACTIVATE WALLET ==========
+        builder
+            .addCase(deactivateWallet.pending, (state) => {
+                state.isDeactivatingWallet = true;
+                state.deactivateWalletError = null;
+            })
+            .addCase(deactivateWallet.fulfilled, (state, action) => {
+                state.isDeactivatingWallet = false;
+                state.deactivateWalletError = null;
+                // Remover wallet desactivado de la lista local
+                state.userWallets = state.userWallets.filter(w => w.id !== action.payload);
+            })
+            .addCase(deactivateWallet.rejected, (state, action) => {
+                state.isDeactivatingWallet = false;
+                state.deactivateWalletError = action.payload || 'Error al desactivar wallet';
+            });
     },
 });
 
@@ -141,8 +241,11 @@ const walletSlice = createSlice({
 // Actions
 export const {
     clearCreateWalletError,
+    clearLoadUserWalletsError,
+    clearDeactivateWalletError,
     clearValidationError,
     clearCreatedWallet,
+    clearUserWallets,
     clearWalletData,
     setValidationError,
 } = walletSlice.actions;
@@ -150,20 +253,29 @@ export const {
 // Selectors
 export const selectWalletState = (state: { wallet: WalletState }) => state.wallet;
 export const selectIsCreatingWallet = (state: { wallet: WalletState }) => state.wallet.isCreatingWallet;
+export const selectIsLoadingUserWallets = (state: { wallet: WalletState }) => state.wallet.isLoadingUserWallets;
+export const selectIsDeactivatingWallet = (state: { wallet: WalletState }) => state.wallet.isDeactivatingWallet;
 export const selectCreatedWallet = (state: { wallet: WalletState }) => state.wallet.createdWallet;
+export const selectUserWallets = (state: { wallet: WalletState }) => state.wallet.userWallets;
 export const selectCreateWalletError = (state: { wallet: WalletState }) => state.wallet.createWalletError;
+export const selectLoadUserWalletsError = (state: { wallet: WalletState }) => state.wallet.loadUserWalletsError;
+export const selectDeactivateWalletError = (state: { wallet: WalletState }) => state.wallet.deactivateWalletError;
 export const selectValidationError = (state: { wallet: WalletState }) => state.wallet.validationError;
 export const selectAvailableCryptoTypes = (state: { wallet: WalletState }) => state.wallet.availableCryptoTypes;
 
 // Selector combinado para errores
 export const selectWalletErrors = (state: { wallet: WalletState }) => ({
     createError: state.wallet.createWalletError,
+    loadUserWalletsError: state.wallet.loadUserWalletsError,
+    deactivateWalletError: state.wallet.deactivateWalletError,
     validationError: state.wallet.validationError,
 });
 
 // Selector para estado de carga general
 export const selectWalletLoading = (state: { wallet: WalletState }) => ({
     isCreating: state.wallet.isCreatingWallet,
+    isLoadingUserWallets: state.wallet.isLoadingUserWallets,
+    isDeactivating: state.wallet.isDeactivatingWallet,
 });
 
 // Reducer

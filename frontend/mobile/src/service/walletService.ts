@@ -5,7 +5,7 @@ import { CreateCryptoWalletDto, TipoCrypto, CryptoWalletDto } from '../types/wal
  * Servicio para la gestión de wallets de criptomonedas
  */
 class WalletService {
-    private baseUrl = '/24bet/crypto-wallets';
+    private baseUrl = '/crypto-wallets';
 
     /**
      * Crea un nuevo wallet crypto para un usuario
@@ -28,6 +28,38 @@ class WalletService {
     }
 
     /**
+     * Obtiene todos los wallets de un usuario
+     * @param usuarioId ID del usuario
+     * @returns Promise con la lista de wallets del usuario
+     */
+    async getWalletsByUsuario(usuarioId: number): Promise<CryptoWalletDto[]> {
+        try {
+            const response = await apiBase.get<CryptoWalletDto[]>(
+                `${this.baseUrl}/usuario/${usuarioId}`
+            );
+            const prueba = response.data;
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching user wallets:', error);
+            throw this.handleError(error);
+        }
+    }
+
+    /**
+     * Desactiva un wallet (equivalente a eliminar)
+     * @param walletId ID del wallet a desactivar
+     * @returns Promise que se resuelve cuando el wallet es desactivado
+     */
+    async deactivateWallet(walletId: number): Promise<void> {
+        try {
+            await apiBase.patch(`${this.baseUrl}/${walletId}/desactivar`);
+        } catch (error) {
+            console.error('Error deactivating wallet:', error);
+            throw this.handleError(error);
+        }
+    }
+
+    /**
      * Obtiene todos los tipos de criptomonedas disponibles
      * @returns Array con todos los tipos de crypto disponibles
      */
@@ -42,24 +74,24 @@ class WalletService {
      */
     getCryptoNombreCompleto(tipo: TipoCrypto): string {
         const nombres: Record<TipoCrypto, string> = {
-            [TipoCrypto.BITCOIN]: 'Bitcoin',
-            [TipoCrypto.ETHEREUM]: 'Ethereum',
-            [TipoCrypto.LITECOIN]: 'Litecoin',
-            [TipoCrypto.RIPPLE]: 'Ripple',
-            [TipoCrypto.CARDANO]: 'Cardano',
-            [TipoCrypto.POLKADOT]: 'Polkadot',
-            [TipoCrypto.CHAINLINK]: 'Chainlink',
-            [TipoCrypto.BITCOIN_CASH]: 'Bitcoin Cash',
-            [TipoCrypto.STELLAR]: 'Stellar',
-            [TipoCrypto.DOGECOIN]: 'Dogecoin',
-            [TipoCrypto.POLYGON]: 'Polygon',
-            [TipoCrypto.SOLANA]: 'Solana',
-            [TipoCrypto.AVALANCHE]: 'Avalanche',
-            [TipoCrypto.TRON]: 'Tron',
-            [TipoCrypto.BINANCE_COIN]: 'Binance Coin',
-            [TipoCrypto.USDT]: 'Tether',
-            [TipoCrypto.USDC]: 'USD Coin',
-            [TipoCrypto.BUSD]: 'Binance USD'
+            [TipoCrypto.BITCOIN]: 'BITCOIN',
+            [TipoCrypto.ETHEREUM]: 'ETHEREUM',
+            [TipoCrypto.LITECOIN]: 'LITECOIN',
+            [TipoCrypto.RIPPLE]: 'RIPPLE',
+            [TipoCrypto.CARDANO]: 'CARDANO',
+            [TipoCrypto.POLKADOT]: 'POLKADOT',
+            [TipoCrypto.CHAINLINK]: 'CHAINLINK',
+            [TipoCrypto.BITCOIN_CASH]: 'BITCOIN_CASH',
+            [TipoCrypto.STELLAR]: 'STELLAR',
+            [TipoCrypto.DOGECOIN]: 'DOGECOIN',
+            [TipoCrypto.POLYGON]: 'POLYGON',
+            [TipoCrypto.SOLANA]: 'SOLANA',
+            [TipoCrypto.AVALANCHE]: 'AVALANCHE',
+            [TipoCrypto.TRON]: 'TRON',
+            [TipoCrypto.BINANCE_COIN]: 'BINANCE_COIN',
+            [TipoCrypto.USDT]: 'USDT',
+            [TipoCrypto.USDC]: 'USDC',
+            [TipoCrypto.BUSD]: 'BUSD'
         };
         
         return nombres[tipo] || tipo;

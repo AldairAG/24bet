@@ -27,7 +27,8 @@ import {
     CriptomonedaType
 } from '../../types/withdrawTypes';
 import { useWallet } from '../../hooks/useWallet';
-import { CreateCryptoWalletDto, TipoCrypto } from '../../types/walletTypes';
+import { useAuth } from '../../hooks/useAuth';
+import { CreateCryptoWalletDto, TipoCrypto, CryptoWalletDto } from '../../types/walletTypes';
 
 const criptomonedas: Record<CriptomonedaType, CriptomonedaConfig> = {
     'bitcoin': {
@@ -89,18 +90,28 @@ export default function RetiroScreen() {
     const styles = getStyles((colorScheme === 'light' || colorScheme === 'dark') ? colorScheme : null);
     const [exchangeRates, setExchangeRates] = useState<CryptoPrice | null>(null);
 
-    // Hook para gestión de wallets
+    // Hooks para autenticación y wallets
+    const { user ,usuario} = useAuth();
     const {
         createWallet,
+        loadUserWallets,
+        deleteWallet,
+        userWallets,
         isCreatingWallet,
+        isLoadingUserWallets,
+        isDeactivatingWallet,
         createdWallet,
         createWalletError,
+        loadUserWalletsError,
+        deactivateWalletError,
         validationError,
         availableCryptoTypes,
         getCryptoName,
         getCryptoOptions,
         validateWallet,
         clearCreateError,
+        clearLoadWalletsError,
+        clearDeactivateError,
         clearValidationError,
         clearWallet,
         TipoCrypto,
@@ -113,7 +124,6 @@ export default function RetiroScreen() {
     }, []);
 
     // Estados principales
-    const [wallets, setWallets] = useState<WalletInfo[]>([]);
     const [solicitudesRetiro, setSolicitudesRetiro] = useState<SolicitudRetiro[]>([]);
     
     // Estados para modales
@@ -123,11 +133,13 @@ export default function RetiroScreen() {
     // Estado para wallet seleccionada
     const [walletSeleccionada, setWalletSeleccionada] = useState<WalletInfo | null>(null);
 
-    // Simular carga de datos inicial
+    // Cargar datos inicial cuando el usuario esté disponible
     useEffect(() => {
-        cargarWallets();
+        if (usuario?.id) {
+            cargarWallets();
+        }
         cargarSolicitudesRetiro();
-    }, []);
+    }, [usuario?.id]);
 
     // Manejar errores del wallet hook
     useEffect(() => {
@@ -141,6 +153,16 @@ export default function RetiroScreen() {
     }, [createWalletError]);
 
     useEffect(() => {
+        if (loadUserWalletsError) {
+            Toast.show({
+                type: 'error',
+                text1: 'Error al cargar wallets',
+                text2: loadUserWalletsError
+            });
+        }
+    }, [loadUserWalletsError]);
+
+    useEffect(() => {
         if (validationError) {
             Toast.show({
                 type: 'error',
@@ -150,29 +172,36 @@ export default function RetiroScreen() {
         }
     }, [validationError]);
 
-    const cargarWallets = () => {
-        // Simular wallets guardadas (en producción vendría de la API)
-        const walletsGuardadas: WalletInfo[] = [
-            {
-                id: '1',
-                nombre: 'Mi wallet Bitcoin',
-                direccion: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
-                criptomoneda: 'bitcoin',
-                simbolo: 'BTC',
-                icono: 'logo-bitcoin',
-                color: '#F7931A',
-            },
-            {
-                id: '2',
-                nombre: 'Mi wallet USDT',
-                direccion: 'TRX7n8fjn8fjn8fjn8fjn8fjn8fjn8fjn8fjn8f',
-                criptomoneda: 'usdt',
-                simbolo: 'USDT',
-                icono: 'cash-outline',
-                color: '#26A17B',
-            },
-        ];
-        setWallets(walletsGuardadas);
+    useEffect(() => {
+        if (deactivateWalletError) {
+            Toast.show({
+                type: 'error',
+                text1: 'Error al eliminar wallet',
+                text2: deactivateWalletError
+            });
+        }
+    }, [deactivateWalletError]);
+
+    const cargarWallets = async () => {
+        if (!usuario?.id) {
+            console.warn('No hay usuario autenticado para cargar wallets');
+            return;
+        }
+
+        try {
+            // Limpiar errores previos
+            clearLoadWalletsError();
+            
+            // Cargar wallets desde la API
+            await loadUserWallets(usuario.id);
+        } catch (error) {
+            console.error('Error loading user wallets:', error);
+            Toast.show({
+                type: 'error',
+                text1: 'Error al cargar wallets',
+                text2: 'No se pudieron cargar tus wallets. Intenta nuevamente.'
+            });
+        }
     };
 
     const cargarSolicitudesRetiro = () => {
@@ -221,10 +250,41 @@ export default function RetiroScreen() {
         return mapping[criptomoneda] || null;
     };
 
-    // Función para obtener ID de usuario (placeholder - debería venir del auth)
-    const getUserId = (): number => {
-        // TODO: Implementar obtención de ID real del usuario autenticado
-        return 1; // Valor temporal
+    // Función para mapear tipos de API al sistema local
+    const mapearTipoACriptomoneda = (tipoCrypto: TipoCrypto): string => {
+        const mapping: Partial<Record<TipoCrypto, string>> = {
+            [TipoCrypto.BITCOIN]: 'BITCOIN',
+            [TipoCrypto.ETHEREUM]: 'ETHEREUM',
+            [TipoCrypto.USDT]: 'USDT',
+            [TipoCrypto.SOLANA]: 'SOLANA',
+        };
+        return mapping[tipoCrypto] || 'bitcoin';
+    };
+
+    // Función para obtener ID de usuario
+    const getUserId = (): number | null => {
+        return usuario?.id || null;
+    };
+
+    // Función para convertir wallets de la API al formato local para UI
+    const convertirWalletApiALocal = (walletApi: CryptoWalletDto): WalletInfo => {
+        const criptomonedaLocal = mapearTipoACriptomoneda(walletApi.tipoCrypto);
+        const criptoInfo = criptomonedas[criptomonedaLocal as CriptomonedaType];
+        
+        return {
+            id: walletApi.id.toString(),
+            nombre: walletApi.nombre,
+            direccion: walletApi.address,
+            criptomoneda: criptomonedaLocal,
+            simbolo: criptoInfo?.simbolo || walletApi.tipoCrypto,
+            icono: criptoInfo?.icono || 'wallet-outline',
+            color: criptoInfo?.color || '#666',
+        };
+    };
+
+    // Función para obtener wallets en formato local
+    const getLocalWallets = (): WalletInfo[] => {
+        return userWallets.map(convertirWalletApiALocal);
     };
 
     const guardarWallet = async (values: WalletFormValues) => {
@@ -264,26 +324,21 @@ export default function RetiroScreen() {
 
             // Crear wallet usando el hook
             const userId = getUserId();
+            if (!userId) {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: 'No hay usuario autenticado'
+                });
+                return;
+            }
+            
             const result = await createWallet(userId, walletData);
 
             if (result.type === 'wallet/createCryptoWallet/fulfilled') {
                 // Wallet creada exitosamente
                 const createdWalletData = result.payload;
                 
-                // Convertir a formato local para la UI existente
-                const criptoInfo = criptomonedas[values.criptomoneda as CriptomonedaType];
-                const nuevaWalletInfo: WalletInfo = {
-                    id: createdWalletData.id.toString(),
-                    nombre: createdWalletData.nombre,
-                    direccion: createdWalletData.address,
-                    criptomoneda: values.criptomoneda,
-                    simbolo: criptoInfo?.simbolo || tipoCrypto,
-                    icono: criptoInfo?.icono || 'wallet-outline',
-                    color: criptoInfo?.color || '#666',
-                };
-
-                // Actualizar estado local
-                setWallets(prev => [...prev, nuevaWalletInfo]);
                 cerrarModalAgregar();
                 
                 // Limpiar wallet creada del estado global
@@ -292,8 +347,11 @@ export default function RetiroScreen() {
                 Toast.show({
                     type: 'success',
                     text1: '✅ Wallet creada exitosamente',
-                    text2: `"${createdWalletData.nombre}" ha sido registrada correctamente`
+                    text2: `"${values.nombre}" ha sido registrada correctamente`
                 });
+
+                // Recargar las wallets para mostrar la nueva
+                await cargarWallets();
             } else {
                 // Error en la creación
                 throw new Error('Error al crear la wallet');
@@ -366,10 +424,26 @@ export default function RetiroScreen() {
         );
     };
 
-    const eliminarWallet = (walletId: string) => {
+    const eliminarWallet = async (walletId: string) => {
+        // Verificar si el wallet tiene solicitudes de retiro pendientes
+        const solicitudesPendientes = solicitudesRetiro.filter(
+            s => s.walletId === walletId && s.estado === 'pendiente'
+        );
+
+        if (solicitudesPendientes.length > 0) {
+            Alert.alert(
+                'No se puede eliminar',
+                'Esta wallet tiene solicitudes de retiro pendientes. No se puede eliminar hasta que sean procesadas.',
+                [{ text: 'Entendido', style: 'default' }]
+            );
+            return;
+        }
+
         Alert.alert(
-            'Eliminar wallet',
-            '¿Estás seguro de que quieres eliminar esta wallet?',
+            '⚠️ Eliminar Wallet',
+            `¿Estás seguro de que quieres eliminar esta wallet?\n\n` +
+            `⚠️ IMPORTANTE: Esta acción desactivará permanentemente la wallet y no podrás realizar retiros a esta dirección.\n\n` +
+            `💡 La wallet será desactivada pero se mantendrá un registro en el sistema.`,
             [
                 {
                     text: 'Cancelar',
@@ -378,13 +452,47 @@ export default function RetiroScreen() {
                 {
                     text: 'Eliminar',
                     style: 'destructive',
-                    onPress: () => {
-                        setWallets(prev => prev.filter(w => w.id !== walletId));
-                        Toast.show({
-                            type: 'success',
-                            text1: 'Wallet eliminada',
-                            text2: 'La wallet ha sido eliminada correctamente'
-                        });
+                    onPress: async () => {
+                        try {
+                            // Limpiar errores previos
+                            clearDeactivateError();
+                            
+                            const walletIdNumber = parseInt(walletId, 10);
+                            if (isNaN(walletIdNumber)) {
+                                Toast.show({
+                                    type: 'error',
+                                    text1: 'Error',
+                                    text2: 'ID de wallet inválido'
+                                });
+                                return;
+                            }
+
+                            const result = await deleteWallet(walletIdNumber);
+
+                            if (result.type === 'wallet/deactivateWallet/fulfilled') {
+                                // Wallet desactivada exitosamente
+                                Toast.show({
+                                    type: 'success',
+                                    text1: '✅ Wallet eliminada',
+                                    text2: 'La wallet ha sido desactivada correctamente'
+                                });
+
+                                // Recargar las wallets para actualizar la lista
+                                if (user?.id) {
+                                    await loadUserWallets(user.id);
+                                }
+                            } else {
+                                // Error en la desactivación
+                                throw new Error('Error al desactivar la wallet');
+                            }
+                        } catch (error) {
+                            console.error('Error deactivating wallet:', error);
+                            Toast.show({
+                                type: 'error',
+                                text1: 'Error al eliminar wallet',
+                                text2: deactivateWalletError || 'No se pudo eliminar la wallet. Intenta nuevamente.'
+                            });
+                        }
                     }
                 }
             ]
@@ -413,10 +521,19 @@ export default function RetiroScreen() {
                         <Text style={styles.actionButtonText}>Retirar</Text>
                     </TouchableOpacity>
                     <TouchableOpacity 
-                        style={[styles.actionButton, styles.deleteButton]}
+                        style={[
+                            styles.actionButton, 
+                            styles.deleteButton,
+                            isDeactivatingWallet && styles.disabledButton
+                        ]}
                         onPress={() => eliminarWallet(wallet.id)}
+                        disabled={isDeactivatingWallet}
                     >
-                        <Ionicons name="trash-outline" size={16} color="#fff" />
+                        {isDeactivatingWallet ? (
+                            <Text style={[styles.actionButtonText, { fontSize: 10 }]}>...</Text>
+                        ) : (
+                            <Ionicons name="trash-outline" size={16} color="#fff" />
+                        )}
                     </TouchableOpacity>
                 </View>
             </View>
@@ -424,7 +541,8 @@ export default function RetiroScreen() {
     );
 
     const renderSolicitudCard = (solicitud: SolicitudRetiro) => {
-        const wallet = wallets.find(w => w.id === solicitud.walletId);
+        const localWallets = getLocalWallets();
+        const wallet = localWallets.find(w => w.id === solicitud.walletId);
         const estadoColor = {
             pendiente: '#FF9800',
             aprobado: '#4CAF50',
@@ -478,18 +596,18 @@ export default function RetiroScreen() {
                         </TouchableOpacity>
                     </View>
 
-                    {wallets.length === 0 ? (
+                    {getLocalWallets().length === 0 ? (
                         <View style={styles.emptyState}>
                             <Ionicons name="wallet-outline" size={48} color={colorScheme === 'dark' ? '#666' : '#ccc'} />
                             <Text style={styles.emptyStateText}>
-                                No tienes wallets guardadas
+                                {isLoadingUserWallets ? 'Cargando wallets...' : 'No tienes wallets guardadas'}
                             </Text>
                             <Text style={styles.emptyStateSubtext}>
-                                Agrega una wallet para poder realizar retiros
+                                {isLoadingUserWallets ? 'Obteniendo tus wallets desde el servidor' : 'Agrega una wallet para poder realizar retiros'}
                             </Text>
                         </View>
                     ) : (
-                        wallets.map(renderWalletCard)
+                        getLocalWallets().map(renderWalletCard)
                     )}
                 </View>
 
