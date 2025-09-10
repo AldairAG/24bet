@@ -34,7 +34,7 @@ public class TheSportsDbScheduledTasks {
         
         try {
             // Usar la versión optimizada que solo sincroniza eventos próximos
-            theSportsDbService.sincronizarEventosProximos7Dias().join();
+            //theSportsDbService.sincronizarEventosProximos7Dias().join();
             log.info("✅ Sincronización automática OPTIMIZADA completada exitosamente");
         } catch (Exception e) {
             log.error("❌ Error en la sincronización automática optimizada: {}", e.getMessage(), e);
@@ -118,7 +118,7 @@ public class TheSportsDbScheduledTasks {
      * Sincronización de eventos en vivo - cada 5 minutos durante horas de juego
      * Solo ejecuta durante horarios típicos de eventos deportivos
      */
-    @Scheduled(fixedRate = 300000) // 5 minutos
+    @Scheduled(fixedRate = 120000) // 2 minutos
     @Async("theSportsDbTaskExecutor")
     public void sincronizacionEventosEnVivo() {
         // Solo ejecutar durante horarios de eventos deportivos (8 AM a 12 AM)
@@ -134,29 +134,6 @@ public class TheSportsDbScheduledTasks {
             theSportsDbV2Service.sincronizarEventosEnVivo();
         } catch (Exception e) {
             log.error("❌ Error en la sincronización de eventos en vivo V2: {}", e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Sincronización intensiva de eventos en vivo cada 2 minutos durante horarios prime
-     * Se ejecuta cada 2 minutos durante horarios de alta actividad deportiva
-     */
-    @Scheduled(fixedRate = 120000) // 2 minutos  
-    @Async("theSportsDbTaskExecutor")
-    public void sincronizacionEventosEnVivoIntenisva() {
-        // Solo ejecutar durante horarios prime de eventos deportivos (6 PM a 11 PM)
-        java.time.LocalTime ahora = java.time.LocalTime.now();
-        if (ahora.isBefore(java.time.LocalTime.of(18, 0)) || 
-            ahora.isAfter(java.time.LocalTime.of(23, 0))) {
-            return; // Solo durante horarios prime
-        }
-
-        log.debug("🔴🔴 Sincronización intensiva de eventos en vivo (API v2)...");
-        
-        try {
-            theSportsDbV2Service.sincronizarEventosEnVivo();
-        } catch (Exception e) {
-            log.error("❌ Error en la sincronización intensiva de eventos en vivo: {}", e.getMessage(), e);
         }
     }
 

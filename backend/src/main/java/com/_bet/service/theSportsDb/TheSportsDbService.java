@@ -872,7 +872,8 @@ public class TheSportsDbService {
         long equipos = equipoRepository.count();
         
         // Si hay menos de 5 deportes, consideramos que necesita sincronización inicial
-        return deportes < 5 || ligas < 10 || equipos < 50;
+        //return deportes < 5 || ligas < 10 || equipos < 50;
+        return false;
     }
 
     /**

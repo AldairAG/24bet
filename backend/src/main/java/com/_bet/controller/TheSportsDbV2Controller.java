@@ -140,6 +140,27 @@ public class TheSportsDbV2Controller {
     }
 
     /**
+     * Ejecuta sincronización manual de eventos en vivo
+     * Útil para probar la validación de deportes
+     */
+    @PostMapping("/sincronizar-eventos-en-vivo")
+    public ResponseEntity<String> sincronizarEventosEnVivoManual() {
+        log.info("🔄 Iniciando sincronización manual de eventos en vivo");
+        
+        try {
+            theSportsDbV2Service.sincronizarEventosEnVivo();
+            
+            return ResponseEntity.ok("✅ Sincronización manual completada. " +
+                "Revisa los logs para ver qué eventos se procesaron y cuáles se omitieron por falta de deporte en BD.");
+                
+        } catch (Exception e) {
+            log.error("❌ Error en sincronización manual: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError()
+                .body("❌ Error en sincronización: " + e.getMessage());
+        }
+    }
+
+    /**
      * Health check para verificar el estado de la API v2
      */
     @GetMapping("/health")

@@ -160,7 +160,7 @@ public class CryptoWalletService {
         
         // Actualizar balance y estadísticas
         BigDecimal nuevoBalance = wallet.getBalanceActual().subtract(cantidad);
-        wallet.setBalanceActual(nuevoBalance);
+        //wallet.setBalanceActual(nuevoBalance);
         wallet.sumarRetirado(cantidad);
         wallet.incrementarTransacciones();
         

@@ -7,9 +7,11 @@ import com._bet.dto.thesportsdb.TheSportDbEventDto;
 import com._bet.entity.EventoDeportivo;
 import com._bet.entity.Liga;
 import com._bet.entity.Equipo;
+import com._bet.entity.Deporte;
 import com._bet.repository.EventoDeportivoRepository;
 import com._bet.repository.LigaRepository;
 import com._bet.repository.EquipoRepository;
+import com._bet.repository.DeporteRepository;
 import com._bet.service.theSportsDb.TheSportsDbService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +40,7 @@ public class TheSportsDbV2Service {
     private final EventoDeportivoRepository eventoDeportivoRepository;
     private final LigaRepository ligaRepository;
     private final EquipoRepository equipoRepository;
+    private final DeporteRepository deporteRepository;
     private final TheSportsDbService theSportsDbService;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -150,10 +153,18 @@ public class TheSportsDbV2Service {
 
     /**
      * Procesa un evento individual en vivo y actualiza la base de datos
+     * Solo procesa el evento si el deporte existe en la base de datos
      */
     private void procesarEventoEnVivo(TheSportsDbV2LiveEventDto eventoDto) {
         if (eventoDto.getIdEvent() == null || eventoDto.getIdEvent().trim().isEmpty()) {
             log.warn("Evento sin ID válido, omitiendo");
+            return;
+        }
+
+        // Verificar que el deporte existe en la base de datos
+        if (!validarDeporteExiste(eventoDto)) {
+            log.warn("Deporte '{}' no encontrado en la base de datos. Omitiendo evento: {}", 
+                     eventoDto.getStrSport(), eventoDto.getIdEvent());
             return;
         }
 
@@ -369,5 +380,40 @@ public class TheSportsDbV2Service {
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    /**
+     * Valida que el deporte del evento existe en la base de datos
+     * @param eventoDto El evento a validar
+     * @return true si el deporte existe, false si no
+     */
+    private boolean validarDeporteExiste(TheSportsDbV2LiveEventDto eventoDto) {
+        if (eventoDto.getStrSport() == null || eventoDto.getStrSport().trim().isEmpty()) {
+            log.warn("Evento {} sin nombre de deporte, omitiendo", eventoDto.getIdEvent());
+            return false;
+        }
+
+        String nombreDeporte = eventoDto.getStrSport().trim();
+        
+        // Buscar el deporte por nombre (case insensitive)
+        Optional<Deporte> deporte = deporteRepository.findByNombreIgnoreCase(nombreDeporte);
+        
+        if (deporte.isPresent()) {
+            log.debug("Deporte '{}' encontrado en BD para evento {}", nombreDeporte, eventoDto.getIdEvent());
+            return true;
+        }
+
+        // Intentar buscar por nombre en inglés si no se encuentra
+        Optional<Deporte> deporteIngles = deporteRepository.findByNombreInglesIgnoreCase(nombreDeporte);
+        
+        if (deporteIngles.isPresent()) {
+            log.debug("Deporte '{}' encontrado en BD por nombre en inglés para evento {}", nombreDeporte, eventoDto.getIdEvent());
+            return true;
+        }
+
+        log.info("Deporte '{}' no encontrado en la base de datos para evento {}. Deportes disponibles pueden consultarse en el log de debug.", 
+                 nombreDeporte, eventoDto.getIdEvent());
+        
+        return false;
     }
 }
