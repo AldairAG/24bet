@@ -958,6 +958,9 @@ public class TheSportsDbService {
     public CompletableFuture<Void> sincronizacionCompleta() {
         Boolean sincronizarPaisesBoolean=false;
         Boolean sincronizarDeportesBoolean=false;
+        Boolean sincronizarLigasBoolean=false;
+        Boolean sincronizarEquiposBoolean=false;
+
         log.info("Iniciando sincronización completa de TheSportsDB");
         
         long tiempoInicio = System.currentTimeMillis();
@@ -987,7 +990,9 @@ public class TheSportsDbService {
                 log.info("Procesando deporte {}/{}: {}", i + 1, deportes.size(), deporte.getNombreIngles());
                 
                 try {
-                    sincronizarTodasLigasPorDeporte(deporte.getNombreIngles()).join();
+                    if (sincronizarLigasBoolean) {
+                        sincronizarTodasLigasPorDeporte(deporte.getNombreIngles()).join();
+                    }
                     deportesProcesados++;
                     
                     log.info("Deporte completado {}/{}: {}", i + 1, deportes.size(), deporte.getNombreIngles());

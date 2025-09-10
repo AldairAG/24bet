@@ -182,6 +182,13 @@ public class EventoDeportivo {
     private Boolean esPostemporada = false;
 
     /**
+     * Indica si el evento está en vivo actualmente
+     */
+    @Builder.Default
+    @Column(name = "en_vivo")
+    private Boolean enVivo = false;
+
+    /**
      * Indica si el evento está activo/disponible
      */
     @Builder.Default

@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com._bet.service.theSportsDb.TheSportsDbService;
+import com._bet.service.TheSportsDbV2Service;
 
 /**
  * Tareas programadas para sincronización con TheSportsDB
@@ -19,6 +20,7 @@ import com._bet.service.theSportsDb.TheSportsDbService;
 public class TheSportsDbScheduledTasks {
 
     private final TheSportsDbService theSportsDbService;
+    private final TheSportsDbV2Service theSportsDbV2Service;
 
     /**
      * Sincronización automática cada 6 horas
@@ -107,12 +109,65 @@ public class TheSportsDbScheduledTasks {
             return; // No ejecutar durante la madrugada
         }
 
-        log.debug("🔴 Verificando eventos en vivo...");
+        log.debug("🔴 Verificando eventos en vivo con API v2...");
         
         try {
-            theSportsDbService.sincronizarEventosEnVivo();
+            theSportsDbV2Service.sincronizarEventosEnVivo();
         } catch (Exception e) {
-            log.error("❌ Error en la sincronización de eventos en vivo: {}", e.getMessage(), e);
+            log.error("❌ Error en la sincronización de eventos en vivo V2: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Sincronización intensiva de eventos en vivo cada 2 minutos durante horarios prime
+     * Se ejecuta cada 2 minutos durante horarios de alta actividad deportiva
+     */
+    @Scheduled(fixedRate = 120000) // 2 minutos  
+    @Async("theSportsDbTaskExecutor")
+    public void sincronizacionEventosEnVivoIntenisva() {
+        // Solo ejecutar durante horarios prime de eventos deportivos (6 PM a 11 PM)
+        java.time.LocalTime ahora = java.time.LocalTime.now();
+        if (ahora.isBefore(java.time.LocalTime.of(18, 0)) || 
+            ahora.isAfter(java.time.LocalTime.of(23, 0))) {
+            return; // Solo durante horarios prime
+        }
+
+        log.debug("🔴🔴 Sincronización intensiva de eventos en vivo (API v2)...");
+        
+        try {
+            theSportsDbV2Service.sincronizarEventosEnVivo();
+        } catch (Exception e) {
+            log.error("❌ Error en la sincronización intensiva de eventos en vivo: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Verificación de eventos en vivo cada 30 segundos durante finales de semana
+     * Solo sábados y domingos durante horarios deportivos
+     */
+    @Scheduled(fixedRate = 30000) // 30 segundos
+    @Async("theSportsDbTaskExecutor") 
+    public void sincronizacionEventosFinDeSemana() {
+        // Solo ejecutar en fin de semana
+        java.time.DayOfWeek diaDeLaSemana = java.time.LocalDate.now().getDayOfWeek();
+        if (diaDeLaSemana != java.time.DayOfWeek.SATURDAY && 
+            diaDeLaSemana != java.time.DayOfWeek.SUNDAY) {
+            return; // Solo fin de semana
+        }
+
+        // Solo ejecutar durante horarios deportivos
+        java.time.LocalTime ahora = java.time.LocalTime.now();
+        if (ahora.isBefore(java.time.LocalTime.of(10, 0)) || 
+            ahora.isAfter(java.time.LocalTime.of(23, 0))) {
+            return; // Solo durante horarios deportivos del fin de semana
+        }
+
+        log.debug("🏈⚽ Sincronización de fin de semana (API v2) cada 30s...");
+        
+        try {
+            theSportsDbV2Service.sincronizarEventosEnVivo();
+        } catch (Exception e) {
+            log.error("❌ Error en la sincronización de fin de semana: {}", e.getMessage(), e);
         }
     }
 }
