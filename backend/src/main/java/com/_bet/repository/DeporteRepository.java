@@ -27,6 +27,21 @@ public interface DeporteRepository extends JpaRepository<Deporte, Long> {
     List<Deporte> findByNombreContainingIgnoreCase(@Param("nombre") String nombre);
     
     /**
+     * Busca un deporte por nombre en inglés exacto
+     */
+    Optional<Deporte> findByNombreIngles(String nombreIngles);
+    
+    /**
+     * Busca un deporte por nombre exacto (case insensitive)
+     */
+    Optional<Deporte> findByNombreIgnoreCase(String nombre);
+    
+    /**
+     * Busca un deporte por nombre en inglés (case insensitive)
+     */
+    Optional<Deporte> findByNombreInglesIgnoreCase(String nombreIngles);
+    
+    /**
      * Busca deportes activos
      */
     List<Deporte> findByActivoTrue();

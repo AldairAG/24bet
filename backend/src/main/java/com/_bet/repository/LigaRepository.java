@@ -2,6 +2,7 @@ package com._bet.repository;
 
 import com._bet.entity.Liga;
 import com._bet.entity.Deporte;
+import com._bet.entity.Country;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -32,9 +33,29 @@ public interface LigaRepository extends JpaRepository<Liga, Long> {
     List<Liga> findByDeporteAndActivaTrue(Deporte deporte);
     
     /**
-     * Busca ligas por país
+     * Busca ligas por país (usando la relación)
      */
-    List<Liga> findByPais(String pais);
+    List<Liga> findByPais(Country pais);
+    
+    /**
+     * Busca ligas activas por país
+     */
+    List<Liga> findByPaisAndActivaTrue(Country pais);
+    
+    /**
+     * Busca ligas por nombre de país (campo legacy)
+     */
+    List<Liga> findByPaisNombre(String paisNombre);
+    
+    /**
+     * Busca ligas por deporte y país
+     */
+    List<Liga> findByDeporteAndPais(Deporte deporte, Country pais);
+    
+    /**
+     * Busca ligas activas por deporte y país
+     */
+    List<Liga> findByDeporteAndPaisAndActivaTrue(Deporte deporte, Country pais);
     
     /**
      * Busca ligas por nombre (case insensitive)

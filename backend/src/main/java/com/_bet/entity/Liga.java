@@ -24,7 +24,8 @@ import java.util.List;
 @Table(name = "ligas", indexes = {
     @Index(name = "idx_liga_sports_db_id", columnList = "sportsDbId"),
     @Index(name = "idx_liga_nombre", columnList = "nombre"),
-    @Index(name = "idx_liga_deporte_id", columnList = "deporte_id")
+    @Index(name = "idx_liga_deporte_id", columnList = "deporte_id"),
+    @Index(name = "idx_liga_pais_id", columnList = "pais_id")
 })
 @Data
 @NoArgsConstructor
@@ -65,10 +66,17 @@ public class Liga {
     private String descripcion;
 
     /**
-     * País de la liga
+     * Relación muchos a uno con País
      */
-    @Column(name = "pais")
-    private String pais;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pais_id")
+    private Country pais;
+
+    /**
+     * Nombre del país (para compatibilidad con datos existentes)
+     */
+    @Column(name = "pais_nombre")
+    private String paisNombre;
 
     /**
      * URL del logo de la liga

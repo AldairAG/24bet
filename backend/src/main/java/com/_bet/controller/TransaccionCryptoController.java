@@ -1,8 +1,8 @@
 package com._bet.controller;
 
 import com._bet.dto.TransaccionCryptoDto;
-import com._bet.service.TransaccionCryptoService;
-import com._bet.service.CryptoConversionService;
+import com._bet.service.Transaccion.TransaccionCryptoService;
+import com._bet.service.cryptoWallet.CryptoConversionService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

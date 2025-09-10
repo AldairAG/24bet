@@ -1,7 +1,8 @@
 package com._bet.controller;
 
-import com._bet.service.TheSportsDbService;
 import com._bet.service.SyncStatusService;
+import com._bet.service.theSportsDb.TheSportsDbService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -131,6 +132,43 @@ public class TheSportsDbController {
         });
         
         return ResponseEntity.ok("Sincronización de eventos próximos iniciada para liga: " + leagueId);
+    }
+
+    /**
+     * Sincroniza eventos de los próximos 7 días (optimizado)
+     * Este endpoint es la versión optimizada que solo sincroniza eventos recientes y próximos
+     */
+    @PostMapping("/sync/events/next-7-days")
+    public ResponseEntity<String> sincronizarEventosProximos7Dias() {
+        log.info("Iniciando sincronización optimizada de eventos próximos 7 días");
+        
+        CompletableFuture.runAsync(() -> {
+            try {
+                theSportsDbService.sincronizarEventosProximos7Dias().join();
+            } catch (Exception e) {
+                log.error("Error en sincronización de eventos próximos 7 días: {}", e.getMessage(), e);
+            }
+        });
+        
+        return ResponseEntity.ok("Sincronización optimizada de eventos próximos 7 días iniciada");
+    }
+
+    /**
+     * Sincroniza eventos de la última semana (para obtener datos históricos recientes)
+     */
+    @PostMapping("/sync/events/last-7-days")
+    public ResponseEntity<String> sincronizarEventosUltimaSemana() {
+        log.info("Iniciando sincronización de eventos de la última semana");
+        
+        CompletableFuture.runAsync(() -> {
+            try {
+                theSportsDbService.sincronizarEventosUltimaSemana().join();
+            } catch (Exception e) {
+                log.error("Error en sincronización de eventos última semana: {}", e.getMessage(), e);
+            }
+        });
+        
+        return ResponseEntity.ok("Sincronización de eventos de la última semana iniciada");
     }
 
     /**

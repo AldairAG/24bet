@@ -15,6 +15,6 @@ import java.util.List;
 @AllArgsConstructor
 public class TheSportDbLeaguesResponseDto {
     
-    @JsonProperty("leagues")
+    @JsonProperty("countries")
     private List<TheSportDbLeagueDto> leagues;
 }

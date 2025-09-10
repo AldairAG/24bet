@@ -49,6 +49,8 @@ export interface Usuario {
 
   rol: string;
 
+  saldoUsd: number;
+
   informacionPersonal: InformacionPersonal;
 
   documentosKyc: DocumentoKyc[];

@@ -1,4 +1,4 @@
-package com._bet.service;
+package com._bet.service.Transaccion;
 
 import com._bet.dto.TransaccionCryptoDto;
 import com._bet.entity.TransaccionCrypto;
@@ -6,6 +6,7 @@ import com._bet.entity.Usuario;
 import com._bet.entity.CryptoWallet;
 import com._bet.repository.TransaccionCryptoRepository;
 import com._bet.repository.UsuarioRepository;
+import com._bet.service.cryptoWallet.CryptoConversionService;
 import com._bet.repository.CryptoWalletRepository;
 
 import lombok.RequiredArgsConstructor;
