@@ -23,19 +23,38 @@ public class TheSportsDbScheduledTasks {
     private final TheSportsDbV2Service theSportsDbV2Service;
 
     /**
-     * Sincronización automática cada 6 horas
-     * Se ejecuta cada 6 horas (21600000 milisegundos)
+     * Sincronización automática cada 6 horas (OPTIMIZADA)
+     * Se ejecuta cada 6 horas y solo sincroniza eventos próximos de los siguientes 7 días
+     * Esta versión optimizada mejora el rendimiento significativamente
      */
     @Scheduled(fixedRate = 21600000, zone = "America/Mexico_City")
     @Async("theSportsDbTaskExecutor")
     public void sincronizacionEventosAutomatica() {
-        log.info("🔄 Iniciando sincronización automática de eventos deportivos");
+        log.info("🔄 Iniciando sincronización automática OPTIMIZADA de eventos próximos 7 días");
+        
+        try {
+            // Usar la versión optimizada que solo sincroniza eventos próximos
+            theSportsDbService.sincronizarEventosProximos7Dias().join();
+            log.info("✅ Sincronización automática OPTIMIZADA completada exitosamente");
+        } catch (Exception e) {
+            log.error("❌ Error en la sincronización automática optimizada: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Sincronización completa de eventos - solo los fines de semana
+     * Para mantener datos históricos actualizados sin afectar el rendimiento diario
+     */
+    @Scheduled(cron = "0 0 1 * * SAT", zone = "America/Mexico_City") // Sábados a la 1:00 AM
+    @Async("theSportsDbTaskExecutor")
+    public void sincronizacionCompletaFinDeSemana() {
+        log.info("🔄 Iniciando sincronización COMPLETA semanal de eventos");
         
         try {
             theSportsDbService.sincronizacionEventosAutomatica();
-            log.info("✅ Sincronización automática de eventos completada exitosamente");
+            log.info("✅ Sincronización completa semanal completada exitosamente");
         } catch (Exception e) {
-            log.error("❌ Error en la sincronización automática de eventos: {}", e.getMessage(), e);
+            log.error("❌ Error en la sincronización completa semanal: {}", e.getMessage(), e);
         }
     }
 
@@ -48,7 +67,7 @@ public class TheSportsDbScheduledTasks {
         log.info("🔄 Iniciando sincronización diaria de datos maestros (deportes, ligas, equipos)");
         
         try {
-            theSportsDbService.sincronizacionDatosMaestros();
+            //theSportsDbService.sincronizacionDatosMaestros();
             log.info("✅ Sincronización de datos maestros completada exitosamente");
         } catch (Exception e) {
             log.error("❌ Error en la sincronización de datos maestros: {}", e.getMessage(), e);

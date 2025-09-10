@@ -2,14 +2,12 @@ package com._bet.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 
 /**
  * Configuración de propiedades para TheSportsDB API v1 y v2
  * Soporta autenticación por header para v2 y configuración completa de timeouts
  */
 @Data
-@Configuration
 @ConfigurationProperties(prefix = "thesportsdb.api")
 public class TheSportsDbV2Properties {
 

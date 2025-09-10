@@ -113,6 +113,33 @@ public class TheSportsDbV2Controller {
     }
 
     /**
+     * Endpoint para probar la búsqueda y creación de eventos desde API v1
+     */
+    @PostMapping("/test-crear-evento/{idEvento}")
+    public ResponseEntity<String> testCrearEventoDesdeApi(@PathVariable String idEvento) {
+        log.info("🧪 Probando creación de evento desde API v1 para ID: {}", idEvento);
+        
+        try {
+            // Crear un DTO ficticio para probar la funcionalidad
+            TheSportsDbV2LiveEventDto eventoDto = new TheSportsDbV2LiveEventDto();
+            eventoDto.setIdEvent(idEvento);
+            eventoDto.setStrStatus("Testing");
+            eventoDto.setIntHomeScore("1");
+            eventoDto.setIntAwayScore("0");
+            
+            // Este método procesará el evento, lo buscará en API v1 si no existe, y lo creará
+            theSportsDbV2Service.sincronizarEventosEnVivo();
+            
+            return ResponseEntity.ok("Proceso de prueba completado para evento: " + idEvento);
+            
+        } catch (Exception e) {
+            log.error("❌ Error en prueba de creación de evento {}: {}", idEvento, e.getMessage(), e);
+            return ResponseEntity.internalServerError()
+                .body("Error en la prueba: " + e.getMessage());
+        }
+    }
+
+    /**
      * Health check para verificar el estado de la API v2
      */
     @GetMapping("/health")

@@ -3,12 +3,14 @@ package com._bet.service;
 import com._bet.config.TheSportsDbV2Properties;
 import com._bet.dto.thesportsdb.v2.TheSportsDbV2LiveEventDto;
 import com._bet.dto.thesportsdb.v2.TheSportsDbV2LiveEventsResponseDto;
+import com._bet.dto.thesportsdb.TheSportDbEventDto;
 import com._bet.entity.EventoDeportivo;
 import com._bet.entity.Liga;
 import com._bet.entity.Equipo;
 import com._bet.repository.EventoDeportivoRepository;
 import com._bet.repository.LigaRepository;
 import com._bet.repository.EquipoRepository;
+import com._bet.service.theSportsDb.TheSportsDbService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
@@ -36,6 +38,7 @@ public class TheSportsDbV2Service {
     private final EventoDeportivoRepository eventoDeportivoRepository;
     private final LigaRepository ligaRepository;
     private final EquipoRepository equipoRepository;
+    private final TheSportsDbService theSportsDbService;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -47,7 +50,7 @@ public class TheSportsDbV2Service {
         log.info("Obteniendo eventos en vivo desde TheSportsDB API v2");
 
         try {
-            String url = properties.getV2().getBaseUrl() + "/livescore.php";
+            String url = properties.getV2().getBaseUrl() + "/livescore/all";
             
             HttpHeaders headers = crearHeadersConAutenticacion();
             HttpEntity<String> entity = new HttpEntity<>(headers);
@@ -215,47 +218,93 @@ public class TheSportsDbV2Service {
 
     /**
      * Crea un nuevo evento desde datos en vivo
+     * Si el evento no existe, obtiene los detalles completos desde la API v1
      */
     private void crearEventoDesdeEventoEnVivo(TheSportsDbV2LiveEventDto eventoDto) {
         try {
-            EventoDeportivo evento = EventoDeportivo.builder()
-                .sportsDbId(eventoDto.getIdEvent())
-                .nombre(eventoDto.getStrEvent())
-                .fechaEvento(eventoDto.getEventDateTime())
-                .resultadoLocal(eventoDto.getHomeScoreAsInt())
-                .resultadoVisitante(eventoDto.getAwayScoreAsInt())
-                .estado(eventoDto.getStrStatus())
-                .enVivo(eventoDto.isLive())
-                .temporada(eventoDto.getStrSeason())
-                .esPostemporada(false)
-                .activo(true)
-                .fechaCreacion(LocalDateTime.now())
-                .fechaActualizacion(LocalDateTime.now())
-                .build();
-
-            // Buscar y asignar liga
-            if (eventoDto.getIdLeague() != null) {
-                ligaRepository.findBySportsDbId(eventoDto.getIdLeague())
-                    .ifPresent(evento::setLiga);
+            log.info("Evento no encontrado en BD, obteniendo detalles completos desde API v1 para evento: {}", eventoDto.getIdEvent());
+            
+            // Obtener detalles completos del evento desde la API v1
+            TheSportDbEventDto eventoCompleto = theSportsDbService.obtenerEventoDesdeApi(eventoDto.getIdEvent());
+            
+            if (eventoCompleto != null) {
+                // Procesar el evento completo usando el método existente del servicio v1
+                theSportsDbService.procesarEvento(eventoCompleto);
+                log.info("Evento {} creado exitosamente desde API v1", eventoDto.getIdEvent());
+                
+                // Ahora actualizar con los datos en vivo del v2
+                Optional<EventoDeportivo> eventoCreado = eventoDeportivoRepository.findBySportsDbId(eventoDto.getIdEvent());
+                if (eventoCreado.isPresent()) {
+                    actualizarEventoConDatosEnVivo(eventoCreado.get(), eventoDto);
+                }
+            } else {
+                // Si no se puede obtener desde API v1, crear evento básico con datos v2
+                log.warn("No se pudo obtener evento completo desde API v1, creando evento básico con datos v2: {}", eventoDto.getIdEvent());
+                crearEventoBasicoDesdeV2(eventoDto);
             }
-
-            // Buscar y asignar equipos
-            if (eventoDto.getIdHomeTeam() != null) {
-                equipoRepository.findBySportsDbId(eventoDto.getIdHomeTeam())
-                    .ifPresent(evento::setEquipoLocal);
-            }
-
-            if (eventoDto.getIdAwayTeam() != null) {
-                equipoRepository.findBySportsDbId(eventoDto.getIdAwayTeam())
-                    .ifPresent(evento::setEquipoVisitante);
-            }
-
-            eventoDeportivoRepository.save(evento);
-            log.debug("Nuevo evento en vivo creado: {}", evento.getSportsDbId());
 
         } catch (Exception e) {
             log.error("Error al crear evento desde datos en vivo {}: {}", eventoDto.getIdEvent(), e.getMessage());
+            // Como fallback, intentar crear evento básico
+            try {
+                crearEventoBasicoDesdeV2(eventoDto);
+            } catch (Exception ex) {
+                log.error("Error en fallback para crear evento básico {}: {}", eventoDto.getIdEvent(), ex.getMessage());
+            }
         }
+    }
+
+    /**
+     * Crea un evento básico con solo los datos disponibles en V2 (método de fallback)
+     */
+    private void crearEventoBasicoDesdeV2(TheSportsDbV2LiveEventDto eventoDto) {
+        // Crear nombre del evento con fallback si strEvent está vacío
+        String nombreEvento = eventoDto.getStrEvent();
+        if (nombreEvento == null || nombreEvento.trim().isEmpty()) {
+            // Si no hay nombre específico, crear uno usando los equipos
+            String equipoLocal = eventoDto.getStrHomeTeam();
+            String equipoVisitante = eventoDto.getStrAwayTeam();
+            if (equipoLocal != null && equipoVisitante != null) {
+                nombreEvento = equipoLocal + " vs " + equipoVisitante;
+            } else {
+                nombreEvento = "Evento ID: " + eventoDto.getIdEvent();
+            }
+        }
+
+        EventoDeportivo evento = EventoDeportivo.builder()
+            .sportsDbId(eventoDto.getIdEvent())
+            .nombre(nombreEvento)
+            .fechaEvento(eventoDto.getEventDateTime())
+            .resultadoLocal(eventoDto.getHomeScoreAsInt())
+            .resultadoVisitante(eventoDto.getAwayScoreAsInt())
+            .estado(eventoDto.getStrStatus())
+            .enVivo(eventoDto.isLive())
+            .temporada(eventoDto.getStrSeason())
+            .esPostemporada(false)
+            .activo(true)
+            .fechaCreacion(LocalDateTime.now())
+            .fechaActualizacion(LocalDateTime.now())
+            .build();
+
+        // Buscar y asignar liga
+        if (eventoDto.getIdLeague() != null) {
+            ligaRepository.findBySportsDbId(eventoDto.getIdLeague())
+                .ifPresent(evento::setLiga);
+        }
+
+        // Buscar y asignar equipos
+        if (eventoDto.getIdHomeTeam() != null) {
+            equipoRepository.findBySportsDbId(eventoDto.getIdHomeTeam())
+                .ifPresent(evento::setEquipoLocal);
+        }
+
+        if (eventoDto.getIdAwayTeam() != null) {
+            equipoRepository.findBySportsDbId(eventoDto.getIdAwayTeam())
+                .ifPresent(evento::setEquipoVisitante);
+        }
+
+        eventoDeportivoRepository.save(evento);
+        log.debug("Nuevo evento básico en vivo creado: {}", evento.getSportsDbId());
     }
 
     /**

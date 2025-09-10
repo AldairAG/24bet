@@ -1182,7 +1182,7 @@ public class TheSportsDbService {
                 // Sincronizar eventos de los últimos 7 días
                 for (int i = 0; i < 7; i++) {
                     LocalDateTime fecha = hoy.minusDays(i);
-                    sincronizarEventosPorFecha(liga.getSportsDbId(), fecha).join();
+                    //sincronizarEventosPorFecha(liga.getSportsDbId(), fecha).join();
                     Thread.sleep(500); // Pausa entre llamadas
                 }
                 
@@ -1199,7 +1199,76 @@ public class TheSportsDbService {
     }
 
     /**
-     * Método para obtener información de un evento específico por ID
+     * Sincroniza eventos de los próximos 7 días desde hoy para todas las ligas activas
+     * Esta es la función optimizada que solo obtiene eventos recientes y próximos
+     */
+    @Async
+    @Transactional
+    public CompletableFuture<Void> sincronizarEventosProximos7Dias() {
+        log.info("Iniciando sincronización de eventos de los próximos 7 días");
+        
+        try {
+            List<Liga> ligasActivas = ligaRepository.findByActivaTrue();
+            LocalDateTime hoy = LocalDateTime.now();
+            
+            for (Liga liga : ligasActivas) {
+                try {
+                    // Primero sincronizar eventos próximos (incluye eventos en vivo y próximos)
+                    sincronizarEventosProximosPorLiga(liga.getSportsDbId()).join();
+                    Thread.sleep(500); // Pausa entre llamadas
+                    
+                    // Luego sincronizar eventos específicos de los próximos 7 días
+                    for (int i = 0; i <= 7; i++) {
+                        LocalDateTime fecha = hoy.plusDays(i);
+                        sincronizarEventosPorFecha(liga.getSportsDbId(), fecha).join();
+                        Thread.sleep(300); // Pausa entre fechas
+                    }
+                    
+                    log.info("Completada sincronización de eventos próximos 7 días para liga: {} ({})", 
+                            liga.getNombre(), liga.getSportsDbId());
+                    
+                    // Pausa más larga entre ligas para evitar rate limiting
+                    Thread.sleep(1000);
+                    
+                } catch (Exception e) {
+                    log.error("Error sincronizando eventos próximos 7 días para liga {}: {}", 
+                            liga.getNombre(), e.getMessage(), e);
+                }
+            }
+            
+            log.info("Sincronización de eventos de los próximos 7 días completada");
+        } catch (Exception e) {
+            log.error("Error en la sincronización de eventos de los próximos 7 días: {}", e.getMessage(), e);
+        }
+        
+        return CompletableFuture.completedFuture(null);
+    }
+
+    /**
+     * Método para obtener información de un evento específico por ID desde la API
+     */
+    public TheSportDbEventDto obtenerEventoDesdeApi(String eventoId) {
+        log.info("Obteniendo evento desde API v1 con ID: {}", eventoId);
+        
+        try {
+            String url = baseUrl + "/" + apiKey + "/lookupevent.php?id=" + eventoId;
+            TheSportDbEventsResponseDto response = makeHttpRequest(url, TheSportDbEventsResponseDto.class);
+            
+            if (response != null && response.getEvents() != null && !response.getEvents().isEmpty()) {
+                log.info("Evento obtenido exitosamente desde API: {}", eventoId);
+                return response.getEvents().get(0);
+            } else {
+                log.warn("No se encontró evento con ID: {}", eventoId);
+                return null;
+            }
+        } catch (Exception e) {
+            log.error("Error al obtener evento desde API {}: {}", eventoId, e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * Método para obtener información de un evento específico por ID desde la base de datos
      */
     public EventoDeportivo obtenerEventoPorSportsDbId(String sportsDbId) {
         return eventoDeportivoRepository.findBySportsDbId(sportsDbId).orElse(null);
