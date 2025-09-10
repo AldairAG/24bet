@@ -169,27 +169,81 @@ public class CryptoWalletService {
     }
     
     /**
-     * Procesa un depósito en un wallet
+     * Procesa un depósito directo al saldo USD del usuario
+     * El depósito no va a la wallet, sino directamente al saldo del usuario
      */
-    public CryptoWalletDto processDeposit(Long walletId, BigDecimal cantidad) {
+    public BigDecimal processDeposit(Long usuarioId, BigDecimal cantidad) {
         if (cantidad == null || cantidad.compareTo(BigDecimal.ZERO) <= 0) {
             throw new RuntimeException("La cantidad del depósito debe ser mayor a cero");
         }
         
-        CryptoWallet wallet = cryptoWalletRepository.findById(walletId)
-            .orElseThrow(() -> new RuntimeException("Wallet no encontrado"));
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
         
-        if (!wallet.getActivo()) {
-            throw new RuntimeException("No se puede procesar el depósito en un wallet inactivo");
+        if (!usuario.getActivo()) {
+            throw new RuntimeException("No se puede procesar el depósito para un usuario inactivo");
         }
         
-        // Actualizar balance y estadísticas
-        BigDecimal nuevoBalance = wallet.getBalanceActual().add(cantidad);
-        wallet.setBalanceActual(nuevoBalance);
-        wallet.incrementarTransacciones();
+        // Actualizar saldo USD del usuario directamente
+        BigDecimal saldoActual = usuario.getSaldoUsd() != null ? usuario.getSaldoUsd() : BigDecimal.ZERO;
+        BigDecimal nuevoSaldo = saldoActual.add(cantidad);
+        usuario.setSaldoUsd(nuevoSaldo);
         
-        CryptoWallet updatedWallet = cryptoWalletRepository.save(wallet);
-        return CryptoWalletDto.fromEntity(updatedWallet);
+        // Guardar el usuario con el nuevo saldo
+        usuarioRepository.save(usuario);
+        
+        return nuevoSaldo;
+    }
+    
+    /**
+     * Obtiene el saldo USD actual del usuario
+     */
+    @Transactional(readOnly = true)
+    public BigDecimal getSaldoUsuario(Long usuarioId) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        
+        return usuario.getSaldoUsd() != null ? usuario.getSaldoUsd() : BigDecimal.ZERO;
+    }
+    
+    /**
+     * Verifica si el usuario tiene saldo suficiente para una operación
+     */
+    @Transactional(readOnly = true)
+    public boolean tieneSaldoSuficiente(Long usuarioId, BigDecimal cantidad) {
+        BigDecimal saldoActual = getSaldoUsuario(usuarioId);
+        return saldoActual.compareTo(cantidad) >= 0;
+    }
+    
+    /**
+     * Procesa un retiro del saldo USD del usuario
+     */
+    public BigDecimal processWithdrawalFromUserBalance(Long usuarioId, BigDecimal cantidad) {
+        if (cantidad == null || cantidad.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("La cantidad del retiro debe ser mayor a cero");
+        }
+        
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        
+        if (!usuario.getActivo()) {
+            throw new RuntimeException("No se puede procesar el retiro para un usuario inactivo");
+        }
+        
+        BigDecimal saldoActual = usuario.getSaldoUsd() != null ? usuario.getSaldoUsd() : BigDecimal.ZERO;
+        
+        if (saldoActual.compareTo(cantidad) < 0) {
+            throw new RuntimeException("Saldo insuficiente para realizar el retiro");
+        }
+        
+        // Actualizar saldo USD del usuario
+        BigDecimal nuevoSaldo = saldoActual.subtract(cantidad);
+        usuario.setSaldoUsd(nuevoSaldo);
+        
+        // Guardar el usuario con el nuevo saldo
+        usuarioRepository.save(usuario);
+        
+        return nuevoSaldo;
     }
     
     /**

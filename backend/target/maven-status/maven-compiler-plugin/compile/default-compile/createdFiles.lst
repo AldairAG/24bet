@@ -16,7 +16,6 @@ com\_bet\dto\TransaccionCryptoDto$ProcesarTransaccionDto$DecisionTransaccion.cla
 com\_bet\repository\EventoDeportivoRepository.class
 com\_bet\service\cryptoWallet\CryptoWalletService$WalletStatsDto.class
 com\_bet\dto\TransaccionCryptoDto$EstadisticasTransaccionDto.class
-com\_bet\controller\CryptoWalletController.class
 com\_bet\controller\TransaccionCryptoController$TasaConversionResponse.class
 com\_bet\dto\response\SyncStatsDto.class
 com\_bet\service\user\UsuarioServiceImpl.class
@@ -60,7 +59,6 @@ com\_bet\config\TheSportsDbV2Properties$RetryConfig.class
 com\_bet\dto\response\UsuarioResponse.class
 com\_bet\controller\TheSportsDbController.class
 com\_bet\dto\request\EditarPerfilRequest.class
-com\_bet\controller\CryptoWalletController$TransactionRequest.class
 com\_bet\repository\CountryRepository.class
 com\_bet\scheduler\tasks\MaintenanceScheduledTasks.class
 com\_bet\dto\thesportsdb\TheSportDbLeagueDto.class
@@ -84,7 +82,6 @@ com\_bet\dto\thesportsdb\v2\TheSportsDbV2LiveEventsResponseDto.class
 com\_bet\controller\InformacionPersonalController.class
 com\_bet\service\file\FileStorageServiceImpl.class
 com\_bet\entity\InformacionPersonal$Genero.class
-com\_bet\controller\CryptoWalletController$BalanceUpdateRequest.class
 com\_bet\repository\UsuarioRepository.class
 com\_bet\controller\DocumentoKycController.class
 com\_bet\dto\request\SubirDocumentoRequest.class

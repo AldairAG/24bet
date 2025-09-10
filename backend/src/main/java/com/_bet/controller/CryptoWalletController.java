@@ -143,17 +143,59 @@ public class CryptoWalletController {
     }
     
     /**
-     * Procesa un depósito en un wallet
+     * Procesa un depósito directo al saldo USD del usuario
      */
-    @PostMapping("/{walletId}/deposito")
+    @PostMapping("/usuario/{usuarioId}/deposito")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<CryptoWalletDto> processDeposit(
-            @PathVariable Long walletId,
+    public ResponseEntity<DepositoResponse> processDeposit(
+            @PathVariable Long usuarioId,
             @RequestBody TransactionRequest request) {
         
         try {
-            CryptoWalletDto updatedWallet = cryptoWalletService.processDeposit(walletId, request.getCantidad());
-            return ResponseEntity.ok(updatedWallet);
+            BigDecimal nuevoSaldo = cryptoWalletService.processDeposit(usuarioId, request.getCantidad());
+            DepositoResponse response = new DepositoResponse(
+                "Depósito procesado exitosamente", 
+                request.getCantidad(), 
+                nuevoSaldo
+            );
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    /**
+     * Procesa un retiro del saldo USD del usuario
+     */
+    @PostMapping("/usuario/{usuarioId}/retiro")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<RetiroResponse> processWithdrawalFromUserBalance(
+            @PathVariable Long usuarioId,
+            @RequestBody TransactionRequest request) {
+        
+        try {
+            BigDecimal nuevoSaldo = cryptoWalletService.processWithdrawalFromUserBalance(usuarioId, request.getCantidad());
+            RetiroResponse response = new RetiroResponse(
+                "Retiro procesado exitosamente", 
+                request.getCantidad(), 
+                nuevoSaldo
+            );
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    /**
+     * Obtiene el saldo actual del usuario
+     */
+    @GetMapping("/usuario/{usuarioId}/saldo")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<SaldoResponse> getSaldoUsuario(@PathVariable Long usuarioId) {
+        try {
+            BigDecimal saldo = cryptoWalletService.getSaldoUsuario(usuarioId);
+            SaldoResponse response = new SaldoResponse(saldo);
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
@@ -235,6 +277,94 @@ public class CryptoWalletController {
         
         public void setCantidad(BigDecimal cantidad) {
             this.cantidad = cantidad;
+        }
+    }
+    
+    public static class DepositoResponse {
+        private String mensaje;
+        private BigDecimal cantidadDepositada;
+        private BigDecimal saldoActual;
+        
+        public DepositoResponse(String mensaje, BigDecimal cantidadDepositada, BigDecimal saldoActual) {
+            this.mensaje = mensaje;
+            this.cantidadDepositada = cantidadDepositada;
+            this.saldoActual = saldoActual;
+        }
+        
+        public String getMensaje() {
+            return mensaje;
+        }
+        
+        public void setMensaje(String mensaje) {
+            this.mensaje = mensaje;
+        }
+        
+        public BigDecimal getCantidadDepositada() {
+            return cantidadDepositada;
+        }
+        
+        public void setCantidadDepositada(BigDecimal cantidadDepositada) {
+            this.cantidadDepositada = cantidadDepositada;
+        }
+        
+        public BigDecimal getSaldoActual() {
+            return saldoActual;
+        }
+        
+        public void setSaldoActual(BigDecimal saldoActual) {
+            this.saldoActual = saldoActual;
+        }
+    }
+    
+    public static class RetiroResponse {
+        private String mensaje;
+        private BigDecimal cantidadRetirada;
+        private BigDecimal saldoActual;
+        
+        public RetiroResponse(String mensaje, BigDecimal cantidadRetirada, BigDecimal saldoActual) {
+            this.mensaje = mensaje;
+            this.cantidadRetirada = cantidadRetirada;
+            this.saldoActual = saldoActual;
+        }
+        
+        public String getMensaje() {
+            return mensaje;
+        }
+        
+        public void setMensaje(String mensaje) {
+            this.mensaje = mensaje;
+        }
+        
+        public BigDecimal getCantidadRetirada() {
+            return cantidadRetirada;
+        }
+        
+        public void setCantidadRetirada(BigDecimal cantidadRetirada) {
+            this.cantidadRetirada = cantidadRetirada;
+        }
+        
+        public BigDecimal getSaldoActual() {
+            return saldoActual;
+        }
+        
+        public void setSaldoActual(BigDecimal saldoActual) {
+            this.saldoActual = saldoActual;
+        }
+    }
+    
+    public static class SaldoResponse {
+        private BigDecimal saldoUsd;
+        
+        public SaldoResponse(BigDecimal saldoUsd) {
+            this.saldoUsd = saldoUsd;
+        }
+        
+        public BigDecimal getSaldoUsd() {
+            return saldoUsd;
+        }
+        
+        public void setSaldoUsd(BigDecimal saldoUsd) {
+            this.saldoUsd = saldoUsd;
         }
     }
 }
