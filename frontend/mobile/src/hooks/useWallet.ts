@@ -1,9 +1,11 @@
 import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { CreateCryptoWalletDto, TipoCrypto } from '../types/walletTypes';
+import { CreateCryptoWalletDto, TipoCrypto, SolicitudDepositoDto, SolicitudRetiroDto } from '../types/walletTypes';
 import {
     // Thunks
     createCryptoWallet,
+    createDepositRequest,
+    createWithdrawalRequest,
     loadAvailableCryptoTypes,
     getUserWallets,
     deactivateWallet,
@@ -16,6 +18,10 @@ import {
     clearUserWallets,
     clearWalletData,
     setValidationError,
+    setCreateDepositRequestError,
+    setDepositRequestResponse,
+    setDepositList,
+    setWithdrawalStates,
     // Selectors
     selectWalletState,
     selectIsCreatingWallet,
@@ -28,6 +34,14 @@ import {
     selectDeactivateWalletError,
     selectValidationError,
     selectAvailableCryptoTypes,
+    selectIsCreatingDepositRequest,
+    selectCreateDepositRequestError,
+    selectDepositRequestResponse,
+    selectDepositList,
+    selectIsCreatingWithdrawalRequest,
+    selectCreateWithdrawalRequestError,
+    selectWithdrawalRequestResponse,
+    selectWithdrawalList,
     selectWalletErrors,
     selectWalletLoading,
     // Helpers
@@ -53,6 +67,19 @@ export const useWallet = () => {
     const deactivateWalletError = useSelector(selectDeactivateWalletError);
     const validationError = useSelector(selectValidationError);
     const availableCryptoTypes = useSelector(selectAvailableCryptoTypes);
+    
+    // Selectores de depósito
+    const isCreatingDepositRequest = useSelector(selectIsCreatingDepositRequest);
+    const createDepositRequestError = useSelector(selectCreateDepositRequestError);
+    const depositRequestResponse = useSelector(selectDepositRequestResponse);
+    const depositList = useSelector(selectDepositList);
+    
+    // Selectores de retiro
+    const isCreatingWithdrawalRequest = useSelector(selectIsCreatingWithdrawalRequest);
+    const createWithdrawalRequestError = useSelector(selectCreateWithdrawalRequestError);
+    const withdrawalRequestResponse = useSelector(selectWithdrawalRequestResponse);
+    const withdrawalList = useSelector(selectWithdrawalList);
+    
     const walletErrors = useSelector(selectWalletErrors);
     const walletLoading = useSelector(selectWalletLoading);
 
@@ -236,6 +263,46 @@ export const useWallet = () => {
         }
     }, [loadCryptoTypes, availableCryptoTypes.length]);
 
+    // ========== MÉTODOS DE DEPÓSITO Y RETIRO ==========
+
+    /**
+     * Crea una nueva solicitud de depósito
+     */
+    const submitDepositRequest = useCallback(
+        async (usuarioId: number, depositData: SolicitudDepositoDto): Promise<any> => {
+            try {
+                const result: any = await dispatch(createDepositRequest({ 
+                    usuarioId, 
+                    solicitudDto: depositData 
+                }) as any);
+                return result;
+            } catch (error) {
+                console.error('Error creating deposit request:', error);
+                throw error;
+            }
+        },
+        [dispatch]
+    );
+
+    /**
+     * Crea una nueva solicitud de retiro
+     */
+    const submitWithdrawalRequest = useCallback(
+        async (usuarioId: number, withdrawalData: SolicitudRetiroDto): Promise<any> => {
+            try {
+                const result: any = await dispatch(createWithdrawalRequest({ 
+                    usuarioId, 
+                    solicitudDto: withdrawalData 
+                }) as any);
+                return result;
+            } catch (error) {
+                console.error('Error creating withdrawal request:', error);
+                throw error;
+            }
+        },
+        [dispatch]
+    );
+
     // ========== VALORES DE RETORNO ==========
     return {
         // Estado completo
@@ -248,16 +315,26 @@ export const useWallet = () => {
         isLoading: isCreatingWallet || isLoadingUserWallets || isDeactivatingWallet,
         loading: walletLoading,
 
+        // Estados de carga - Depósito y Retiro
+        isCreatingDepositRequest,
+        isCreatingWithdrawalRequest,
+
         // Datos
         createdWallet,
         userWallets,
         availableCryptoTypes,
+        depositRequestResponse,
+        withdrawalRequestResponse,
+        depositList,
+        withdrawalList,
 
         // Errores
         createWalletError,
         loadUserWalletsError,
         deactivateWalletError,
         validationError,
+        createDepositRequestError,
+        createWithdrawalRequestError,
         errors: walletErrors,
         hasErrors: hasErrors(),
         allErrors: getAllErrors(),
@@ -267,6 +344,10 @@ export const useWallet = () => {
         loadCryptoTypes,
         loadUserWallets,
         deleteWallet,
+
+        // Acciones de depósito y retiro
+        submitDepositRequest,
+        submitWithdrawalRequest,
 
         // Acciones de limpieza
         clearCreateError,

@@ -177,6 +177,7 @@ public class SolicitudRetiro {
         USDT,
         USDC,
         PAYPAL,
+        TRANSFERENCIA_CRYPTO,
         OTRO
     }
 
