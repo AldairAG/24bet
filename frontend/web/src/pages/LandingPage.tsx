@@ -1,575 +1,768 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useTheme } from '../contexts/ThemeContext';
+import RegisterModal from '../components/RegisterModal';
+import LoginModal from '../components/LoginModal';
 import {
-    DiceIcon,
-    CardsIcon,
-    SpadesIcon,
-    SlotMachineIcon,
-    SoccerIcon,
-    TargetIcon,
-    SecurityIcon,
-    LightningIcon,
-    Clock24Icon,
-    TrophyIcon,
-    GiftIcon,
-    StarIcon,
-    RocketIcon,
-    ChipIcon
+  SoccerIcon,
+  TargetIcon,
+  SecurityIcon,
+  LightningIcon,
+  Clock24Icon,
+  TrophyIcon,
+  GiftIcon,
+  StarIcon,
+  RocketIcon,
+  SunIcon,
+  MoonIcon,
+  MenuIcon,
+  CloseIcon
 } from '../components/Icons';
 
 const LandingPage = () => {
-    const [currentSlide, setCurrentSlide] = useState(0);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [activeSportType, setActiveSportType] = useState('futbol');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const { isDarkMode, toggleTheme } = useTheme();
 
-    const games = [
-        { name: 'Ruleta', icon: DiceIcon, desc: 'Apuesta y gana en la ruleta clásica', color: 'text-red-500' },
-        { name: 'Blackjack', icon: CardsIcon, desc: 'El juego de cartas más emocionante', color: 'text-blue-500' },
-        { name: 'Poker', icon: SpadesIcon, desc: 'Texas Hold\'em y más variantes', color: 'text-purple-500' },
-        { name: 'Slots', icon: SlotMachineIcon, desc: 'Miles de máquinas tragamonedas', color: 'text-yellow-500' },
-        { name: 'Deportes', icon: SoccerIcon, desc: 'Apuestas deportivas en vivo', color: 'text-green-500' },
-        { name: 'Dados', icon: TargetIcon, desc: 'Craps y juegos de dados', color: 'text-orange-500' }
-    ];
+  const handleRegisterSuccess = (data: any) => {
+    console.log('Usuario registrado exitosamente:', data);
+    // Aquí puedes agregar lógica adicional como:
+    // - Redirigir al usuario
+    // - Guardar datos en el estado global
+    // - Mostrar mensaje de bienvenida
+  };
 
-    const promos = [
-        { title: 'Bono de Bienvenida', amount: '100%', desc: 'Hasta $500 en tu primer depósito' },
-        { title: 'Giros Gratis', amount: '50', desc: 'En máquinas tragamonedas seleccionadas' },
-        { title: 'Cashback', amount: '10%', desc: 'Devolución semanal en pérdidas' }
-    ];
+  const handleLoginSuccess = (data: any) => {
+    console.log('Usuario logueado exitosamente:', data);
+    // Aquí puedes agregar lógica adicional para el login exitoso
+  };
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setCurrentSlide((prev) => (prev + 1) % promos.length);
-        }, 4000);
-        return () => clearInterval(interval);
-    }, []);
+  const openLoginModal = () => {
+    setIsRegisterModalOpen(false);
+    setIsLoginModalOpen(true);
+  };
 
-    return (
-        <div className="bg-black text-white overflow-x-hidden">
-            {/* Hero Section */}
-            <section className="relative h-screen flex items-center justify-center overflow-hidden">
-                {/* Background with gradient */}
-                <motion.div 
-                    className="absolute inset-0 bg-gradient-to-br from-red-600 to-red-800 z-10"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 1 }}
-                >
-                    <motion.div 
-                        className="absolute inset-0"
-                        animate={{
-                            background: [
-                                "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent)",
-                                "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent)"
-                            ],
-                            backgroundPosition: ["-200% 0", "200% 0"]
-                        }}
-                        transition={{
-                            duration: 3,
-                            repeat: Infinity,
-                            ease: "easeInOut"
-                        }}
-                        style={{ backgroundSize: "200% 100%" }}
-                    />
-                </motion.div>
+  const openRegisterModal = () => {
+    setIsLoginModalOpen(false);
+    setIsRegisterModalOpen(true);
+  };
+
+  // Categorías deportivas principales
+  const sportsCategories = [
+    { 
+      id: 'futbol', 
+      name: 'Fútbol', 
+      icon: SoccerIcon, 
+      color: 'from-green-500 to-green-700',
+      description: 'Liga MX, Champions, Premier'
+    },
+    { 
+      id: 'nfl', 
+      name: 'NFL', 
+      icon: TargetIcon, 
+      color: 'from-blue-500 to-blue-700',
+      description: 'Football Americano'
+    },
+    { 
+      id: 'live', 
+      name: 'En Vivo', 
+      icon: LightningIcon, 
+      color: 'from-red-500 to-red-700',
+      description: 'Apuestas en tiempo real'
+    },
+    { 
+      id: 'esports', 
+      name: 'E-Sports', 
+      icon: TrophyIcon, 
+      color: 'from-purple-500 to-purple-700',
+      description: 'Deportes electrónicos'
+    }
+    
+  ];
+
+  // Slides promocionales deportivos
+  const promoSlides = [
+    {
+      title: 'NFL IS BACK',
+      subtitle: 'TEMPORADA 2024',
+      description: 'Las mejores cuotas en',
+      amount: 'FOOTBALL',
+      currency: 'AMERICANO',
+      bgGradient: 'from-blue-600 via-blue-700 to-black',
+      ctaText: 'APUESTA YA',
+      icon: TargetIcon
+    },
+    {
+      title: 'FÚTBOL MEXICANO',
+      subtitle: 'LIGA MX',
+      description: 'Apuesta en el mejor',
+      amount: 'FÚTBOL',
+      currency: 'NACIONAL',
+      bgGradient: 'from-green-600 via-green-700 to-black',
+      ctaText: 'JUEGA AHORA',
+      icon: SoccerIcon
+    },
+    {
+      title: 'LIVE BET BUILDER',
+      subtitle: 'APUESTAS EN VIVO',
+      description: 'Construye tu apuesta con',
+      amount: '+50%',
+      currency: 'BOOST',
+      bgGradient: 'from-red-600 via-red-700 to-black',
+      ctaText: 'APOSTAR',
+      icon: LightningIcon
+    }
+  ];
+
+  // Pasos para empezar
+  const startSteps = [
+    {
+      step: '1',
+      title: 'REGÍSTRATE',
+      subtitle: 'Registro fácil y rápido',
+      icon: RocketIcon,
+      description: 'Es gratis y solo toma 15 segundos'
+    },
+    {
+      step: '2',
+      title: 'DEPOSITA',
+      subtitle: 'Recibe Bonos al instante',
+      icon: GiftIcon,
+      description: 'Múltiples métodos de pago'
+    },
+    {
+      step: '3',
+      title: 'APUESTA',
+      subtitle: 'Disfruta de los mejores Deportes',
+      icon: TrophyIcon,
+      description: 'Miles de mercados disponibles'
+    }
+  ];
+
+  // Deportes populares
+  const popularSports = [
+    { name: 'Liga MX', icon: SoccerIcon, matches: '12 partidos' },
+    { name: 'NFL', icon: TargetIcon, matches: '8 juegos' },
+    { name: 'Champions League', icon: SoccerIcon, matches: '6 partidos' },
+    { name: 'Premier League', icon: SoccerIcon, matches: '10 partidos' },
+    { name: 'MLB', icon: StarIcon, matches: '15 juegos' },
+    { name: 'NBA', icon: TrophyIcon, matches: '12 juegos' }
+  ];
+
+  // Estadísticas deportivas destacadas
+  const stats = [
+    {
+      icon: TrophyIcon,
+      number: '$2,340,567',
+      label: 'Ganado Esta Semana',
+      color: 'text-yellow-400'
+    },
+    {
+      icon: StarIcon,
+      number: '127',
+      label: 'Ganadores Diarios',
+      color: 'text-orange-400'
+    },
+    {
+      icon: TargetIcon,
+      number: '500+',
+      label: 'Mercados Deportivos',
+      color: 'text-green-400'
+    },
+    {
+      icon: Clock24Icon,
+      number: '24/7',
+      label: 'Apuestas en Vivo',
+      color: 'text-blue-400'
+    }
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % promoSlides.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className={`min-h-screen transition-colors duration-300 ${
+      isDarkMode 
+        ? 'bg-black text-white' 
+        : 'bg-white text-gray-900'
+    }`}>
+      {/* Header estilo Caliente - Completamente responsive */}
+      <header className={`sticky top-0 z-50 shadow-lg transition-colors duration-300 ${
+        isDarkMode 
+          ? 'bg-gradient-to-r from-red-600 to-red-800' 
+          : 'bg-gradient-to-r from-red-500 to-red-700'
+      }`}>
+        <div className="container mx-auto px-4">
+          {/* Top bar */}
+          <div className="flex justify-between items-center py-3">
+            <div className="flex items-center space-x-4 lg:space-x-6">
+              <div className="flex items-center space-x-3">
+                <h1 className="text-xl md:text-2xl font-bold text-white">24BET</h1>
                 
-                {/* Overlay */}
-                <div className="absolute inset-0 bg-black/30 z-20"></div>
-                
-                {/* Content */}
-                <motion.div 
-                    className="relative z-30 text-center max-w-4xl px-5"
-                    initial={{ opacity: 0, y: 50 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 1, delay: 0.5 }}
+                {/* Theme Toggle Button - Next to title */}
+                <button
+                  onClick={toggleTheme}
+                  className="theme-toggle-button flex items-center justify-center p-2 rounded-lg bg-white/20 hover:bg-white/30 transition-colors"
+                  aria-label="Cambiar tema"
                 >
-                    <motion.h1 className="mb-8">
-                        <motion.span 
-                            className="block text-6xl md:text-8xl font-black tracking-[0.3em] text-transparent bg-gradient-to-r from-white to-red-300 bg-clip-text mb-3"
-                            animate={{
-                                textShadow: [
-                                    "0 0 20px rgba(239, 68, 68, 0.5)",
-                                    "0 0 30px rgba(239, 68, 68, 0.8), 0 0 40px rgba(239, 68, 68, 0.6)",
-                                    "0 0 20px rgba(239, 68, 68, 0.5)"
-                                ]
-                            }}
-                            transition={{
-                                duration: 2,
-                                repeat: Infinity,
-                                ease: "easeInOut"
-                            }}
-                        >
-                            24BET
-                        </motion.span>
-                        <motion.span 
-                            className="block text-xl md:text-3xl font-light tracking-[0.2em] text-red-100"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 1, duration: 0.8 }}
-                        >
-                            CASINO
-                        </motion.span>
-                    </motion.h1>
-                    
-                    <motion.p 
-                        className="text-lg md:text-xl mb-10 text-gray-100 leading-relaxed max-w-2xl mx-auto"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 1.2, duration: 0.8 }}
-                    >
-                        El casino online más emocionante. Juega, apuesta y gana las 24 horas del día.
-                    </motion.p>
-                    
-                    <motion.div 
-                        className="flex flex-col sm:flex-row gap-5 justify-center items-center"
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 1.5, duration: 0.8 }}
-                    >
-                        <motion.button 
-                            className="group bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-bold py-4 px-8 rounded-full text-lg uppercase tracking-wide shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 flex items-center gap-3"
-                            whileHover={{ 
-                                scale: 1.05, 
-                                y: -5,
-                                boxShadow: "0 20px 40px rgba(239, 68, 68, 0.4)"
-                            }}
-                            whileTap={{ scale: 0.95 }}
-                        >
-                            <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                            >
-                                <SlotMachineIcon size={24} />
-                            </motion.div>
-                            JUGAR AHORA
-                        </motion.button>
-                        <motion.button 
-                            className="group bg-transparent border-2 border-white text-white hover:bg-white hover:text-red-600 font-bold py-4 px-8 rounded-full text-lg uppercase tracking-wide transform hover:-translate-y-1 transition-all duration-300 flex items-center gap-3"
-                            whileHover={{ 
-                                scale: 1.05, 
-                                y: -5,
-                                backgroundColor: "white",
-                                color: "#dc2626"
-                            }}
-                            whileTap={{ scale: 0.95 }}
-                        >
-                            <motion.div
-                                whileHover={{ scale: 1.2 }}
-                                transition={{ duration: 0.2 }}
-                            >
-                                <GiftIcon size={24} />
-                            </motion.div>
-                            VER BONOS
-                        </motion.button>
-                    </motion.div>
-                </motion.div>
+                  {isDarkMode ? (
+                    <SunIcon size={20} className="text-yellow-400" />
+                  ) : (
+                    <MoonIcon size={20} className="text-gray-200" />
+                  )}
+                </button>
+              </div>
+              
+              {/* Navigation - Hidden on mobile */}
+              <nav className="hidden lg:flex space-x-4 xl:space-x-6">
+                {sportsCategories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => setActiveSportType(category.id)}
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all text-sm xl:text-base ${
+                      activeSportType === category.id
+                        ? 'bg-white text-red-600 shadow-md'
+                        : 'text-white hover:bg-red-700'
+                    }`}
+                  >
+                    <category.icon size={18} />
+                    <span className="font-medium">{category.name}</span>
+                  </button>
+                ))}
+              </nav>
+            </div>
 
-                {/* Floating Chips */}
-                <div className="absolute inset-0 pointer-events-none z-20">
-                    <motion.div 
-                        className="absolute top-1/5 left-1/10"
-                        animate={{
-                            y: [0, -20, 0],
-                            rotate: [0, 180, 360]
-                        }}
-                        transition={{
-                            duration: 6,
-                            repeat: Infinity,
-                            ease: "easeInOut"
-                        }}
-                    >
-                        <ChipIcon size={48} className="text-red-500 drop-shadow-lg" />
-                    </motion.div>
-                    <motion.div 
-                        className="absolute top-3/5 right-1/6"
-                        animate={{
-                            y: [0, -20, 0],
-                            rotate: [0, 180, 360]
-                        }}
-                        transition={{
-                            duration: 6,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                            delay: 2
-                        }}
-                    >
-                        <ChipIcon size={48} className="text-white drop-shadow-lg" />
-                    </motion.div>
-                    <motion.div 
-                        className="absolute bottom-1/3 left-1/5"
-                        animate={{
-                            y: [0, -20, 0],
-                            rotate: [0, 180, 360]
-                        }}
-                        transition={{
-                            duration: 6,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                            delay: 4
-                        }}
-                    >
-                        <ChipIcon size={48} className="text-red-500 drop-shadow-lg" />
-                    </motion.div>
-                    <motion.div 
-                        className="absolute top-2/5 right-1/3"
-                        animate={{
-                            y: [0, -20, 0],
-                            rotate: [0, 180, 360]
-                        }}
-                        transition={{
-                            duration: 6,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                            delay: 6
-                        }}
-                    >
-                        <ChipIcon size={48} className="text-white drop-shadow-lg" />
-                    </motion.div>
-                </div>
-            </section>
+            <div className="flex items-center space-x-2 md:space-x-4">
+              {/* Dropdown menu button - Always visible */}
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="p-2 rounded-lg bg-white/20 hover:bg-white/30 transition-colors"
+                aria-label="Menú"
+                title="Abrir menú"
+              >
+                {isMobileMenuOpen ? (
+                  <CloseIcon size={20} className="text-white" />
+                ) : (
+                  <MenuIcon size={20} className="text-white" />
+                )}
+              </button>
 
-            {/* Games Section */}
-            <motion.section 
-                className="py-20 bg-gradient-to-br from-gray-800 to-gray-900"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8 }}
+              {/* Auth buttons - Hidden on small screens */}
+              <div className="hidden sm:flex items-center space-x-2 md:space-x-4">
+                <button 
+                  onClick={() => setIsRegisterModalOpen(true)}
+                  className="bg-green-500 hover:bg-green-600 px-3 md:px-6 py-2 rounded-lg font-bold transition-colors text-sm md:text-base text-white"
+                >
+                  REGISTRARSE
+                </button>
+                <button 
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className="border border-white hover:bg-white hover:text-red-600 px-3 md:px-6 py-2 rounded-lg font-bold transition-colors text-sm md:text-base text-white"
+                >
+                  INICIAR SESIÓN
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Dropdown Navigation Menu - Always available */}
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="pb-4 border-t border-red-700/50 mt-3 pt-3"
             >
-                <div className="max-w-6xl mx-auto px-5">
-                    <motion.h2 
-                        className="text-4xl md:text-5xl font-bold text-center mb-16 text-white flex items-center justify-center gap-4"
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
+              <div className="space-y-2">
+                {/* Deportes - Siempre disponibles */}
+                <div className="space-y-2">
+                  <h3 className="text-white font-semibold text-sm uppercase tracking-wide px-4 py-1">
+                    Deportes
+                  </h3>
+                  {sportsCategories.map((category) => (
+                    <button
+                      key={category.id}
+                      onClick={() => {
+                        setActiveSportType(category.id);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
+                        activeSportType === category.id
+                          ? 'bg-white text-red-600'
+                          : 'text-white hover:bg-red-700'
+                      }`}
                     >
-                        <motion.div
-                            animate={{ rotate: [0, 360] }}
-                            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                        >
-                            <DiceIcon size={48} className="text-red-500" />
-                        </motion.div>
-                        NUESTROS JUEGOS
-                    </motion.h2>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {games.map((game, index) => {
-                            const IconComponent = game.icon;
-                            return (
-                                <motion.div 
-                                    key={index} 
-                                    className="bg-gradient-to-br from-gray-700 to-gray-800 rounded-2xl p-8 text-center transition-all duration-300 group"
-                                    initial={{ opacity: 0, y: 50 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: 0.6, delay: index * 0.1 }}
-                                    whileHover={{ 
-                                        y: -10,
-                                        scale: 1.02,
-                                        borderColor: "#ef4444",
-                                        borderWidth: 2,
-                                        boxShadow: "0 20px 40px rgba(239, 68, 68, 0.2)"
-                                    }}
-                                >
-                                    <motion.div 
-                                        className={`mb-5 flex justify-center ${game.color}`}
-                                        whileHover={{ scale: 1.2, rotate: 360 }}
-                                        transition={{ duration: 0.5 }}
-                                    >
-                                        <IconComponent size={60} />
-                                    </motion.div>
-                                    <h3 className="text-2xl font-bold mb-4 text-white">
-                                        {game.name}
-                                    </h3>
-                                    <p className="text-gray-300 mb-6 leading-relaxed">
-                                        {game.desc}
-                                    </p>
-                                    <motion.button 
-                                        className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-bold py-3 px-6 rounded-full transition-all duration-300 shadow-lg"
-                                        whileHover={{ 
-                                            scale: 1.1,
-                                            boxShadow: "0 10px 25px rgba(239, 68, 68, 0.4)"
-                                        }}
-                                        whileTap={{ scale: 0.95 }}
-                                    >
-                                        Jugar
-                                    </motion.button>
-                                </motion.div>
-                            );
-                        })}
-                    </div>
+                      <category.icon size={20} />
+                      <div className="flex-1 text-left">
+                        <span className="font-medium block">{category.name}</span>
+                        <span className="text-xs opacity-75">{category.description}</span>
+                      </div>
+                    </button>
+                  ))}
                 </div>
-            </motion.section>
 
-            {/* Promotions Carousel */}
-            <motion.section 
-                className="py-20 bg-gradient-to-br from-red-600 to-red-800 relative"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8 }}
-            >
-                <div className="max-w-4xl mx-auto px-5 relative z-10">
-                    <motion.h2 
-                        className="text-4xl md:text-5xl font-bold text-center mb-16 text-white flex items-center justify-center gap-4"
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
-                    >
-                        <motion.div
-                            animate={{ 
-                                scale: [1, 1.2, 1],
-                                rotate: [0, 10, -10, 0]
-                            }}
-                            transition={{ duration: 2, repeat: Infinity }}
-                        >
-                            <GiftIcon size={48} className="text-yellow-300" />
-                        </motion.div>
-                        PROMOCIONES EXCLUSIVAS
-                    </motion.h2>
-                    
-                    <motion.div 
-                        className="bg-white/95 rounded-2xl p-12 text-gray-800 text-center"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.8, delay: 0.4 }}
-                        key={currentSlide}
-                    >
-                        <motion.div 
-                            className="text-6xl font-black text-red-600 mb-5"
-                            animate={{ 
-                                scale: [1, 1.1, 1],
-                                color: ["#dc2626", "#ef4444", "#dc2626"]
-                            }}
-                            transition={{ duration: 2, repeat: Infinity }}
-                        >
-                            {promos[currentSlide].amount}
-                        </motion.div>
-                        <motion.h3 
-                            className="text-3xl font-bold mb-4"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6, delay: 0.2 }}
-                        >
-                            {promos[currentSlide].title}
-                        </motion.h3>
-                        <motion.p 
-                            className="text-lg mb-8"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6, delay: 0.4 }}
-                        >
-                            {promos[currentSlide].desc}
-                        </motion.p>
-                        <motion.button 
-                            className="bg-gradient-to-r from-red-600 to-red-500 text-white font-bold py-4 px-8 rounded-full"
-                            whileHover={{ 
-                                scale: 1.05,
-                                boxShadow: "0 10px 25px rgba(239, 68, 68, 0.4)"
-                            }}
-                            whileTap={{ scale: 0.95 }}
-                        >
-                            Reclamar
-                        </motion.button>
-                    </motion.div>
+                {/* Opciones adicionales para pantallas grandes */}
+                <div className="space-y-2 pt-3 border-t border-red-700/50">
+                  <h3 className="text-white font-semibold text-sm uppercase tracking-wide px-4 py-1">
+                    Opciones
+                  </h3>
+                  <button 
+                    onClick={() => {
+                      setIsRegisterModalOpen(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg bg-green-500 hover:bg-green-600 text-white transition-all font-medium"
+                  >
+                    <span>REGISTRARSE</span>
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setIsLoginModalOpen(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg border border-white hover:bg-white hover:text-red-600 text-white transition-all font-medium"
+                  >
+                    <span>INICIAR SESIÓN</span>
+                  </button>
                 </div>
-            </motion.section>
-
-            {/* Features Section */}
-            <motion.section 
-                className="py-20 bg-gradient-to-br from-gray-900 to-black"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8 }}
-            >
-                <div className="max-w-6xl mx-auto px-5">
-                    <motion.h2 
-                        className="text-4xl md:text-5xl font-bold text-center mb-16 text-white flex items-center justify-center gap-4"
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
-                    >
-                        <motion.div
-                            animate={{ 
-                                rotate: [0, 360],
-                                scale: [1, 1.2, 1]
-                            }}
-                            transition={{ duration: 3, repeat: Infinity }}
-                        >
-                            <StarIcon size={48} className="text-yellow-400" />
-                        </motion.div>
-                        ¿POR QUÉ ELEGIR 24BET?
-                    </motion.h2>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                        {[
-                            { icon: SecurityIcon, title: '100% Seguro', desc: 'Licenciado y regulado. Tus datos y dinero están protegidos.', color: 'text-green-400' },
-                            { icon: LightningIcon, title: 'Pagos Rápidos', desc: 'Retiros instantáneos. Deposita y retira cuando quieras.', color: 'text-blue-400' },
-                            { icon: Clock24Icon, title: '24/7 Disponible', desc: 'Juega cualquier día, cualquier hora. Nunca cerramos.', color: 'text-purple-400' },
-                            { icon: TrophyIcon, title: 'Premios Grandes', desc: 'Jackpots millonarios y premios que cambian vidas.', color: 'text-yellow-400' }
-                        ].map((feature, index) => {
-                            const IconComponent = feature.icon;
-                            return (
-                                <motion.div 
-                                    key={index}
-                                    className="text-center p-8 bg-gradient-to-br from-gray-700 to-gray-800 rounded-2xl transition-all duration-300 hover:transform hover:-translate-y-3 hover:border-2 hover:border-red-500 hover:shadow-2xl group"
-                                    initial={{ opacity: 0, y: 50 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: 0.6, delay: index * 0.1 }}
-                                    whileHover={{ 
-                                        y: -10,
-                                        scale: 1.02,
-                                        borderColor: "#ef4444",
-                                        borderWidth: 2,
-                                        boxShadow: "0 20px 40px rgba(239, 68, 68, 0.2)"
-                                    }}
-                                >
-                                    <motion.div 
-                                        className={`mb-5 flex justify-center ${feature.color}`}
-                                        whileHover={{ scale: 1.2, rotate: 360 }}
-                                        transition={{ duration: 0.5 }}
-                                    >
-                                        <IconComponent size={60} />
-                                    </motion.div>
-                                    <h3 className="text-xl font-bold mb-4 text-white">
-                                        {feature.title}
-                                    </h3>
-                                    <p className="text-gray-300 leading-relaxed">
-                                        {feature.desc}
-                                    </p>
-                                </motion.div>
-                            );
-                        })}
-                    </div>
+                
+                {/* Botones de autenticación para pantallas pequeñas */}
+                <div className="flex space-x-2 pt-3 sm:hidden border-t border-red-700/50">
+                  <button 
+                    onClick={() => {
+                      setIsRegisterModalOpen(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="flex-1 bg-green-500 hover:bg-green-600 py-3 rounded-lg font-bold transition-colors text-white"
+                  >
+                    REGISTRARSE
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setIsLoginModalOpen(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="flex-1 border border-white hover:bg-white hover:text-red-600 py-3 rounded-lg font-bold transition-colors text-white"
+                  >
+                    INICIAR SESIÓN
+                  </button>
                 </div>
-            </motion.section>
-
-            {/* CTA Section */}
-            <motion.section 
-                className="py-20 bg-gradient-to-br from-red-600 to-red-800 text-center relative"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8 }}
-            >
-                <div className="max-w-4xl mx-auto px-5 relative z-10">
-                    <motion.h2 
-                        className="text-4xl md:text-5xl font-bold mb-5"
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6 }}
-                    >
-                        ¿LISTO PARA GANAR?
-                    </motion.h2>
-                    <motion.p 
-                        className="text-xl mb-12 opacity-90"
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
-                    >
-                        Únete a miles de jugadores que ya están ganando en 24Bet
-                    </motion.p>
-                    
-                    <motion.div 
-                        className="flex flex-col sm:flex-row justify-center gap-12 sm:gap-16 mb-12"
-                        initial={{ opacity: 0, y: 50 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.8, delay: 0.4 }}
-                    >
-                        {[
-                            { number: '50K+', label: 'Jugadores' },
-                            { number: '$2M+', label: 'Pagado' },
-                            { number: '99%', label: 'Satisfacción' }
-                        ].map((stat, index) => (
-                            <motion.div 
-                                key={index} 
-                                className="text-center"
-                                initial={{ opacity: 0, scale: 0.5 }}
-                                whileInView={{ opacity: 1, scale: 1 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.6, delay: 0.6 + index * 0.2 }}
-                            >
-                                <motion.span 
-                                    className="block text-4xl md:text-5xl font-black text-white mb-2"
-                                    animate={{ 
-                                        scale: [1, 1.1, 1],
-                                        textShadow: [
-                                            "0 0 5px rgba(255, 255, 255, 0.5)",
-                                            "0 0 15px rgba(255, 255, 255, 0.8)",
-                                            "0 0 5px rgba(255, 255, 255, 0.5)"
-                                        ]
-                                    }}
-                                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                                >
-                                    {stat.number}
-                                </motion.span>
-                                <span className="block text-lg opacity-80">
-                                    {stat.label}
-                                </span>
-                            </motion.div>
-                        ))}
-                    </motion.div>
-                    
-                    <motion.button 
-                        className="group bg-white text-red-600 font-black py-5 px-10 text-xl rounded-full uppercase tracking-wide transition-all duration-300 hover:transform hover:-translate-y-1 shadow-2xl hover:shadow-2xl flex items-center gap-3 mx-auto"
-                        initial={{ opacity: 0, y: 50 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.8, delay: 1 }}
-                        whileHover={{ 
-                            scale: 1.05,
-                            y: -5,
-                            boxShadow: "0 20px 40px rgba(255, 255, 255, 0.2)"
-                        }}
-                        whileTap={{ scale: 0.95 }}
-                    >
-                        <motion.div
-                            animate={{ 
-                                y: [0, -5, 0],
-                                rotate: [0, 10, -10, 0]
-                            }}
-                            transition={{ duration: 2, repeat: Infinity }}
-                        >
-                            <RocketIcon size={24} />
-                        </motion.div>
-                        EMPEZAR A JUGAR GRATIS
-                    </motion.button>
-                </div>
-            </motion.section>
-
-            {/* Footer */}
-            <footer className="bg-black py-12 border-t-2 border-red-600">
-                <div className="max-w-6xl mx-auto px-5">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-                        <div>
-                            <h3 className="text-2xl font-bold text-red-500 mb-3">24BET</h3>
-                            <p className="text-gray-400">Tu casino de confianza</p>
-                        </div>
-                        
-                        <div className="flex justify-center gap-8 flex-wrap">
-                            {['Juegos', 'Promociones', 'Soporte', 'Términos'].map((link, index) => (
-                                <a key={index} href={`#${link.toLowerCase()}`} className="text-gray-400 hover:text-red-500 transition-colors duration-300">
-                                    {link}
-                                </a>
-                            ))}
-                        </div>
-                        
-                        <div className="text-gray-500 text-sm flex items-center justify-center gap-2">
-                            <SecurityIcon size={16} />
-                            <span>Solo para mayores de 18 años. Juega responsablemente.</span>
-                        </div>
-                    </div>
-                </div>
-            </footer>
+              </div>
+            </motion.div>
+          )}
         </div>
-    );
+      </header>
+
+      {/* Hero Section - Slider Principal - Completamente responsive */}
+      <section className="relative h-[400px] sm:h-[500px] lg:h-[600px] overflow-hidden">
+        <div className="absolute inset-0">
+          {promoSlides.map((slide, index) => (
+            <motion.div
+              key={index}
+              className={`absolute inset-0 bg-gradient-to-r ${slide.bgGradient}`}
+              initial={{ opacity: 0, x: 100 }}
+              animate={{
+                opacity: currentSlide === index ? 1 : 0,
+                x: currentSlide === index ? 0 : -100
+              }}
+              transition={{ duration: 0.8 }}
+            >
+              <div className="container mx-auto px-4 h-full flex items-center">
+                <div className="flex-1 space-y-4 md:space-y-6 max-w-2xl">
+                  <div className="space-y-2">
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight">
+                      {slide.title}
+                    </h2>
+                    <p className="text-lg sm:text-xl md:text-2xl text-red-200">
+                      {slide.subtitle}
+                    </p>
+                  </div>
+                  <div className="space-y-3 md:space-y-4">
+                    <p className="text-base sm:text-lg md:text-xl text-white">
+                      {slide.description}
+                    </p>
+                    <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white">
+                      {slide.amount}
+                      {slide.currency && (
+                        <span className="text-lg sm:text-2xl md:text-3xl ml-2">
+                          {slide.currency}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <button className="bg-yellow-500 hover:bg-yellow-600 text-black px-4 sm:px-6 md:px-8 py-3 md:py-4 rounded-lg text-base sm:text-lg md:text-xl font-bold transition-colors shadow-lg">
+                    {slide.ctaText}
+                  </button>
+                </div>
+                
+                {/* Icon - Hidden on small and medium screens, shown on large screens */}
+                <div className="hidden xl:block">
+                  <slide.icon size={280} className="text-white opacity-20" />
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Indicadores del slider */}
+        <div className="absolute bottom-4 md:bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2">
+          {promoSlides.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSlide(index)}
+              className={`w-2 h-2 md:w-3 md:h-3 rounded-full transition-colors ${
+                currentSlide === index ? 'bg-white' : 'bg-white/50'
+              }`}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* Sección de Pasos para Empezar - Completamente responsive */}
+      <section className={`py-12 md:py-16 transition-colors duration-300 ${
+        isDarkMode 
+          ? 'bg-gradient-to-r from-gray-900 to-black' 
+          : 'bg-gradient-to-r from-gray-100 to-gray-200'
+      }`}>
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className={`text-2xl sm:text-3xl md:text-4xl font-bold mb-4 ${
+              isDarkMode ? 'text-white' : 'text-gray-900'
+            }`}>
+              ¿Cómo Apostar?
+            </h2>
+            <p className={`text-lg sm:text-xl ${
+              isDarkMode ? 'text-gray-300' : 'text-gray-600'
+            }`}>
+              Solo 3 pasos para comenzar a ganar
+            </p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            {startSteps.map((step, index) => (
+              <motion.div
+                key={index}
+                className={`text-center p-6 md:p-8 rounded-xl shadow-lg hover:shadow-xl transition-all ${
+                  isDarkMode 
+                    ? 'bg-gray-800 hover:bg-gray-750' 
+                    : 'bg-white hover:bg-gray-50'
+                }`}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.2 }}
+                whileHover={{ y: -5 }}
+              >
+                <div className="mb-6">
+                  <div className="w-14 h-14 md:w-16 md:h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-xl md:text-2xl font-bold text-white">{step.step}</span>
+                  </div>
+                  <step.icon size={50} className="text-red-500 mx-auto" />
+                </div>
+                <h3 className={`text-xl md:text-2xl font-bold mb-2 ${
+                  isDarkMode ? 'text-white' : 'text-gray-900'
+                }`}>
+                  {step.title}
+                </h3>
+                <p className="text-base md:text-lg text-red-400 mb-4">{step.subtitle}</p>
+                <p className={`text-sm md:text-base ${
+                  isDarkMode ? 'text-gray-300' : 'text-gray-600'
+                }`}>
+                  {step.description}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Sección de Estadísticas - Completamente responsive */}
+      <section className="py-12 md:py-16 bg-red-600">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
+            {stats.map((stat, index) => (
+              <motion.div
+                key={index}
+                className="text-center"
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ scale: 1.05 }}
+              >
+                <stat.icon size={40} className={`${stat.color} mx-auto mb-3 md:mb-4 md:!w-12 md:!h-12`} />
+                <div className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 text-white">
+                  {stat.number}
+                </div>
+                <div className="text-xs sm:text-sm md:text-base text-red-100">
+                  {stat.label}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Sección de Juegos Populares - Completamente responsive */}
+      <section className={`py-12 md:py-16 transition-colors duration-300 ${
+        isDarkMode ? 'bg-gray-900' : 'bg-gray-100'
+      }`}>
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className={`text-2xl sm:text-3xl md:text-4xl font-bold mb-4 ${
+              isDarkMode ? 'text-white' : 'text-gray-900'
+            }`}>
+              Deportes Más Populares
+            </h2>
+            <p className={`text-lg sm:text-xl ${
+              isDarkMode ? 'text-gray-300' : 'text-gray-600'
+            }`}>
+              Los mejores mercados deportivos
+            </p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
+            {popularSports.map((sport, index) => (
+              <motion.div
+                key={index}
+                className={`p-4 md:p-6 rounded-xl text-center transition-all cursor-pointer group ${
+                  isDarkMode 
+                    ? 'bg-gray-800 hover:bg-gray-700' 
+                    : 'bg-white hover:bg-gray-50'
+                } shadow-md hover:shadow-lg`}
+                whileHover={{ scale: 1.05, y: -5 }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <sport.icon size={40} className="text-red-500 mx-auto mb-3 md:mb-4 group-hover:text-red-400 transition-colors md:!w-12 md:!h-12" />
+                <h3 className={`font-bold mb-2 text-sm md:text-base ${
+                  isDarkMode ? 'text-white' : 'text-gray-900'
+                }`}>
+                  {sport.name}
+                </h3>
+                <div className={`text-xs md:text-sm ${
+                  isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                }`}>
+                  {sport.matches}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Sección de Características - Completamente responsive */}
+      <section className={`py-12 md:py-16 transition-colors duration-300 ${
+        isDarkMode ? 'bg-black' : 'bg-white'
+      }`}>
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className={`text-2xl sm:text-3xl md:text-4xl font-bold mb-4 ${
+              isDarkMode ? 'text-white' : 'text-gray-900'
+            }`}>
+              ¿Por Qué Elegir 24BET?
+            </h2>
+            <p className={`text-lg sm:text-xl ${
+              isDarkMode ? 'text-gray-300' : 'text-gray-600'
+            }`}>
+              La mejor experiencia de apuestas deportivas
+            </p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+            <motion.div
+              className={`text-center p-6 md:p-8 rounded-xl transition-all ${
+                isDarkMode ? 'bg-gray-900' : 'bg-gray-50'
+              }`}
+              whileHover={{ y: -10 }}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <SecurityIcon size={50} className="text-green-500 mx-auto mb-4 md:!w-16 md:!h-16" />
+              <h3 className={`text-lg md:text-xl font-bold mb-2 ${
+                isDarkMode ? 'text-white' : 'text-gray-900'
+              }`}>
+                100% Seguro
+              </h3>
+              <p className={`text-sm md:text-base ${
+                isDarkMode ? 'text-gray-400' : 'text-gray-600'
+              }`}>
+                Licencias verificadas y encriptación SSL
+              </p>
+            </motion.div>
+            <motion.div
+              className={`text-center p-6 md:p-8 rounded-xl transition-all ${
+                isDarkMode ? 'bg-gray-900' : 'bg-gray-50'
+              }`}
+              whileHover={{ y: -10 }}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <LightningIcon size={50} className="text-yellow-500 mx-auto mb-4 md:!w-16 md:!h-16" />
+              <h3 className={`text-lg md:text-xl font-bold mb-2 ${
+                isDarkMode ? 'text-white' : 'text-gray-900'
+              }`}>
+                Pagos Rápidos
+              </h3>
+              <p className={`text-sm md:text-base ${
+                isDarkMode ? 'text-gray-400' : 'text-gray-600'
+              }`}>
+                Retiros instantáneos las 24 horas
+              </p>
+            </motion.div>
+            <motion.div
+              className={`text-center p-6 md:p-8 rounded-xl transition-all ${
+                isDarkMode ? 'bg-gray-900' : 'bg-gray-50'
+              }`}
+              whileHover={{ y: -10 }}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <Clock24Icon size={50} className="text-blue-500 mx-auto mb-4 md:!w-16 md:!h-16" />
+              <h3 className={`text-lg md:text-xl font-bold mb-2 ${
+                isDarkMode ? 'text-white' : 'text-gray-900'
+              }`}>
+                Soporte 24/7
+              </h3>
+              <p className={`text-sm md:text-base ${
+                isDarkMode ? 'text-gray-400' : 'text-gray-600'
+              }`}>
+                Atención al cliente permanente
+              </p>
+            </motion.div>
+            <motion.div
+              className={`text-center p-6 md:p-8 rounded-xl transition-all ${
+                isDarkMode ? 'bg-gray-900' : 'bg-gray-50'
+              }`}
+              whileHover={{ y: -10 }}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <StarIcon size={50} className="text-purple-500 mx-auto mb-4 md:!w-16 md:!h-16" />
+              <h3 className={`text-lg md:text-xl font-bold mb-2 ${
+                isDarkMode ? 'text-white' : 'text-gray-900'
+              }`}>
+                Mejores Cuotas
+              </h3>
+              <p className={`text-sm md:text-base ${
+                isDarkMode ? 'text-gray-400' : 'text-gray-600'
+              }`}>
+                Las odds más competitivas del mercado
+              </p>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer - Completamente responsive */}
+      <footer className={`py-8 md:py-12 border-t transition-colors duration-300 ${
+        isDarkMode 
+          ? 'bg-gray-900 border-gray-800' 
+          : 'bg-gray-100 border-gray-300'
+      }`}>
+        <div className="container mx-auto px-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+            <div className="sm:col-span-2 lg:col-span-1">
+              <h3 className={`text-lg md:text-xl font-bold mb-4 ${
+                isDarkMode ? 'text-white' : 'text-gray-900'
+              }`}>
+                24BET
+              </h3>
+              <p className={`text-sm md:text-base mb-4 ${
+                isDarkMode ? 'text-gray-400' : 'text-gray-600'
+              }`}>
+                La casa de apuestas más confiable de México. Juega responsablemente.
+              </p>
+              <div className="flex items-center space-x-4">
+                <SecurityIcon size={20} className="text-green-500" />
+                <span className={`text-xs md:text-sm ${
+                  isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                }`}>
+                  Licencia SEGOB
+                </span>
+              </div>
+            </div>
+            <div>
+              <h4 className={`font-bold mb-4 text-sm md:text-base ${
+                isDarkMode ? 'text-white' : 'text-gray-900'
+              }`}>
+                Deportes
+              </h4>
+              <ul className={`space-y-2 text-xs md:text-sm ${
+                isDarkMode ? 'text-gray-400' : 'text-gray-600'
+              }`}>
+                <li>Fútbol</li>
+                <li>NFL</li>
+                <li>Baloncesto</li>
+                <li>Béisbol</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className={`font-bold mb-4 text-sm md:text-base ${
+                isDarkMode ? 'text-white' : 'text-gray-900'
+              }`}>
+                Ayuda
+              </h4>
+              <ul className={`space-y-2 text-xs md:text-sm ${
+                isDarkMode ? 'text-gray-400' : 'text-gray-600'
+              }`}>
+                <li>Términos y Condiciones</li>
+                <li>Juego Responsable</li>
+                <li>Soporte</li>
+                <li>FAQ</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className={`font-bold mb-4 text-sm md:text-base ${
+                isDarkMode ? 'text-white' : 'text-gray-900'
+              }`}>
+                Contacto
+              </h4>
+              <div className={`space-y-2 text-xs md:text-sm ${
+                isDarkMode ? 'text-gray-400' : 'text-gray-600'
+              }`}>
+                <div className="flex items-center space-x-2">
+                  <Clock24Icon size={14} />
+                  <span>24/7 Soporte</span>
+                </div>
+                <div>soporte@24bet.mx</div>
+              </div>
+            </div>
+          </div>
+          <div className={`border-t mt-6 md:mt-8 pt-6 md:pt-8 text-center text-xs md:text-sm transition-colors duration-300 ${
+            isDarkMode 
+              ? 'border-gray-800 text-gray-400' 
+              : 'border-gray-300 text-gray-600'
+          }`}>
+            <p>© 2024 24BET. Todos los derechos reservados. Juega responsablemente. +18</p>
+          </div>
+        </div>
+      </footer>
+
+      {/* Register Modal */}
+      <RegisterModal
+        isOpen={isRegisterModalOpen}
+        onClose={() => setIsRegisterModalOpen(false)}
+        onRegisterSuccess={handleRegisterSuccess}
+        onOpenLogin={openLoginModal}
+      />
+
+      {/* Login Modal */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onLoginSuccess={handleLoginSuccess}
+        onOpenRegister={openRegisterModal}
+      />
+    </div>
+  );
 };
 
 export default LandingPage;
