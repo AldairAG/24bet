@@ -6,6 +6,8 @@ import lombok.Data;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 @Entity
 @Table(name = "informacion_personal")
 @Data
@@ -78,6 +80,7 @@ public class InformacionPersonal {
     // ========== RELACIÓN CON USUARIO ==========
     
     @OneToOne(mappedBy = "informacionPersonal")
+    @JsonBackReference
     private Usuario usuario;
     
     // ========== ENUMS ==========

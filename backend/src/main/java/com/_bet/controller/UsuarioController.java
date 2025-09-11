@@ -32,7 +32,7 @@ public class UsuarioController {
     private final UsuarioService usuarioService;
 
     // ========== ENDPOINTS PARA ADMINISTRADORES ==========
-    //https://web.postman.co/workspace/My-Workspace~b4d7d548-256b-4458-83c1-7d3a47f9a191/collection/39804580-a8686f31-e866-43ae-900e-4ec4ddd6936f?action=share&source=copy-link&creator=39804580
+    // https://web.postman.co/workspace/My-Workspace~b4d7d548-256b-4458-83c1-7d3a47f9a191/collection/39804580-a8686f31-e866-43ae-900e-4ec4ddd6936f?action=share&source=copy-link&creator=39804580
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Listar todos los usuarios", description = "Solo disponible para administradores")
@@ -40,10 +40,9 @@ public class UsuarioController {
         try {
             Page<UsuarioResponse> usuarios = usuarioService.obtenerTodosLosUsuarios(pageable);
             return ResponseEntity.ok(new ApiResponseWrapper<>(
-                    true, 
-                    "Usuarios obtenidos exitosamente", 
-                    usuarios
-            ));
+                    true,
+                    "Usuarios obtenidos exitosamente",
+                    usuarios));
         } catch (Exception e) {
             return ResponseEntity.status(500)
                     .body(new ApiResponseWrapper<>(false, "Error al obtener usuarios", null));
@@ -57,10 +56,9 @@ public class UsuarioController {
         try {
             UsuarioResponse usuario = usuarioService.obtenerUsuarioPorId(id);
             return ResponseEntity.ok(new ApiResponseWrapper<>(
-                    true, 
-                    "Usuario obtenido exitosamente", 
-                    usuario
-            ));
+                    true,
+                    "Usuario obtenido exitosamente",
+                    usuario));
         } catch (RuntimeException e) {
             return ResponseEntity.status(404)
                     .body(new ApiResponseWrapper<>(false, e.getMessage(), null));
@@ -79,10 +77,9 @@ public class UsuarioController {
         try {
             UsuarioResponse usuario = usuarioService.editarUsuarioComoAdmin(id, request);
             return ResponseEntity.ok(new ApiResponseWrapper<>(
-                    true, 
-                    "Usuario actualizado exitosamente por administrador", 
-                    usuario
-            ));
+                    true,
+                    "Usuario actualizado exitosamente por administrador",
+                    usuario));
         } catch (RuntimeException e) {
             return ResponseEntity.status(400)
                     .body(new ApiResponseWrapper<>(false, e.getMessage(), null));
@@ -99,10 +96,9 @@ public class UsuarioController {
         try {
             usuarioService.eliminarUsuario(id);
             return ResponseEntity.ok(new ApiResponseWrapper<>(
-                    true, 
-                    "Usuario eliminado exitosamente", 
-                    null
-            ));
+                    true,
+                    "Usuario eliminado exitosamente",
+                    null));
         } catch (RuntimeException e) {
             return ResponseEntity.status(404)
                     .body(new ApiResponseWrapper<>(false, e.getMessage(), null));
@@ -119,10 +115,9 @@ public class UsuarioController {
         try {
             usuarioService.activarUsuario(id);
             return ResponseEntity.ok(new ApiResponseWrapper<>(
-                    true, 
-                    "Usuario activado exitosamente", 
-                    null
-            ));
+                    true,
+                    "Usuario activado exitosamente",
+                    null));
         } catch (RuntimeException e) {
             return ResponseEntity.status(404)
                     .body(new ApiResponseWrapper<>(false, e.getMessage(), null));
@@ -139,10 +134,9 @@ public class UsuarioController {
         try {
             usuarioService.desactivarUsuario(id);
             return ResponseEntity.ok(new ApiResponseWrapper<>(
-                    true, 
-                    "Usuario desactivado exitosamente", 
-                    null
-            ));
+                    true,
+                    "Usuario desactivado exitosamente",
+                    null));
         } catch (RuntimeException e) {
             return ResponseEntity.status(404)
                     .body(new ApiResponseWrapper<>(false, e.getMessage(), null));
@@ -155,18 +149,18 @@ public class UsuarioController {
     // ========== ENDPOINTS PARA USUARIOS (AUTO-EDICIÓN) ==========
 
     @PutMapping("/{id}/perfil")
-    @PreAuthorize("#id == authentication.principal.id")
+    // @PreAuthorize("#id == authentication.principal.id")
     @Operation(summary = "Editar perfil propio", description = "Los usuarios solo pueden editar su propio perfil")
     public ResponseEntity<ApiResponseWrapper<UsuarioResponse>> editarPerfilPropio(
             @PathVariable Long id,
             @Valid @RequestBody EditarPerfilRequest request) {
         try {
+            System.out.println("ID del usuario autenticado: " + SecurityContextHolder.getContext().getAuthentication().getPrincipal());
             UsuarioResponse usuario = usuarioService.editarPerfil(id, request);
             return ResponseEntity.ok(new ApiResponseWrapper<>(
-                    true, 
-                    "Perfil actualizado exitosamente", 
-                    usuario
-            ));
+                    true,
+                    "Perfil actualizado exitosamente",
+                    usuario));
         } catch (RuntimeException e) {
             return ResponseEntity.status(400)
                     .body(new ApiResponseWrapper<>(false, e.getMessage(), null));
@@ -185,10 +179,9 @@ public class UsuarioController {
         try {
             usuarioService.cambiarPassword(id, request);
             return ResponseEntity.ok(new ApiResponseWrapper<>(
-                    true, 
-                    "Contraseña cambiada exitosamente", 
-                    null
-            ));
+                    true,
+                    "Contraseña cambiada exitosamente",
+                    null));
         } catch (RuntimeException e) {
             return ResponseEntity.status(400)
                     .body(new ApiResponseWrapper<>(false, e.getMessage(), null));
@@ -208,12 +201,11 @@ public class UsuarioController {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             Usuario usuario = (Usuario) authentication.getPrincipal();
             UsuarioResponse usuarioResponse = usuarioService.obtenerUsuarioPorId(usuario.getId());
-            
+
             return ResponseEntity.ok(new ApiResponseWrapper<>(
-                    true, 
-                    "Perfil obtenido exitosamente", 
-                    usuarioResponse
-            ));
+                    true,
+                    "Perfil obtenido exitosamente",
+                    usuarioResponse));
         } catch (Exception e) {
             return ResponseEntity.status(500)
                     .body(new ApiResponseWrapper<>(false, "Error al obtener perfil", null));

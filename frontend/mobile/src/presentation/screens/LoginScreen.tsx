@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, useColorScheme } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, useColorScheme, Image } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useForm, Controller } from 'react-hook-form';
 import { useAuth } from '../../hooks/useAuth';
@@ -51,6 +51,17 @@ export default function LoginScreen({ navigation }: Props) {
             message: 'Mínimo 6 caracteres'
         }
     };
+
+    // Componente del icono del header
+    const Icon = React.memo(() => (
+        <View style={styles.IconContainer}>
+            <Image
+                source={require('../../assets/Mesa-de-trabajo.png')}
+                style={styles.Icon}
+                resizeMode="contain"
+            />
+        </View>
+    ));
 
     const onSubmit = async (data: FormData) => {
         // Crear el objeto con el campo que el backend espera
@@ -108,7 +119,7 @@ export default function LoginScreen({ navigation }: Props) {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.header}>24bet</Text>
+            <Icon />
 
             <Controller
                 control={control}
@@ -254,5 +265,13 @@ const getStyles = (colorScheme: 'light' | 'dark' | null) =>
             marginTop: 15,
             marginBottom: 5,
             fontSize: 14,
+        },
+        IconContainer: {
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        Icon: {
+            width: 170,
+            height: 170,
         },
     });

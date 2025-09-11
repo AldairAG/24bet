@@ -386,17 +386,6 @@ export default function RecoveryPasswordScreen() {
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
         >
-            <View style={styles.header}>
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => navigation.goBack()}
-                >
-                    <Ionicons name="chevron-back" size={24} color="#d32f2f" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Recuperar contraseña</Text>
-                <View style={styles.placeholder} />
-            </View>
-
             {renderProgressIndicator()}
 
             <Animated.View style={[styles.content, animatedStyle]}>
@@ -412,25 +401,6 @@ const getStyles = (colorScheme: 'light' | 'dark' | null) =>
             flex: 1,
             backgroundColor: colorScheme === 'dark' ? '#181818' : '#fff',
         },
-        header: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingHorizontal: 20,
-            paddingTop: 20,
-            paddingBottom: 10,
-        },
-        backButton: {
-            padding: 8,
-            borderRadius: 20,
-            backgroundColor: colorScheme === 'dark' ? '#333' : '#f5f5f5',
-        },
-        headerTitle: {
-            fontSize: 18,
-            fontWeight: '600',
-            color: colorScheme === 'dark' ? '#fff' : '#181818',
-        },
-        placeholder: { width: 40 },
         progressContainer: {
             flexDirection: 'row',
             alignItems: 'center',

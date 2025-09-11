@@ -6,7 +6,6 @@ import {
   UsuarioResponse,
   ApiResponseWrapper
 } from '../types/authTypes';
-import { getExchangeRates } from './crypto/cryptoService';
 
 const BASE_URL = '/auth';
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
-import { useColorScheme, View, Text, StyleSheet } from 'react-native';
+import { useColorScheme, View, Text, StyleSheet, Image } from 'react-native';
 import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 
 // Importar todas las pantallas
@@ -69,6 +69,17 @@ const TAB_ICONS = {
     ),
 } as const;
 
+// Componente del icono del header
+const HeaderIcon = React.memo(() => (
+    <View style={styles.headerIconContainer}>
+        <Image
+            source={require('../../assets/Mesa-de-trabajo.png')}
+            style={styles.headerIcon}
+            resizeMode="contain"
+        />
+    </View>
+));
+
 // Componente DummyScreen
 const DummyScreen = React.memo<{ title: string }>(({ title }) => (
     <View style={styles.dummyContainer}>
@@ -90,26 +101,27 @@ function AuthStackNavigator() {
                 name="Login"
                 component={LoginScreen}
                 options={{
-                    title: 'Bienvenido',
-                    headerTitleAlign: 'center',
-                    headerTitleStyle: { 
-                        color: COLORS.primary, 
-                        fontSize: 28, 
-                        fontWeight: 'bold' 
-                    }
+                    headerShown: false
                 }}
             />
             <AuthStack.Screen
                 name="Register"
                 component={RegisterScreen}
-                options={{ title: '' }}
+                options={{ 
+                    title: '',
+                    headerTitle: () => <HeaderIcon />,
+                    headerTitleAlign: 'center'
+                }}
             />
             <AuthStack.Screen
                 name="RecoveryPassword"
                 component={RecoveryPasswordScreen}
                 options={{ 
-                    headerShown: false,
-                    presentation: 'modal'
+                    headerShown: true,
+                    presentation: 'modal',
+                    title: '',
+                    headerTitle: () => <HeaderIcon />,
+                    headerTitleAlign: 'center'
                 }}
             />
         </AuthStack.Navigator>
@@ -124,52 +136,36 @@ function ProfileStackNavigator() {
                 name="Profile"
                 component={ProfileScreen}
                 options={{ 
-                    title: 'Perfil',
-                    headerTitleAlign: 'center',
-                    headerTitleStyle: { 
-                        color: COLORS.primary, 
-                        fontSize: 20, 
-                        fontWeight: 'bold' 
-                    }
+                    title: '',
+                    headerTitle: () => <HeaderIcon />,
+                    headerTitleAlign: 'center'
                 }}
             />
             <ProfileStack.Screen
                 name="EditProfile"
                 component={EditProfileScreen}
                 options={{ 
-                    title: 'Editar Perfil',
-                    headerTitleAlign: 'center',
-                    headerTitleStyle: { 
-                        color: COLORS.primary, 
-                        fontSize: 20, 
-                        fontWeight: 'bold' 
-                    }
+                    title: '',
+                    headerTitle: () => <HeaderIcon />,
+                    headerTitleAlign: 'center'
                 }}
             />
             <ProfileStack.Screen
                 name="Support"
                 component={SupportScreen}
                 options={{ 
-                    title: 'Soporte',
-                    headerTitleAlign: 'center',
-                    headerTitleStyle: { 
-                        color: COLORS.primary, 
-                        fontSize: 20, 
-                        fontWeight: 'bold' 
-                    }
+                    title: '',
+                    headerTitle: () => <HeaderIcon />,
+                    headerTitleAlign: 'center'
                 }}
             />
             <ProfileStack.Screen
                 name="Documents"
                 component={DocumentsScreen}
                 options={{ 
-                    title: 'Mis Documentos',
-                    headerTitleAlign: 'center',
-                    headerTitleStyle: { 
-                        color: COLORS.primary, 
-                        fontSize: 20, 
-                        fontWeight: 'bold' 
-                    }
+                    title: '',
+                    headerTitle: () => <HeaderIcon />,
+                    headerTitleAlign: 'center'
                 }}
             />
         </ProfileStack.Navigator>
@@ -214,13 +210,8 @@ function MainTabNavigator() {
                 options={{ 
                     tabBarLabel: 'Depósito',
                     headerShown: true,
-                    headerTitle: 'Depósito',
-                    headerTitleAlign: 'center',
-                    headerTitleStyle: { 
-                        color: COLORS.primary, 
-                        fontSize: 20, 
-                        fontWeight: 'bold' 
-                    }
+                    headerTitle: () => <HeaderIcon />,
+                    headerTitleAlign: 'center'
                 }}
             />
             <Tab.Screen 
@@ -229,13 +220,8 @@ function MainTabNavigator() {
                 options={{ 
                     tabBarLabel: 'Retiro',
                     headerShown: true,
-                    headerTitle: 'Retiro',
-                    headerTitleAlign: 'center',
-                    headerTitleStyle: { 
-                        color: COLORS.primary, 
-                        fontSize: 20, 
-                        fontWeight: 'bold' 
-                    }
+                    headerTitle: () => <HeaderIcon />,
+                    headerTitleAlign: 'center'
                 }}
             />
             <Tab.Screen 
@@ -300,5 +286,13 @@ const styles = StyleSheet.create({
         height: 60,
         paddingBottom: 8,
         paddingTop: 8,
+    },
+    headerIconContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    headerIcon: {
+        width: 100,
+        height: 100,
     },
 });

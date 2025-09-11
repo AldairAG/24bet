@@ -8,11 +8,13 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Date;
@@ -73,10 +75,16 @@ public class Usuario implements UserDetails {
     @Column(name = "rol")
     private Rol rol = Rol.USER;
     
+    // ========== SALDO GENERAL PARA APUESTAS ==========
+    
+    @Column(name = "saldo_usd", precision = 19, scale = 2)
+    private BigDecimal saldoUsd = BigDecimal.ZERO;
+    
     // ========== RELACIÓN CON INFORMACIÓN PERSONAL ==========
     
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "informacion_personal_id")
+    @JsonManagedReference
     private InformacionPersonal informacionPersonal;
     
     // ========== RELACIÓN CON DOCUMENTOS KYC ==========
@@ -87,7 +95,13 @@ public class Usuario implements UserDetails {
     // ========== RELACIÓN CON CRYPTO WALLETS ==========
     
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private List<CryptoWallet> cryptoWallets;
+    
+    // ========== RELACIÓN CON TRANSACCIONES ==========
+    
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<TransaccionCrypto> transacciones;
     
     @PrePersist
     protected void onCreate() {

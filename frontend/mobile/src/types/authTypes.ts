@@ -49,6 +49,8 @@ export interface Usuario {
 
   rol: string;
 
+  saldoUsd: number;
+
   informacionPersonal: InformacionPersonal;
 
   documentosKyc: DocumentoKyc[];
@@ -59,7 +61,6 @@ export interface UsuarioResponse {
   id: number;
   username: string;
   email: string;
-  password: string;
   nombre: string;
   apellido: string;
   ladaTelefono: string;

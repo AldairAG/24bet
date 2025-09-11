@@ -1,5 +1,4 @@
-export interface EditUserProfile {
-    informacionPersonal: InformacionPeronalRequest;
-}
+import { Usuario } from "./authTypes";
 
-export interface InformacionPeronalRequest {}
+export interface EditUserProfile extends Omit<Usuario, 'id' | 'activo' | 'fechaCreacion' | 'fechaActualizacion' | 'rol' | 'saldoUsd' | 'documentosKyc' | 'fechaNacimiento' > {
+}

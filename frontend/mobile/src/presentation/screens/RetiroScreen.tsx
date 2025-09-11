@@ -26,6 +26,9 @@ import {
     CriptomonedaConfig,
     CriptomonedaType
 } from '../../types/withdrawTypes';
+import { useWallet } from '../../hooks/useWallet';
+import { useAuth } from '../../hooks/useAuth';
+import { CreateCryptoWalletDto, TipoCrypto, CryptoWalletDto } from '../../types/walletTypes';
 
 const criptomonedas: Record<CriptomonedaType, CriptomonedaConfig> = {
     'bitcoin': {
@@ -87,6 +90,33 @@ export default function RetiroScreen() {
     const styles = getStyles((colorScheme === 'light' || colorScheme === 'dark') ? colorScheme : null);
     const [exchangeRates, setExchangeRates] = useState<CryptoPrice | null>(null);
 
+    // Hooks para autenticación y wallets
+    const { user ,usuario} = useAuth();
+    const {
+        createWallet,
+        loadUserWallets,
+        deleteWallet,
+        userWallets,
+        isCreatingWallet,
+        isLoadingUserWallets,
+        isDeactivatingWallet,
+        createdWallet,
+        createWalletError,
+        loadUserWalletsError,
+        deactivateWalletError,
+        validationError,
+        availableCryptoTypes,
+        getCryptoName,
+        getCryptoOptions,
+        validateWallet,
+        clearCreateError,
+        clearLoadWalletsError,
+        clearDeactivateError,
+        clearValidationError,
+        clearWallet,
+        TipoCrypto,
+    } = useWallet();
+
     useEffect(() => {
         getExchangeRates().then((data) => {
             setExchangeRates(data);
@@ -94,7 +124,6 @@ export default function RetiroScreen() {
     }, []);
 
     // Estados principales
-    const [wallets, setWallets] = useState<WalletInfo[]>([]);
     const [solicitudesRetiro, setSolicitudesRetiro] = useState<SolicitudRetiro[]>([]);
     
     // Estados para modales
@@ -104,35 +133,75 @@ export default function RetiroScreen() {
     // Estado para wallet seleccionada
     const [walletSeleccionada, setWalletSeleccionada] = useState<WalletInfo | null>(null);
 
-    // Simular carga de datos inicial
+    // Cargar datos inicial cuando el usuario esté disponible
     useEffect(() => {
-        cargarWallets();
+        if (usuario?.id) {
+            cargarWallets();
+        }
         cargarSolicitudesRetiro();
-    }, []);
+    }, [usuario?.id]);
 
-    const cargarWallets = () => {
-        // Simular wallets guardadas (en producción vendría de la API)
-        const walletsGuardadas: WalletInfo[] = [
-            {
-                id: '1',
-                nombre: 'Mi wallet Bitcoin',
-                direccion: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
-                criptomoneda: 'bitcoin',
-                simbolo: 'BTC',
-                icono: 'logo-bitcoin',
-                color: '#F7931A',
-            },
-            {
-                id: '2',
-                nombre: 'Mi wallet USDT',
-                direccion: 'TRX7n8fjn8fjn8fjn8fjn8fjn8fjn8fjn8fjn8f',
-                criptomoneda: 'usdt',
-                simbolo: 'USDT',
-                icono: 'cash-outline',
-                color: '#26A17B',
-            },
-        ];
-        setWallets(walletsGuardadas);
+    // Manejar errores del wallet hook
+    useEffect(() => {
+        if (createWalletError) {
+            Toast.show({
+                type: 'error',
+                text1: 'Error al crear wallet',
+                text2: createWalletError
+            });
+        }
+    }, [createWalletError]);
+
+    useEffect(() => {
+        if (loadUserWalletsError) {
+            Toast.show({
+                type: 'error',
+                text1: 'Error al cargar wallets',
+                text2: loadUserWalletsError
+            });
+        }
+    }, [loadUserWalletsError]);
+
+    useEffect(() => {
+        if (validationError) {
+            Toast.show({
+                type: 'error',
+                text1: 'Error de validación',
+                text2: validationError
+            });
+        }
+    }, [validationError]);
+
+    useEffect(() => {
+        if (deactivateWalletError) {
+            Toast.show({
+                type: 'error',
+                text1: 'Error al eliminar wallet',
+                text2: deactivateWalletError
+            });
+        }
+    }, [deactivateWalletError]);
+
+    const cargarWallets = async () => {
+        if (!usuario?.id) {
+            console.warn('No hay usuario autenticado para cargar wallets');
+            return;
+        }
+
+        try {
+            // Limpiar errores previos
+            clearLoadWalletsError();
+            
+            // Cargar wallets desde la API
+            await loadUserWallets(usuario.id);
+        } catch (error) {
+            console.error('Error loading user wallets:', error);
+            Toast.show({
+                type: 'error',
+                text1: 'Error al cargar wallets',
+                text2: 'No se pudieron cargar tus wallets. Intenta nuevamente.'
+            });
+        }
     };
 
     const cargarSolicitudesRetiro = () => {
@@ -165,30 +234,137 @@ export default function RetiroScreen() {
 
     const cerrarModalAgregar = () => {
         setModalAgregarVisible(false);
+        // Limpiar errores cuando se cierra el modal
+        clearCreateError();
+        clearValidationError();
     };
 
-    const guardarWallet = (values: WalletFormValues) => {
-        const criptoInfo = criptomonedas[values.criptomoneda as CriptomonedaType];
-        if (!criptoInfo) return;
-
-        const nuevaWalletInfo: WalletInfo = {
-            id: Date.now().toString(),
-            nombre: values.nombre.trim(),
-            direccion: values.direccion.trim(),
-            criptomoneda: values.criptomoneda,
-            simbolo: criptoInfo.simbolo,
-            icono: criptoInfo.icono,
-            color: criptoInfo.color,
+    // Función para mapear criptomonedas del sistema actual al nuevo sistema
+    const mapearCriptomonedaATipo = (criptomoneda: string): TipoCrypto | null => {
+        const mapping: Record<string, TipoCrypto> = {
+            'bitcoin': TipoCrypto.BITCOIN,
+            'ethereum': TipoCrypto.ETHEREUM,
+            'usdt': TipoCrypto.USDT,
+            'solana': TipoCrypto.SOLANA,
         };
+        return mapping[criptomoneda] || null;
+    };
 
-        setWallets(prev => [...prev, nuevaWalletInfo]);
-        cerrarModalAgregar();
+    // Función para mapear tipos de API al sistema local
+    const mapearTipoACriptomoneda = (tipoCrypto: TipoCrypto): string => {
+        const mapping: Partial<Record<TipoCrypto, string>> = {
+            [TipoCrypto.BITCOIN]: 'BITCOIN',
+            [TipoCrypto.ETHEREUM]: 'ETHEREUM',
+            [TipoCrypto.USDT]: 'USDT',
+            [TipoCrypto.SOLANA]: 'SOLANA',
+        };
+        return mapping[tipoCrypto] || 'bitcoin';
+    };
+
+    // Función para obtener ID de usuario
+    const getUserId = (): number | null => {
+        return usuario?.id || null;
+    };
+
+    // Función para convertir wallets de la API al formato local para UI
+    const convertirWalletApiALocal = (walletApi: CryptoWalletDto): WalletInfo => {
+        const criptomonedaLocal = mapearTipoACriptomoneda(walletApi.tipoCrypto);
+        const criptoInfo = criptomonedas[criptomonedaLocal as CriptomonedaType];
         
-        Toast.show({
-            type: 'success',
-            text1: 'Wallet agregada',
-            text2: 'Tu wallet ha sido guardada correctamente'
-        });
+        return {
+            id: walletApi.id.toString(),
+            nombre: walletApi.nombre,
+            direccion: walletApi.address,
+            criptomoneda: criptomonedaLocal,
+            simbolo: criptoInfo?.simbolo || walletApi.tipoCrypto,
+            icono: criptoInfo?.icono || 'wallet-outline',
+            color: criptoInfo?.color || '#666',
+        };
+    };
+
+    // Función para obtener wallets en formato local
+    const getLocalWallets = (): WalletInfo[] => {
+        return userWallets.map(convertirWalletApiALocal);
+    };
+
+    const guardarWallet = async (values: WalletFormValues) => {
+        try {
+            // Limpiar errores previos
+            clearCreateError();
+            clearValidationError();
+
+            // Mapear el tipo de criptomoneda
+            const tipoCrypto = mapearCriptomonedaATipo(values.criptomoneda);
+            if (!tipoCrypto) {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: 'Tipo de criptomoneda no soportado'
+                });
+                return;
+            }
+
+            // Crear datos para la API
+            const walletData: CreateCryptoWalletDto = {
+                nombre: values.nombre.trim(),
+                address: values.direccion.trim(),
+                tipoCrypto: tipoCrypto,
+            };
+
+            // Validar datos antes de enviar
+            const validationError = validateWallet(walletData);
+            if (validationError) {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error de validación',
+                    text2: validationError
+                });
+                return;
+            }
+
+            // Crear wallet usando el hook
+            const userId = getUserId();
+            if (!userId) {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: 'No hay usuario autenticado'
+                });
+                return;
+            }
+            
+            const result = await createWallet(userId, walletData);
+
+            if (result.type === 'wallet/createCryptoWallet/fulfilled') {
+                // Wallet creada exitosamente
+                const createdWalletData = result.payload;
+                
+                cerrarModalAgregar();
+                
+                // Limpiar wallet creada del estado global
+                clearWallet();
+
+                Toast.show({
+                    type: 'success',
+                    text1: '✅ Wallet creada exitosamente',
+                    text2: `"${values.nombre}" ha sido registrada correctamente`
+                });
+
+                // Recargar las wallets para mostrar la nueva
+                await cargarWallets();
+            } else {
+                // Error en la creación
+                throw new Error('Error al crear la wallet');
+            }
+
+        } catch (error) {
+            console.error('Error creating wallet:', error);
+            Toast.show({
+                type: 'error',
+                text1: 'Error al crear wallet',
+                text2: createWalletError || 'No se pudo crear la wallet. Intenta nuevamente.'
+            });
+        }
     };
 
     const abrirModalRetiro = (wallet: WalletInfo) => {
@@ -207,15 +383,22 @@ export default function RetiroScreen() {
         const cantidadCripto = calcularCantidadCripto(values.cantidadUSD, walletSeleccionada.criptomoneda);
 
         Alert.alert(
-            'Confirmar solicitud de retiro',
-            `¿Deseas solicitar el retiro de $${values.cantidadUSD} USD (${cantidadCripto.toFixed(8)} ${walletSeleccionada.simbolo}) a tu wallet "${walletSeleccionada.nombre}"?`,
+            '💰 Confirmar Retiro de Fondos',
+            `🔔 IMPORTANTE: El dinero será enviado directamente a tu wallet seleccionada.\n\n` +
+            `💵 Monto a retirar: $${values.cantidadUSD} USD\n` +
+            `₿ Equivale a: ${cantidadCripto.toFixed(8)} ${walletSeleccionada.simbolo}\n\n` +
+            `📱 Wallet destino:\n"${walletSeleccionada.nombre}"\n` +
+            `📍 Dirección: ${walletSeleccionada.direccion.substring(0, 20)}...${walletSeleccionada.direccion.substring(walletSeleccionada.direccion.length - 6)}\n\n` +
+            `⚠️ Una vez confirmado, no podrás cancelar esta operación.\n` +
+            `¿Deseas proceder con el retiro?`,
             [
                 {
                     text: 'Cancelar',
                     style: 'cancel'
                 },
                 {
-                    text: 'Confirmar',
+                    text: 'Confirmar Retiro',
+                    style: 'destructive',
                     onPress: () => {
                         const nuevaSolicitud: SolicitudRetiro = {
                             id: Date.now().toString(),
@@ -232,8 +415,8 @@ export default function RetiroScreen() {
 
                         Toast.show({
                             type: 'success',
-                            text1: 'Solicitud enviada',
-                            text2: 'Tu solicitud de retiro está siendo procesada'
+                            text1: '✅ Solicitud Enviada',
+                            text2: `El retiro de $${values.cantidadUSD} USD será procesado a "${walletSeleccionada.nombre}"`
                         });
                     }
                 }
@@ -241,10 +424,26 @@ export default function RetiroScreen() {
         );
     };
 
-    const eliminarWallet = (walletId: string) => {
+    const eliminarWallet = async (walletId: string) => {
+        // Verificar si el wallet tiene solicitudes de retiro pendientes
+        const solicitudesPendientes = solicitudesRetiro.filter(
+            s => s.walletId === walletId && s.estado === 'pendiente'
+        );
+
+        if (solicitudesPendientes.length > 0) {
+            Alert.alert(
+                'No se puede eliminar',
+                'Esta wallet tiene solicitudes de retiro pendientes. No se puede eliminar hasta que sean procesadas.',
+                [{ text: 'Entendido', style: 'default' }]
+            );
+            return;
+        }
+
         Alert.alert(
-            'Eliminar wallet',
-            '¿Estás seguro de que quieres eliminar esta wallet?',
+            '⚠️ Eliminar Wallet',
+            `¿Estás seguro de que quieres eliminar esta wallet?\n\n` +
+            `⚠️ IMPORTANTE: Esta acción desactivará permanentemente la wallet y no podrás realizar retiros a esta dirección.\n\n` +
+            `💡 La wallet será desactivada pero se mantendrá un registro en el sistema.`,
             [
                 {
                     text: 'Cancelar',
@@ -253,13 +452,47 @@ export default function RetiroScreen() {
                 {
                     text: 'Eliminar',
                     style: 'destructive',
-                    onPress: () => {
-                        setWallets(prev => prev.filter(w => w.id !== walletId));
-                        Toast.show({
-                            type: 'success',
-                            text1: 'Wallet eliminada',
-                            text2: 'La wallet ha sido eliminada correctamente'
-                        });
+                    onPress: async () => {
+                        try {
+                            // Limpiar errores previos
+                            clearDeactivateError();
+                            
+                            const walletIdNumber = parseInt(walletId, 10);
+                            if (isNaN(walletIdNumber)) {
+                                Toast.show({
+                                    type: 'error',
+                                    text1: 'Error',
+                                    text2: 'ID de wallet inválido'
+                                });
+                                return;
+                            }
+
+                            const result = await deleteWallet(walletIdNumber);
+
+                            if (result.type === 'wallet/deactivateWallet/fulfilled') {
+                                // Wallet desactivada exitosamente
+                                Toast.show({
+                                    type: 'success',
+                                    text1: '✅ Wallet eliminada',
+                                    text2: 'La wallet ha sido desactivada correctamente'
+                                });
+
+                                // Recargar las wallets para actualizar la lista
+                                if (user?.id) {
+                                    await loadUserWallets(user.id);
+                                }
+                            } else {
+                                // Error en la desactivación
+                                throw new Error('Error al desactivar la wallet');
+                            }
+                        } catch (error) {
+                            console.error('Error deactivating wallet:', error);
+                            Toast.show({
+                                type: 'error',
+                                text1: 'Error al eliminar wallet',
+                                text2: deactivateWalletError || 'No se pudo eliminar la wallet. Intenta nuevamente.'
+                            });
+                        }
                     }
                 }
             ]
@@ -288,10 +521,19 @@ export default function RetiroScreen() {
                         <Text style={styles.actionButtonText}>Retirar</Text>
                     </TouchableOpacity>
                     <TouchableOpacity 
-                        style={[styles.actionButton, styles.deleteButton]}
+                        style={[
+                            styles.actionButton, 
+                            styles.deleteButton,
+                            isDeactivatingWallet && styles.disabledButton
+                        ]}
                         onPress={() => eliminarWallet(wallet.id)}
+                        disabled={isDeactivatingWallet}
                     >
-                        <Ionicons name="trash-outline" size={16} color="#fff" />
+                        {isDeactivatingWallet ? (
+                            <Text style={[styles.actionButtonText, { fontSize: 10 }]}>...</Text>
+                        ) : (
+                            <Ionicons name="trash-outline" size={16} color="#fff" />
+                        )}
                     </TouchableOpacity>
                 </View>
             </View>
@@ -299,7 +541,8 @@ export default function RetiroScreen() {
     );
 
     const renderSolicitudCard = (solicitud: SolicitudRetiro) => {
-        const wallet = wallets.find(w => w.id === solicitud.walletId);
+        const localWallets = getLocalWallets();
+        const wallet = localWallets.find(w => w.id === solicitud.walletId);
         const estadoColor = {
             pendiente: '#FF9800',
             aprobado: '#4CAF50',
@@ -353,18 +596,18 @@ export default function RetiroScreen() {
                         </TouchableOpacity>
                     </View>
 
-                    {wallets.length === 0 ? (
+                    {getLocalWallets().length === 0 ? (
                         <View style={styles.emptyState}>
                             <Ionicons name="wallet-outline" size={48} color={colorScheme === 'dark' ? '#666' : '#ccc'} />
                             <Text style={styles.emptyStateText}>
-                                No tienes wallets guardadas
+                                {isLoadingUserWallets ? 'Cargando wallets...' : 'No tienes wallets guardadas'}
                             </Text>
                             <Text style={styles.emptyStateSubtext}>
-                                Agrega una wallet para poder realizar retiros
+                                {isLoadingUserWallets ? 'Obteniendo tus wallets desde el servidor' : 'Agrega una wallet para poder realizar retiros'}
                             </Text>
                         </View>
                     ) : (
-                        wallets.map(renderWalletCard)
+                        getLocalWallets().map(renderWalletCard)
                     )}
                 </View>
 
@@ -489,17 +732,28 @@ export default function RetiroScreen() {
                                             style={[
                                                 styles.modalButton, 
                                                 styles.saveButton,
-                                                !isValid && styles.disabledButton
+                                                (!isValid || isCreatingWallet) && styles.disabledButton
                                             ]} 
                                             onPress={() => handleSubmit()}
-                                            disabled={!isValid}
+                                            disabled={!isValid || isCreatingWallet}
                                         >
-                                            <Text style={[
-                                                styles.saveButtonText,
-                                                !isValid && styles.disabledButtonText
-                                            ]}>
-                                                Guardar
-                                            </Text>
+                                            {isCreatingWallet ? (
+                                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                                    <Text style={[
+                                                        styles.saveButtonText,
+                                                        (!isValid || isCreatingWallet) && styles.disabledButtonText
+                                                    ]}>
+                                                        Creando...
+                                                    </Text>
+                                                </View>
+                                            ) : (
+                                                <Text style={[
+                                                    styles.saveButtonText,
+                                                    (!isValid || isCreatingWallet) && styles.disabledButtonText
+                                                ]}>
+                                                    Guardar
+                                                </Text>
+                                            )}
                                         </TouchableOpacity>
                                     </View>
                                 </>
@@ -553,11 +807,28 @@ export default function RetiroScreen() {
                                             {walletSeleccionada && (
                                                 <>
                                                     <View style={styles.walletSelectedInfo}>
-                                                        <Text style={styles.walletSelectedTitle}>Wallet seleccionada:</Text>
-                                                        <Text style={styles.walletSelectedName}>{walletSeleccionada.nombre}</Text>
-                                                        <Text style={styles.walletSelectedAddress} numberOfLines={1}>
-                                                            {walletSeleccionada.direccion}
-                                                        </Text>
+                                                        <View style={styles.walletSelectedHeader}>
+                                                            <Ionicons name="wallet-outline" size={20} color="#d32f2f" />
+                                                            <Text style={styles.walletSelectedTitle}>💰 Wallet de destino:</Text>
+                                                        </View>
+                                                        <View style={styles.walletSelectedDetails}>
+                                                            <View style={[styles.walletSelectedIcon, { backgroundColor: walletSeleccionada.color }]}>
+                                                                <Ionicons name={walletSeleccionada.icono as any} size={16} color="#fff" />
+                                                            </View>
+                                                            <View style={styles.walletSelectedTextContainer}>
+                                                                <Text style={styles.walletSelectedName}>"{walletSeleccionada.nombre}"</Text>
+                                                                <Text style={styles.walletSelectedSymbol}>{walletSeleccionada.simbolo}</Text>
+                                                                <Text style={styles.walletSelectedAddress} numberOfLines={1}>
+                                                                    📍 {walletSeleccionada.direccion}
+                                                                </Text>
+                                                            </View>
+                                                        </View>
+                                                        <View style={styles.alertBox}>
+                                                            <Ionicons name="alert-circle-outline" size={16} color="#FF9800" />
+                                                            <Text style={styles.alertText}>
+                                                                El dinero será enviado directamente a esta wallet
+                                                            </Text>
+                                                        </View>
                                                     </View>
 
                                                     <View style={styles.cantidadSection}>
@@ -624,11 +895,12 @@ export default function RetiroScreen() {
                                                 onPress={() => handleSubmit()}
                                                 disabled={!isValid}
                                             >
+                                                <Ionicons name="send-outline" size={16} color={!isValid ? (colorScheme === 'dark' ? '#666' : '#999') : '#fff'} />
                                                 <Text style={[
                                                     styles.withdrawButtonText,
                                                     !isValid && styles.disabledButtonText
                                                 ]}>
-                                                    Solicitar Retiro
+                                                    💰 Retirar a Mi Wallet
                                                 </Text>
                                             </TouchableOpacity>
                                         </View>
@@ -990,25 +1262,69 @@ const getStyles = (colorScheme: 'light' | 'dark' | null) =>
         // Información de wallet seleccionada
         walletSelectedInfo: {
             backgroundColor: colorScheme === 'dark' ? '#2a2a2a' : '#f9f9f9',
-            borderRadius: 8,
+            borderRadius: 12,
             padding: 16,
             marginBottom: 20,
+            borderWidth: 2,
+            borderColor: colorScheme === 'dark' ? '#d32f2f' : '#ffebee',
+        },
+        walletSelectedHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: 12,
+            gap: 8,
         },
         walletSelectedTitle: {
-            fontSize: 14,
-            color: colorScheme === 'dark' ? '#aaa' : '#666',
-            marginBottom: 4,
+            fontSize: 16,
+            fontWeight: '600',
+            color: colorScheme === 'dark' ? '#d32f2f' : '#d32f2f',
+        },
+        walletSelectedDetails: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: 12,
+            gap: 12,
+        },
+        walletSelectedIcon: {
+            width: 32,
+            height: 32,
+            borderRadius: 16,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        walletSelectedTextContainer: {
+            flex: 1,
         },
         walletSelectedName: {
             fontSize: 16,
             fontWeight: '600',
             color: colorScheme === 'dark' ? '#fff' : '#181818',
+            marginBottom: 2,
+        },
+        walletSelectedSymbol: {
+            fontSize: 14,
+            fontWeight: '500',
+            color: colorScheme === 'dark' ? '#ccc' : '#555',
             marginBottom: 4,
         },
         walletSelectedAddress: {
             fontSize: 12,
             color: colorScheme === 'dark' ? '#aaa' : '#666',
             fontFamily: 'monospace',
+        },
+        alertBox: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: colorScheme === 'dark' ? '#332200' : '#fff3e0',
+            borderRadius: 8,
+            padding: 12,
+            gap: 8,
+        },
+        alertText: {
+            flex: 1,
+            fontSize: 13,
+            color: '#FF9800',
+            fontWeight: '500',
         },
 
         // Cantidad
@@ -1117,6 +1433,10 @@ const getStyles = (colorScheme: 'light' | 'dark' | null) =>
         },
         withdrawButton: {
             backgroundColor: '#d32f2f',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
         },
         withdrawButtonText: {
             color: '#fff',
