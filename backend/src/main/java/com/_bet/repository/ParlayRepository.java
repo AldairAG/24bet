@@ -60,4 +60,9 @@ public interface ParlayRepository extends JpaRepository<Parlay, Long> {
      */
     @Query("SELECT COUNT(p) FROM Parlay p WHERE p.usuario = :usuario AND p.resultadoFinal = 'PERDIDO'")
     Long countParlaysPerdidosByUsuario(@Param("usuario") Usuario usuario);
+
+    /**
+     * Busca parlays de un usuario ordenados por fecha de creación
+     */
+    List<Parlay> findByUsuarioIdOrderByFechaCreacionDesc(Long usuarioId);
 }

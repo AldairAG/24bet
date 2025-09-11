@@ -105,4 +105,9 @@ public interface ApuestaRepository extends JpaRepository<Apuesta, Long> {
      * Busca apuestas de un parlay específico
      */
     List<Apuesta> findByParlayIdAndEstado(Long parlayId, Apuesta.EstadoApuesta estado);
+
+    /**
+     * Busca todas las apuestas de un usuario ordenadas por fecha (sin paginación)
+     */
+    List<Apuesta> findByUsuarioIdOrderByFechaCreacionDesc(Long usuarioId);
 }

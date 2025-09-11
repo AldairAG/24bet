@@ -69,14 +69,11 @@ public class ApuestaService {
         apuesta.setUsuario(usuario);
         apuesta.setEventoDeportivo(momio.getEventoDeportivo());
         apuesta.setTipoApuesta(tipoApuesta);
+        apuesta.setResultadoApostado(Apuesta.ResultadoApuesta.valueOf(momio.getResultado().toString()));
         apuesta.setMonto(montoApuesta);
         apuesta.setMomio(momio.getValor());
         apuesta.setGananciaPotencial(calcularGananciaPotencial(montoApuesta, momio.getValor()));
-        apuesta.setEstado(EstadoApuesta.ACTIVA);
-        apuesta.setSeleccion(momio.getResultado().toString());
-        if (momio.getLinea() != null) {
-            apuesta.setLinea(momio.getLinea());
-        }
+        apuesta.setEstado(Apuesta.EstadoApuesta.ACTIVA);
 
         // Descontar saldo del usuario
         usuario.setSaldoUsd(usuario.getSaldoUsd().subtract(montoApuesta));
@@ -124,12 +121,11 @@ public class ApuestaService {
         // Crear el parlay
         Parlay parlay = new Parlay();
         parlay.setUsuario(usuario);
-        parlay.setMontoApuesta(montoApuesta);
-        parlay.setMomioCombinadoTotal(momioCombinadoTotal);
+        parlay.setMontoTotal(montoApuesta);
+        parlay.setMomioTotal(momioCombinadoTotal);
         parlay.setGananciaPotencial(gananciaPotencial);
-        parlay.setEstadoParlay(EstadoParlay.ACTIVO);
-        parlay.setFechaCreacion(LocalDateTime.now());
-        parlay.setNumeroSelecciones(momios.size());
+        parlay.setEstado(Parlay.EstadoParlay.ACTIVO);
+        parlay.setNumeroApuestas(momios.size());
 
         // Guardar parlay primero para obtener el ID
         parlay = parlayRepository.save(parlay);
@@ -140,14 +136,12 @@ public class ApuestaService {
             apuesta.setUsuario(usuario);
             apuesta.setParlay(parlay);
             apuesta.setEventoDeportivo(momio.getEventoDeportivo());
-            apuesta.setTipoApuesta(TipoApuesta.PARLAY);
-            apuesta.setMontoApuesta(BigDecimal.ZERO); // En parlay, el monto está en el parlay padre
-            apuesta.setMomio(momio.getValorMomio());
+            apuesta.setTipoApuesta(Apuesta.TipoApuesta.GANADOR_PARTIDO); // Usar un tipo válido
+            apuesta.setResultadoApostado(Apuesta.ResultadoApuesta.valueOf(momio.getResultado().toString()));
+            apuesta.setMonto(BigDecimal.ZERO); // En parlay, el monto está en el parlay padre
+            apuesta.setMomio(momio.getValor());
             apuesta.setGananciaPotencial(BigDecimal.ZERO); // Calculado a nivel de parlay
-            apuesta.setEstadoApuesta(EstadoApuesta.ACTIVA);
-            apuesta.setFechaApuesta(LocalDateTime.now());
-            apuesta.setSeleccion(momio.getDescripcion());
-            apuesta.setLinea(momio.getLinea());
+            apuesta.setEstado(Apuesta.EstadoApuesta.ACTIVA);
             
             apuestaRepository.save(apuesta);
         }
@@ -164,22 +158,22 @@ public class ApuestaService {
      * Resuelve una apuesta individual después de que termine el evento
      */
     @Transactional
-    public void resolverApuesta(Long apuestaId, ResultadoFinal resultado) {
+    public void resolverApuesta(Long apuestaId, Apuesta.ResultadoFinal resultado) {
         log.info("Resolviendo apuesta {} con resultado {}", apuestaId, resultado);
 
         Apuesta apuesta = apuestaRepository.findById(apuestaId)
             .orElseThrow(() -> new RuntimeException("Apuesta no encontrada"));
 
-        if (apuesta.getEstado() != EstadoApuesta.ACTIVA) {
+        if (apuesta.getEstado() != Apuesta.EstadoApuesta.ACTIVA) {
             throw new RuntimeException("La apuesta ya fue resuelta");
         }
 
         apuesta.setResultadoFinal(resultado);
-        apuesta.setEstado(EstadoApuesta.LIQUIDADA);
-        apuesta.setFechaResolucion(LocalDateTime.now());
+        apuesta.setEstado(Apuesta.EstadoApuesta.LIQUIDADA);
+        apuesta.setFechaLiquidacion(LocalDateTime.now());
 
         // Si ganó, acreditar ganancia al usuario
-        if (resultado == ResultadoFinal.GANADA) {
+        if (resultado == Apuesta.ResultadoFinal.GANADA) {
             Usuario usuario = apuesta.getUsuario();
             BigDecimal ganancia = apuesta.getGananciaPotencial();
             usuario.setSaldoUsd(usuario.getSaldoUsd().add(ganancia));
@@ -202,26 +196,26 @@ public class ApuestaService {
         Parlay parlay = parlayRepository.findById(parlayId)
             .orElseThrow(() -> new RuntimeException("Parlay no encontrado"));
 
-        if (parlay.getEstadoParlay() != EstadoParlay.ACTIVO) {
+        if (parlay.getEstado() != Parlay.EstadoParlay.ACTIVO) {
             throw new RuntimeException("El parlay ya fue resuelto");
         }
 
-        List<Apuesta> apuestasParlay = apuestaRepository.findByParlayIdAndEstadoApuesta(parlayId, EstadoApuesta.RESUELTA);
+        List<Apuesta> apuestasParlay = apuestaRepository.findByParlayIdAndEstado(parlayId, Apuesta.EstadoApuesta.LIQUIDADA);
         
-        if (apuestasParlay.size() != parlay.getNumeroSelecciones()) {
+        if (apuestasParlay.size() != parlay.getNumeroApuestas()) {
             throw new RuntimeException("No todas las apuestas del parlay están resueltas");
         }
 
         // Verificar si todas las apuestas ganaron
         boolean todasGanaron = apuestasParlay.stream()
-            .allMatch(apuesta -> apuesta.getResultadoApuesta() == ResultadoApuesta.GANADA);
+            .allMatch(apuesta -> apuesta.getResultadoFinal() == Apuesta.ResultadoFinal.GANADA);
 
         boolean algunaPerdio = apuestasParlay.stream()
-            .anyMatch(apuesta -> apuesta.getResultadoApuesta() == ResultadoApuesta.PERDIDA);
+            .anyMatch(apuesta -> apuesta.getResultadoFinal() == Apuesta.ResultadoFinal.PERDIDA);
 
-        ResultadoParlay resultadoParlay;
+        Parlay.ResultadoFinalParlay resultadoParlay;
         if (todasGanaron) {
-            resultadoParlay = ResultadoParlay.GANADO;
+            resultadoParlay = Parlay.ResultadoFinalParlay.GANADO;
             
             // Acreditar ganancia al usuario
             Usuario usuario = parlay.getUsuario();
@@ -231,20 +225,20 @@ public class ApuestaService {
             
             log.info("Ganancia de parlay {} acreditada al usuario {}", ganancia, usuario.getId());
         } else if (algunaPerdio) {
-            resultadoParlay = ResultadoParlay.PERDIDO;
+            resultadoParlay = Parlay.ResultadoFinalParlay.PERDIDO;
         } else {
             // Caso con empates, se puede manejar según reglas del negocio
-            resultadoParlay = ResultadoParlay.EMPUJADO;
+            resultadoParlay = Parlay.ResultadoFinalParlay.PARCIAL;
             
             // Devolver monto apostado
             Usuario usuario = parlay.getUsuario();
-            usuario.setSaldoUsd(usuario.getSaldoUsd().add(parlay.getMontoApuesta()));
+            usuario.setSaldoUsd(usuario.getSaldoUsd().add(parlay.getMontoTotal()));
             usuarioRepository.save(usuario);
         }
 
-        parlay.setResultadoParlay(resultadoParlay);
-        parlay.setEstadoParlay(EstadoParlay.RESUELTO);
-        parlay.setFechaResolucion(LocalDateTime.now());
+        parlay.setResultadoFinal(resultadoParlay);
+        parlay.setEstado(Parlay.EstadoParlay.LIQUIDADO);
+        parlay.setFechaLiquidacion(LocalDateTime.now());
         
         parlayRepository.save(parlay);
         log.info("Parlay {} resuelto como {}", parlayId, resultadoParlay);
@@ -260,7 +254,7 @@ public class ApuestaService {
         Apuesta apuesta = apuestaRepository.findById(apuestaId)
             .orElseThrow(() -> new RuntimeException("Apuesta no encontrada"));
 
-        if (apuesta.getEstadoApuesta() != EstadoApuesta.ACTIVA) {
+        if (apuesta.getEstado() != Apuesta.EstadoApuesta.ACTIVA) {
             throw new RuntimeException("La apuesta no puede ser cancelada");
         }
 
@@ -272,23 +266,23 @@ public class ApuestaService {
 
         // Devolver el monto al usuario
         Usuario usuario = apuesta.getUsuario();
-        usuario.setSaldoUsd(usuario.getSaldoUsd().add(apuesta.getMontoApuesta()));
+        usuario.setSaldoUsd(usuario.getSaldoUsd().add(apuesta.getMonto()));
         usuarioRepository.save(usuario);
 
         // Marcar apuesta como cancelada
-        apuesta.setEstadoApuesta(EstadoApuesta.CANCELADA);
-        apuesta.setFechaResolucion(LocalDateTime.now());
+        apuesta.setEstado(Apuesta.EstadoApuesta.CANCELADA);
+        apuesta.setFechaLiquidacion(LocalDateTime.now());
         apuestaRepository.save(apuesta);
 
         log.info("Apuesta {} cancelada, monto {} devuelto al usuario {}", 
-            apuestaId, apuesta.getMontoApuesta(), usuario.getId());
+            apuestaId, apuesta.getMonto(), usuario.getId());
     }
 
     /**
      * Obtiene el historial de apuestas de un usuario
      */
     public List<Apuesta> obtenerHistorialApuestas(Long usuarioId) {
-        return apuestaRepository.findByUsuarioIdOrderByFechaApuestaDesc(usuarioId);
+        return apuestaRepository.findByUsuarioIdOrderByFechaCreacionDesc(usuarioId);
     }
 
     /**
@@ -302,22 +296,22 @@ public class ApuestaService {
      * Obtiene estadísticas de apuestas de un usuario
      */
     public EstadisticasUsuarioDto obtenerEstadisticasUsuario(Long usuarioId) {
-        List<Apuesta> apuestasResueltas = apuestaRepository.findByUsuarioIdAndEstadoApuesta(usuarioId, EstadoApuesta.RESUELTA);
+        List<Apuesta> apuestasResueltas = apuestaRepository.findByUsuarioIdAndEstado(usuarioId, Apuesta.EstadoApuesta.LIQUIDADA);
         
         long apuestasGanadas = apuestasResueltas.stream()
-            .filter(apuesta -> apuesta.getResultadoApuesta() == ResultadoApuesta.GANADA)
+            .filter(apuesta -> apuesta.getResultadoFinal() == Apuesta.ResultadoFinal.GANADA)
             .count();
         
         long apuestasPerdidas = apuestasResueltas.stream()
-            .filter(apuesta -> apuesta.getResultadoApuesta() == ResultadoApuesta.PERDIDA)
+            .filter(apuesta -> apuesta.getResultadoFinal() == Apuesta.ResultadoFinal.PERDIDA)
             .count();
         
         BigDecimal totalApostado = apuestasResueltas.stream()
-            .map(Apuesta::getMontoApuesta)
+            .map(Apuesta::getMonto)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
         
         BigDecimal totalGanado = apuestasResueltas.stream()
-            .filter(apuesta -> apuesta.getResultadoApuesta() == ResultadoApuesta.GANADA)
+            .filter(apuesta -> apuesta.getResultadoFinal() == Apuesta.ResultadoFinal.GANADA)
             .map(Apuesta::getGananciaPotencial)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -372,7 +366,7 @@ public class ApuestaService {
 
     private BigDecimal calcularMomioCombinadoParlay(List<Momio> momios) {
         return momios.stream()
-            .map(Momio::getValorMomio)
+            .map(Momio::getValor)
             .reduce(BigDecimal.ONE, BigDecimal::multiply)
             .setScale(2, RoundingMode.HALF_UP);
     }

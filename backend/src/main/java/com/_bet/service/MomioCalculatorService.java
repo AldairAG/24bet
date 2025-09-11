@@ -270,25 +270,23 @@ public class MomioCalculatorService {
     /**
      * Crea un momio individual con línea específica
      */
-    private void crearMomio(EventoDeportivo evento, TipoApuesta tipoApuesta, BigDecimal valorMomio, 
+    private void crearMomio(EventoDeportivo evento, Momio.TipoApuesta tipoApuesta, BigDecimal valorMomio, 
                            BigDecimal probabilidad, LocalDateTime ahora, String resultado, BigDecimal linea) {
         Momio momio = new Momio();
         momio.setEventoDeportivo(evento);
         momio.setTipoApuesta(tipoApuesta);
-        momio.setValorMomio(valorMomio);
-        momio.setProbabilidad(probabilidad);
+        momio.setValor(valorMomio);
+        momio.setProbabilidadImplicita(probabilidad);
         momio.setMargenCasa(margenCasa);
-        momio.setFuenteMomio(FuenteMomio.CALCULADO);
-        momio.setFechaCreacion(ahora);
-        momio.setFechaActualizacion(ahora);
+        momio.setFuente(Momio.FuenteMomio.CALCULADO);
+        momio.setFechaUltimaActualizacion(ahora);
         momio.setActivo(true);
         
-        // Agregar descripción del resultado
-        momio.setDescripcion(resultado);
+        // Establecer resultado basado en el string
+        momio.setResultado(Momio.ResultadoMomio.valueOf(resultado.toUpperCase()));
         
-        if (linea != null) {
-            momio.setLinea(linea);
-        }
+        // Nota: No hay campo línea en la entidad Momio actual
+        // Si necesitas agregar línea, debes modificar la entidad
         
         momioRepository.save(momio);
     }
@@ -308,8 +306,12 @@ public class MomioCalculatorService {
         
         for (EventoDeportivo evento : eventosProximos) {
             try {
-                // Eliminar momios existentes
-                momioRepository.deleteByEventoDeportivoAndActivoTrue(evento);
+                // Eliminar momios existentes (desactivar en lugar de borrar)
+                List<Momio> momiosExistentes = momioRepository.findByEventoDeportivoAndActivoTrue(evento);
+                for (Momio momioExistente : momiosExistentes) {
+                    momioExistente.setActivo(false);
+                    momioRepository.save(momioExistente);
+                }
                 
                 // Recalcular momios
                 calcularMomiosParaEvento(evento);
