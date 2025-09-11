@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../store';
+import { type RootState } from '../store';
 import {
 	registro,
 	login,
@@ -7,12 +7,12 @@ import {
 	setUser,
 	setToken
 } from '../store/slices/authSlice';
-import {
+import type{
 	LoginRequest,
 	RegistroRequest,
 	UsuarioResponse
 } from '../types/authTypes';
-import { AppDispatch } from '../store';
+import { type AppDispatch } from '../store';
 
 export const useAuth = () => {
 	const dispatch = useDispatch<AppDispatch>();

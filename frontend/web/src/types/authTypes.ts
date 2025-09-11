@@ -1,4 +1,4 @@
-import { DocumentoKyc, InformacionPersonal } from "./kycTypes";
+import type { DocumentoKyc, InformacionPersonal } from "./kycTypes";
 
 export interface LoginRequest {
   username: string;
