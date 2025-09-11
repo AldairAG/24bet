@@ -1,5 +1,5 @@
 import { apiBase } from './apiBase';
-import { CreateCryptoWalletDto, TipoCrypto, CryptoWalletDto } from '../types/walletTypes';
+import { CreateCryptoWalletDto, TipoCrypto, CryptoWalletDto, SolicitudDepositoDto, SolicitudDepositoResponse, SolicitudRetiroResponse, SolicitudRetiroDto } from '../types/walletTypes';
 
 /**
  * Servicio para la gestión de wallets de criptomonedas
@@ -55,6 +55,44 @@ class WalletService {
             await apiBase.patch(`${this.baseUrl}/${walletId}/desactivar`);
         } catch (error) {
             console.error('Error deactivating wallet:', error);
+            throw this.handleError(error);
+        }
+    }
+
+    /**
+     * Crea una nueva solicitud de depósito
+     * @param usuarioId ID del usuario
+     * @param solicitudDto Datos de la solicitud de depósito
+     * @returns Promise con la respuesta de la creación de la solicitud
+     */
+    async createSolicitudDeposito(usuarioId: number, solicitudDto: SolicitudDepositoDto): Promise<SolicitudDepositoResponse> {
+        try {
+            const response = await apiBase.post<SolicitudDepositoResponse>(
+                `${this.baseUrl}/usuario/${usuarioId}/solicitud-deposito`,
+                solicitudDto
+            );
+            return response.data;
+        } catch (error) {
+            console.error('Error creating deposit request:', error);
+            throw this.handleError(error);
+        }
+    }
+
+    /**
+     * Crea una nueva solicitud de retiro
+     * @param usuarioId ID del usuario
+     * @param solicitudDto Datos de la solicitud de retiro
+     * @returns Promise con la respuesta de la creación de la solicitud
+     */
+    async createSolicitudRetiro(usuarioId: number, solicitudDto: SolicitudRetiroDto): Promise<SolicitudRetiroResponse> {
+        try {
+            const response = await apiBase.post<SolicitudRetiroResponse>(
+                `${this.baseUrl}/usuario/${usuarioId}/solicitud-retiro`,
+                solicitudDto
+            );
+            return response.data;
+        } catch (error) {
+            console.error('Error creating withdrawal request:', error);
             throw this.handleError(error);
         }
     }

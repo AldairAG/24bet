@@ -147,6 +147,7 @@ public class SolicitudDeposito {
         USDC,
         TARJETA_CREDITO,
         TARJETA_DEBITO,
+        TRANSFERENCIA_CRYPTO,
         PAYPAL,
         OTRO
     }
