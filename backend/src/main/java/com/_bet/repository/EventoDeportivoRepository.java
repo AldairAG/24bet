@@ -104,4 +104,32 @@ public interface EventoDeportivoRepository extends JpaRepository<EventoDeportivo
      */
     @Query("SELECT e FROM EventoDeportivo e WHERE e.fechaEvento BETWEEN :fechaInicio AND :fechaFin AND e.activo = true")
     List<EventoDeportivo> findEventosParaActualizar(@Param("fechaInicio") LocalDateTime fechaInicio, @Param("fechaFin") LocalDateTime fechaFin);
+    
+    /**
+     * Busca eventos sin momios para el cálculo automático de odds
+     */
+    @Query("SELECT e FROM EventoDeportivo e WHERE e.id NOT IN (SELECT DISTINCT m.eventoDeportivo.id FROM Momio m) AND e.fechaEvento > :fecha AND e.activo = true")
+    List<EventoDeportivo> findEventosSinMomios(@Param("fecha") LocalDateTime fecha);
+    
+    /**
+     * Busca eventos por rango de fechas y estados específicos
+     */
+    @Query("SELECT e FROM EventoDeportivo e WHERE e.fechaEvento BETWEEN :fechaInicio AND :fechaFin AND e.estado IN :estados AND e.activo = true")
+    List<EventoDeportivo> findByFechaEventoBetweenAndEstadoInAndActivoTrue(
+        @Param("fechaInicio") LocalDateTime fechaInicio, 
+        @Param("fechaFin") LocalDateTime fechaFin, 
+        @Param("estados") List<String> estados
+    );
+    
+    /**
+     * Busca eventos próximos para apuestas (próximas 24 horas)
+     */
+    @Query("SELECT e FROM EventoDeportivo e WHERE e.fechaEvento BETWEEN :ahora AND :fechaLimite AND e.estado = 'Not Started' AND e.activo = true ORDER BY e.fechaEvento ASC")
+    List<EventoDeportivo> findEventosProximosParaApuestas(@Param("ahora") LocalDateTime ahora, @Param("fechaLimite") LocalDateTime fechaLimite);
+    
+    /**
+     * Busca eventos en vivo para apuestas
+     */
+    @Query("SELECT e FROM EventoDeportivo e WHERE e.estado IN ('1H', '2H', 'HT', 'Live') AND e.activo = true ORDER BY e.fechaEvento ASC")
+    List<EventoDeportivo> findEventosEnVivoParaApuestas();
 }
