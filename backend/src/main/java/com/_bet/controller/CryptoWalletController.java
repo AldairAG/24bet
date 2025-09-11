@@ -1,11 +1,15 @@
 package com._bet.controller;
 
-import com._bet.controller.AuthController.ApiResponseWrapper;
 import com._bet.dto.CryptoWalletDto;
 import com._bet.entity.CryptoWallet;
+import com._bet.entity.SolicitudDeposito;
+import com._bet.entity.SolicitudRetiro;
 import com._bet.service.cryptoWallet.CryptoWalletService;
+import com._bet.service.SolicitudTransaccionService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,6 +27,9 @@ public class CryptoWalletController {
     
     @Autowired
     private CryptoWalletService cryptoWalletService;
+
+    @Autowired
+    private SolicitudTransaccionService solicitudTransaccionService;
 
     /**
      * Crea un nuevo wallet crypto para un usuario
@@ -46,9 +53,9 @@ public class CryptoWalletController {
      */
     @GetMapping("/usuario/{usuarioId}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<ApiResponseWrapper<List<CryptoWalletDto>>> getWalletsByUsuario(@PathVariable Long usuarioId) {
+    public ResponseEntity<List<CryptoWalletDto>> getWalletsByUsuario(@PathVariable Long usuarioId) {
         List<CryptoWalletDto> wallets = cryptoWalletService.getWalletsByUsuario(usuarioId);
-        return ResponseEntity.ok(new ApiResponseWrapper<>(true, "Wallets obtenidos exitosamente", wallets));
+        return ResponseEntity.ok(wallets);
     }
     
     /**
@@ -144,20 +151,21 @@ public class CryptoWalletController {
     }
     
     /**
-     * Procesa un depósito directo al saldo USD del usuario
+     * Crea una solicitud de depósito que requiere aprobación
      */
-    @PostMapping("/usuario/{usuarioId}/deposito")
+    @PostMapping("/usuario/{usuarioId}/solicitud-deposito")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<DepositoResponse> processDeposit(
+    public ResponseEntity<SolicitudDepositoResponse> crearSolicitudDeposito(
             @PathVariable Long usuarioId,
-            @RequestBody TransactionRequest request) {
+            @RequestBody SolicitudTransaccionService.SolicitudDepositoDto request) {
         
         try {
-            BigDecimal nuevoSaldo = cryptoWalletService.processDeposit(usuarioId, request.getCantidad());
-            DepositoResponse response = new DepositoResponse(
-                "Depósito procesado exitosamente", 
-                request.getCantidad(), 
-                nuevoSaldo
+            SolicitudDeposito solicitud = solicitudTransaccionService.crearSolicitudDeposito(usuarioId, request);
+            SolicitudDepositoResponse response = new SolicitudDepositoResponse(
+                "Solicitud de depósito creada exitosamente. Pendiente de aprobación.", 
+                solicitud.getId(),
+                solicitud.getMonto(),
+                solicitud.getEstado().toString()
             );
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
@@ -166,22 +174,57 @@ public class CryptoWalletController {
     }
     
     /**
-     * Procesa un retiro del saldo USD del usuario
+     * Crea una solicitud de retiro que requiere aprobación
      */
-    @PostMapping("/usuario/{usuarioId}/retiro")
+    @PostMapping("/usuario/{usuarioId}/solicitud-retiro")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<RetiroResponse> processWithdrawalFromUserBalance(
+    public ResponseEntity<SolicitudRetiroResponse> crearSolicitudRetiro(
             @PathVariable Long usuarioId,
-            @RequestBody TransactionRequest request) {
+            @RequestBody SolicitudTransaccionService.SolicitudRetiroDto request) {
         
         try {
-            BigDecimal nuevoSaldo = cryptoWalletService.processWithdrawalFromUserBalance(usuarioId, request.getCantidad());
-            RetiroResponse response = new RetiroResponse(
-                "Retiro procesado exitosamente", 
-                request.getCantidad(), 
-                nuevoSaldo
+            SolicitudRetiro solicitud = solicitudTransaccionService.crearSolicitudRetiro(usuarioId, request);
+            SolicitudRetiroResponse response = new SolicitudRetiroResponse(
+                "Solicitud de retiro creada exitosamente. Fondos bloqueados. Pendiente de aprobación.", 
+                solicitud.getId(),
+                solicitud.getMonto(),
+                solicitud.getMontoNeto(),
+                solicitud.getComision(),
+                solicitud.getEstado().toString()
             );
             return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    /**
+     * Obtiene solicitudes de depósito del usuario
+     */
+    @GetMapping("/usuario/{usuarioId}/solicitudes-deposito")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<Page<SolicitudDeposito>> obtenerSolicitudesDeposito(
+            @PathVariable Long usuarioId, Pageable pageable) {
+        
+        try {
+            Page<SolicitudDeposito> solicitudes = solicitudTransaccionService.obtenerSolicitudesDepositoPorUsuario(usuarioId, pageable);
+            return ResponseEntity.ok(solicitudes);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    /**
+     * Obtiene solicitudes de retiro del usuario
+     */
+    @GetMapping("/usuario/{usuarioId}/solicitudes-retiro")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<Page<SolicitudRetiro>> obtenerSolicitudesRetiro(
+            @PathVariable Long usuarioId, Pageable pageable) {
+        
+        try {
+            Page<SolicitudRetiro> solicitudes = solicitudTransaccionService.obtenerSolicitudesRetiroPorUsuario(usuarioId, pageable);
+            return ResponseEntity.ok(solicitudes);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
@@ -367,5 +410,60 @@ public class CryptoWalletController {
         public void setSaldoUsd(BigDecimal saldoUsd) {
             this.saldoUsd = saldoUsd;
         }
+    }
+
+    public static class SolicitudDepositoResponse {
+        private String mensaje;
+        private Long solicitudId;
+        private BigDecimal monto;
+        private String estado;
+        
+        public SolicitudDepositoResponse(String mensaje, Long solicitudId, BigDecimal monto, String estado) {
+            this.mensaje = mensaje;
+            this.solicitudId = solicitudId;
+            this.monto = monto;
+            this.estado = estado;
+        }
+        
+        public String getMensaje() { return mensaje; }
+        public void setMensaje(String mensaje) { this.mensaje = mensaje; }
+        public Long getSolicitudId() { return solicitudId; }
+        public void setSolicitudId(Long solicitudId) { this.solicitudId = solicitudId; }
+        public BigDecimal getMonto() { return monto; }
+        public void setMonto(BigDecimal monto) { this.monto = monto; }
+        public String getEstado() { return estado; }
+        public void setEstado(String estado) { this.estado = estado; }
+    }
+
+    public static class SolicitudRetiroResponse {
+        private String mensaje;
+        private Long solicitudId;
+        private BigDecimal monto;
+        private BigDecimal montoNeto;
+        private BigDecimal comision;
+        private String estado;
+        
+        public SolicitudRetiroResponse(String mensaje, Long solicitudId, BigDecimal monto, 
+                                     BigDecimal montoNeto, BigDecimal comision, String estado) {
+            this.mensaje = mensaje;
+            this.solicitudId = solicitudId;
+            this.monto = monto;
+            this.montoNeto = montoNeto;
+            this.comision = comision;
+            this.estado = estado;
+        }
+        
+        public String getMensaje() { return mensaje; }
+        public void setMensaje(String mensaje) { this.mensaje = mensaje; }
+        public Long getSolicitudId() { return solicitudId; }
+        public void setSolicitudId(Long solicitudId) { this.solicitudId = solicitudId; }
+        public BigDecimal getMonto() { return monto; }
+        public void setMonto(BigDecimal monto) { this.monto = monto; }
+        public BigDecimal getMontoNeto() { return montoNeto; }
+        public void setMontoNeto(BigDecimal montoNeto) { this.montoNeto = montoNeto; }
+        public BigDecimal getComision() { return comision; }
+        public void setComision(BigDecimal comision) { this.comision = comision; }
+        public String getEstado() { return estado; }
+        public void setEstado(String estado) { this.estado = estado; }
     }
 }

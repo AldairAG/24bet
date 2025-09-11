@@ -2,20 +2,20 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
-import { useColorScheme, View, Text, StyleSheet, Image } from 'react-native';
+import { useColorScheme, View, Text, StyleSheet } from 'react-native';
 import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 
 // Importar todas las pantallas
-import RegisterScreen from '../screens/RegisterScreen';
-import ProfileScreen from '../screens/ProfileScreen';
-import EditProfileScreen from '../screens/EditProfileScreen';
-import RecoveryPasswordScreen from '../screens/RecoveryPasswordScreen';
-import SupportScreen from '../screens/SupportScreen';
-import DocumentsScreen from '../screens/DocumentsScreen';
-import DepositoScreen from '../screens/DepositoScreen';
-import RetiroScreen from '../screens/RetiroScreen';
-import MenuScreen from '../screens/MenuScreen';
-import LoginScreen from '../screens/LoginScreen';
+import RegisterScreen from '../screens/auth/RegisterScreen';
+import ProfileScreen from '../screens/usuario/ProfileScreen';
+import EditProfileScreen from '../screens/usuario/EditProfileScreen';
+import RecoveryPasswordScreen from '../screens/auth/RecoveryPasswordScreen';
+import SupportScreen from '../screens/usuario/SupportScreen';
+import DocumentsScreen from '../screens/usuario/DocumentsScreen';
+import DepositoScreen from '../screens/transacciones/DepositoScreen';
+import RetiroScreen from '../screens/transacciones/RetiroScreen';
+import MenuScreen from '../screens/usuario/MenuScreen';
+import LoginScreen from '../screens/auth/LoginScreen';
 import CasinoNavigation from './DeportesNavigation';
 
 // Tipos de navegación
@@ -69,17 +69,6 @@ const TAB_ICONS = {
     ),
 } as const;
 
-// Componente del icono del header
-const HeaderIcon = React.memo(() => (
-    <View style={styles.headerIconContainer}>
-        <Image
-            source={require('../../assets/Mesa-de-trabajo.png')}
-            style={styles.headerIcon}
-            resizeMode="contain"
-        />
-    </View>
-));
-
 // Componente DummyScreen
 const DummyScreen = React.memo<{ title: string }>(({ title }) => (
     <View style={styles.dummyContainer}>
@@ -101,27 +90,26 @@ function AuthStackNavigator() {
                 name="Login"
                 component={LoginScreen}
                 options={{
-                    headerShown: false
+                    title: 'Bienvenido',
+                    headerTitleAlign: 'center',
+                    headerTitleStyle: { 
+                        color: COLORS.primary, 
+                        fontSize: 28, 
+                        fontWeight: 'bold' 
+                    }
                 }}
             />
             <AuthStack.Screen
                 name="Register"
                 component={RegisterScreen}
-                options={{ 
-                    title: '',
-                    headerTitle: () => <HeaderIcon />,
-                    headerTitleAlign: 'center'
-                }}
+                options={{ title: '' }}
             />
             <AuthStack.Screen
                 name="RecoveryPassword"
                 component={RecoveryPasswordScreen}
                 options={{ 
-                    headerShown: true,
-                    presentation: 'modal',
-                    title: '',
-                    headerTitle: () => <HeaderIcon />,
-                    headerTitleAlign: 'center'
+                    headerShown: false,
+                    presentation: 'modal'
                 }}
             />
         </AuthStack.Navigator>
@@ -136,36 +124,52 @@ function ProfileStackNavigator() {
                 name="Profile"
                 component={ProfileScreen}
                 options={{ 
-                    title: '',
-                    headerTitle: () => <HeaderIcon />,
-                    headerTitleAlign: 'center'
+                    title: 'Perfil',
+                    headerTitleAlign: 'center',
+                    headerTitleStyle: { 
+                        color: COLORS.primary, 
+                        fontSize: 20, 
+                        fontWeight: 'bold' 
+                    }
                 }}
             />
             <ProfileStack.Screen
                 name="EditProfile"
                 component={EditProfileScreen}
                 options={{ 
-                    title: '',
-                    headerTitle: () => <HeaderIcon />,
-                    headerTitleAlign: 'center'
+                    title: 'Editar Perfil',
+                    headerTitleAlign: 'center',
+                    headerTitleStyle: { 
+                        color: COLORS.primary, 
+                        fontSize: 20, 
+                        fontWeight: 'bold' 
+                    }
                 }}
             />
             <ProfileStack.Screen
                 name="Support"
                 component={SupportScreen}
                 options={{ 
-                    title: '',
-                    headerTitle: () => <HeaderIcon />,
-                    headerTitleAlign: 'center'
+                    title: 'Soporte',
+                    headerTitleAlign: 'center',
+                    headerTitleStyle: { 
+                        color: COLORS.primary, 
+                        fontSize: 20, 
+                        fontWeight: 'bold' 
+                    }
                 }}
             />
             <ProfileStack.Screen
                 name="Documents"
                 component={DocumentsScreen}
                 options={{ 
-                    title: '',
-                    headerTitle: () => <HeaderIcon />,
-                    headerTitleAlign: 'center'
+                    title: 'Mis Documentos',
+                    headerTitleAlign: 'center',
+                    headerTitleStyle: { 
+                        color: COLORS.primary, 
+                        fontSize: 20, 
+                        fontWeight: 'bold' 
+                    }
                 }}
             />
         </ProfileStack.Navigator>
@@ -210,8 +214,13 @@ function MainTabNavigator() {
                 options={{ 
                     tabBarLabel: 'Depósito',
                     headerShown: true,
-                    headerTitle: () => <HeaderIcon />,
-                    headerTitleAlign: 'center'
+                    headerTitle: 'Depósito',
+                    headerTitleAlign: 'center',
+                    headerTitleStyle: { 
+                        color: COLORS.primary, 
+                        fontSize: 20, 
+                        fontWeight: 'bold' 
+                    }
                 }}
             />
             <Tab.Screen 
@@ -220,8 +229,13 @@ function MainTabNavigator() {
                 options={{ 
                     tabBarLabel: 'Retiro',
                     headerShown: true,
-                    headerTitle: () => <HeaderIcon />,
-                    headerTitleAlign: 'center'
+                    headerTitle: 'Retiro',
+                    headerTitleAlign: 'center',
+                    headerTitleStyle: { 
+                        color: COLORS.primary, 
+                        fontSize: 20, 
+                        fontWeight: 'bold' 
+                    }
                 }}
             />
             <Tab.Screen 
@@ -286,13 +300,5 @@ const styles = StyleSheet.create({
         height: 60,
         paddingBottom: 8,
         paddingTop: 8,
-    },
-    headerIconContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    headerIcon: {
-        width: 100,
-        height: 100,
     },
 });

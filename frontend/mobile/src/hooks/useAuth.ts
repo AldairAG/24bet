@@ -13,8 +13,6 @@ import {
 	UsuarioResponse
 } from '../types/authTypes';
 import { AppDispatch } from '../store';
-import { apiBase } from '../service/apiBase';
-import { useCallback } from 'react';
 
 export const useAuth = () => {
 	const dispatch = useDispatch<AppDispatch>();

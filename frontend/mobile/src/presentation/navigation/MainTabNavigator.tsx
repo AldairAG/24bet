@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import MenuScreen from '../screens/MenuScreen';
-import ProfileScreen from '../screens/ProfileScreen';
+import MenuScreen from '../screens/usuario/MenuScreen';
+import ProfileScreen from '../screens/usuario/ProfileScreen';
 import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { View, Text } from 'react-native';
 
