@@ -11,8 +11,8 @@ import {
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { MainCasinoStackParamList } from '../navigation/DeportesNavigation';
-import EventoItem from '../components/items/EventoItem';
+import { MainCasinoStackParamList } from '../../navigation/DeportesNavigation';
+import EventoItem from '../../components/items/EventoItem';
 
 type DeportesScreenNavigationProp = NativeStackNavigationProp<MainCasinoStackParamList>;
 

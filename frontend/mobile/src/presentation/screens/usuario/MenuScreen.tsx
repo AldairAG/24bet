@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useColorScheme, Platform, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../../hooks/useAuth';
 import Toast from 'react-native-toast-message';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { CompositeNavigationProp } from '@react-navigation/native';

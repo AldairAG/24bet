@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, useColorScheme } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../../hooks/useAuth';
 import { useNavigation } from '@react-navigation/native';
 
 export default function ProfileScreen() {

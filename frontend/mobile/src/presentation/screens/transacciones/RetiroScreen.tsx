@@ -16,8 +16,8 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
-import { getExchangeRates } from '../../service/crypto/cryptoService';
-import { CryptoPrice } from '../../types/CryptoTypes';
+import { getExchangeRates } from '../../../service/crypto/cryptoService';
+import { CryptoPrice } from '../../../types/CryptoTypes';
 import { 
     WalletInfo, 
     SolicitudRetiro, 
@@ -25,7 +25,7 @@ import {
     WalletFormValues,
     CriptomonedaConfig,
     CriptomonedaType
-} from '../../types/withdrawTypes';
+} from '../../../types/withdrawTypes';
 
 const criptomonedas: Record<CriptomonedaType, CriptomonedaConfig> = {
     'bitcoin': {

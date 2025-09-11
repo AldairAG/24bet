@@ -17,11 +17,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
-import { useAuth } from '../../hooks/useAuth';
-import { EditUserProfile } from '../../types/userTypes';
-import { Genero } from '../../types/kycTypes';
+import { useAuth } from '../../../hooks/useAuth';
+import { EditUserProfile } from '../../../types/userTypes';
+import { Genero } from '../../../types/kycTypes';
 import Toast from 'react-native-toast-message';
-import { useUser } from '../../hooks/useUser';
+import { useUser } from '../../../hooks/useUser';
 
 // Lista de códigos de área internacionales (simplificada)
 const countryCodes = [

@@ -6,16 +6,16 @@ import { useColorScheme, View, Text, StyleSheet } from 'react-native';
 import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 
 // Importar todas las pantallas
-import RegisterScreen from '../screens/RegisterScreen';
-import ProfileScreen from '../screens/ProfileScreen';
-import EditProfileScreen from '../screens/EditProfileScreen';
-import RecoveryPasswordScreen from '../screens/RecoveryPasswordScreen';
-import SupportScreen from '../screens/SupportScreen';
-import DocumentsScreen from '../screens/DocumentsScreen';
-import DepositoScreen from '../screens/DepositoScreen';
-import RetiroScreen from '../screens/RetiroScreen';
-import MenuScreen from '../screens/MenuScreen';
-import LoginScreen from '../screens/LoginScreen';
+import RegisterScreen from '../screens/auth/RegisterScreen';
+import ProfileScreen from '../screens/usuario/ProfileScreen';
+import EditProfileScreen from '../screens/usuario/EditProfileScreen';
+import RecoveryPasswordScreen from '../screens/auth/RecoveryPasswordScreen';
+import SupportScreen from '../screens/usuario/SupportScreen';
+import DocumentsScreen from '../screens/usuario/DocumentsScreen';
+import DepositoScreen from '../screens/transacciones/DepositoScreen';
+import RetiroScreen from '../screens/transacciones/RetiroScreen';
+import MenuScreen from '../screens/usuario/MenuScreen';
+import LoginScreen from '../screens/auth/LoginScreen';
 import CasinoNavigation from './DeportesNavigation';
 
 // Tipos de navegación

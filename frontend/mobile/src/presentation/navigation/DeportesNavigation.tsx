@@ -3,12 +3,12 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { View, Text, StyleSheet, useColorScheme } from 'react-native';
 import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
-import HomeScreen from '../screens/HomeScreen';
-import EventosEnVivoScreen from '../screens/EventosEnVivoScreen';
-import MisApuestasScreen from '../screens/MisApuestasScreen';
-import DeportesScreen from '../screens/DeportesScreen';
-import SportEventsScreen from '../screens/SportEventsScreen';
-import EventDetailScreen from '../screens/EventDetailScreen';
+import HomeScreen from '../screens/eventos/HomeScreen';
+import EventosEnVivoScreen from '../screens/eventos/EventosEnVivoScreen';
+import MisApuestasScreen from '../screens/apuestas/MisApuestasScreen';
+import DeportesScreen from '../screens/eventos/DeportesScreen';
+import SportEventsScreen from '../screens/eventos/SportEventsScreen';
+import EventDetailScreen from '../screens/eventos/EventDetailScreen';
 
 // Tipos de navegación para el stack principal
 export type MainCasinoStackParamList = {

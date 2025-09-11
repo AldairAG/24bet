@@ -2,10 +2,10 @@ import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, useColorScheme } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useForm, Controller } from 'react-hook-form';
-import { useAuth } from '../../hooks/useAuth';
-import { LoginRequest } from '../../types/authTypes';
+import { useAuth } from '../../../hooks/useAuth';
+import { LoginRequest } from '../../../types/authTypes';
 import Toast from 'react-native-toast-message';
-import { ROUTES } from '../../routes/routes';
+import { ROUTES } from '../../../routes/routes';
 
 type Props = NativeStackScreenProps<any, 'Login'>;
 

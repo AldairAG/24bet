@@ -9,7 +9,7 @@ import {
     useColorScheme,
 } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import EventoItem from '../components/items/EventoItem';
+import EventoItem from '../../components/items/EventoItem';
 
 export default function EventosEnVivoScreen() {
     const [selectedSport, setSelectedSport] = useState('all');

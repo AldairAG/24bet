@@ -27,10 +27,10 @@ interface RegisterScreenProps {
     navigation: RegisterScreenNavigationProp;
 }
 
-import { useAuth } from '../../hooks/useAuth';
-import { RegistroRequest } from '../../types/authTypes';
+import { useAuth } from '../../../hooks/useAuth';
+import { RegistroRequest } from '../../../types/authTypes';
 import Toast from 'react-native-toast-message';
-import { getExchangeRates } from "../../service/crypto/cryptoService";
+import { getExchangeRates } from "../../../service/crypto/cryptoService";
 // Lista de códigos de área internacionales
 const countryCodes = [
     { label: "México (+52)", value: "+52", maxLength: 10 },
