@@ -93,5 +93,5 @@ public interface MomioRepository extends JpaRepository<Momio, Long> {
     /**
      * Cuenta momios por fuente específica
      */
-    long countByFuenteMomioAndActivoTrue(Momio.FuenteMomio fuenteMomio);
+    long countByFuenteAndActivoTrue(Momio.FuenteMomio fuente);
 }

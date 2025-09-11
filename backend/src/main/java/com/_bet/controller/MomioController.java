@@ -192,8 +192,8 @@ public class MomioController {
         
         long totalMomios = momioRepository.countByActivoTrue();
         long totalEventosConMomios = momioRepository.countDistinctEventosByActivoTrue();
-        long momiosCalculados = momioRepository.countByFuenteMomioAndActivoTrue(Momio.FuenteMomio.CALCULADO);
-        long momiosManuales = momioRepository.countByFuenteMomioAndActivoTrue(Momio.FuenteMomio.MANUAL);
+        long momiosCalculados = momioRepository.countByFuenteAndActivoTrue(Momio.FuenteMomio.CALCULADO);
+        long momiosManuales = momioRepository.countByFuenteAndActivoTrue(Momio.FuenteMomio.MANUAL);
         
         EstadisticasMomiosDto estadisticas = new EstadisticasMomiosDto(
             totalMomios,
