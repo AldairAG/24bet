@@ -1,12 +1,14 @@
 import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { CreateCryptoWalletDto, TipoCrypto } from '../types/walletTypes';
+import { CreateCryptoWalletDto, TipoCrypto, SolicitudDepositoDto, SolicitudRetiroDto } from '../types/walletTypes';
 import {
     // Thunks
     createCryptoWallet,
     loadAvailableCryptoTypes,
     getUserWallets,
     deactivateWallet,
+    createDepositRequest,
+    createWithdrawalRequest,
     // Actions
     clearCreateWalletError,
     clearLoadUserWalletsError,
@@ -16,6 +18,8 @@ import {
     clearUserWallets,
     clearWalletData,
     setValidationError,
+    clearDepositRequest,
+    clearWithdrawalRequest,
     // Selectors
     selectWalletState,
     selectIsCreatingWallet,
@@ -30,6 +34,10 @@ import {
     selectAvailableCryptoTypes,
     selectWalletErrors,
     selectWalletLoading,
+    selectIsCreatingDepositRequest,
+    selectIsCreatingWithdrawalRequest,
+    selectDepositRequestState,
+    selectWithdrawalRequestState,
     // Helpers
     getCryptoDisplayName,
     validateWalletData,
@@ -46,6 +54,8 @@ export const useWallet = () => {
     const isCreatingWallet = useSelector(selectIsCreatingWallet);
     const isLoadingUserWallets = useSelector(selectIsLoadingUserWallets);
     const isDeactivatingWallet = useSelector(selectIsDeactivatingWallet);
+    const isCreatingDepositRequest = useSelector(selectIsCreatingDepositRequest);
+    const isCreatingWithdrawalRequest = useSelector(selectIsCreatingWithdrawalRequest);
     const createdWallet = useSelector(selectCreatedWallet);
     const userWallets = useSelector(selectUserWallets);
     const createWalletError = useSelector(selectCreateWalletError);
@@ -55,6 +65,8 @@ export const useWallet = () => {
     const availableCryptoTypes = useSelector(selectAvailableCryptoTypes);
     const walletErrors = useSelector(selectWalletErrors);
     const walletLoading = useSelector(selectWalletLoading);
+    const depositRequestState = useSelector(selectDepositRequestState);
+    const withdrawalRequestState = useSelector(selectWithdrawalRequestState);
 
     // ========== ACCIONES PRINCIPALES ==========
 
@@ -96,6 +108,32 @@ export const useWallet = () => {
     const deleteWallet = useCallback(
         async (walletId: number) => {
             const result = await dispatch(deactivateWallet(walletId) as any);
+            return result;
+        },
+        [dispatch]
+    );
+
+    /**
+     * Crea una solicitud de depósito
+     */
+    const createDeposit = useCallback(
+        async (usuarioId: number, depositoData: SolicitudDepositoDto) => {
+            const result = await dispatch(
+                createDepositRequest({ usuarioId, depositoData }) as any
+            );
+            return result;
+        },
+        [dispatch]
+    );
+
+    /**
+     * Crea una solicitud de retiro
+     */
+    const createWithdrawal = useCallback(
+        async (usuarioId: number, retiroData: SolicitudRetiroDto) => {
+            const result = await dispatch(
+                createWithdrawalRequest({ usuarioId, retiroData }) as any
+            );
             return result;
         },
         [dispatch]
@@ -162,6 +200,20 @@ export const useWallet = () => {
         [dispatch]
     );
 
+    /**
+     * Limpia la solicitud de depósito
+     */
+    const clearDeposit = useCallback(() => {
+        dispatch(clearDepositRequest());
+    }, [dispatch]);
+
+    /**
+     * Limpia la solicitud de retiro
+     */
+    const clearWithdrawal = useCallback(() => {
+        dispatch(clearWithdrawalRequest());
+    }, [dispatch]);
+
     // ========== FUNCIONES AUXILIARES ==========
 
     /**
@@ -203,8 +255,22 @@ export const useWallet = () => {
      * Verifica si hay algún error activo
      */
     const hasErrors = useCallback((): boolean => {
-        return !!(createWalletError || loadUserWalletsError || deactivateWalletError || validationError);
-    }, [createWalletError, loadUserWalletsError, deactivateWalletError, validationError]);
+        return !!(
+            createWalletError || 
+            loadUserWalletsError || 
+            deactivateWalletError || 
+            validationError ||
+            depositRequestState.error ||
+            withdrawalRequestState.error
+        );
+    }, [
+        createWalletError, 
+        loadUserWalletsError, 
+        deactivateWalletError, 
+        validationError,
+        depositRequestState.error,
+        withdrawalRequestState.error
+    ]);
 
     /**
      * Obtiene todos los errores activos
@@ -215,8 +281,17 @@ export const useWallet = () => {
         if (loadUserWalletsError) errors.push(loadUserWalletsError);
         if (deactivateWalletError) errors.push(deactivateWalletError);
         if (validationError) errors.push(validationError);
+        if (depositRequestState.error) errors.push(depositRequestState.error);
+        if (withdrawalRequestState.error) errors.push(withdrawalRequestState.error);
         return errors;
-    }, [createWalletError, loadUserWalletsError, deactivateWalletError, validationError]);
+    }, [
+        createWalletError, 
+        loadUserWalletsError, 
+        deactivateWalletError, 
+        validationError,
+        depositRequestState.error,
+        withdrawalRequestState.error
+    ]);
 
     /**
      * Resetea todos los estados a su valor inicial
@@ -245,19 +320,25 @@ export const useWallet = () => {
         isCreatingWallet,
         isLoadingUserWallets,
         isDeactivatingWallet,
-        isLoading: isCreatingWallet || isLoadingUserWallets || isDeactivatingWallet,
+        isCreatingDepositRequest,
+        isCreatingWithdrawalRequest,
+        isLoading: isCreatingWallet || isLoadingUserWallets || isDeactivatingWallet || isCreatingDepositRequest || isCreatingWithdrawalRequest,
         loading: walletLoading,
 
         // Datos
         createdWallet,
         userWallets,
         availableCryptoTypes,
+        depositRequestResponse: depositRequestState.response,
+        withdrawalRequestResponse: withdrawalRequestState.response,
 
         // Errores
         createWalletError,
         loadUserWalletsError,
         deactivateWalletError,
         validationError,
+        depositRequestError: depositRequestState.error,
+        withdrawalRequestError: withdrawalRequestState.error,
         errors: walletErrors,
         hasErrors: hasErrors(),
         allErrors: getAllErrors(),
@@ -267,6 +348,8 @@ export const useWallet = () => {
         loadCryptoTypes,
         loadUserWallets,
         deleteWallet,
+        createDeposit,
+        createWithdrawal,
 
         // Acciones de limpieza
         clearCreateError,
@@ -278,6 +361,8 @@ export const useWallet = () => {
         clearAllWalletData,
         setValidationError: setValidationErr,
         resetWalletState,
+        clearDeposit,
+        clearWithdrawal,
 
         // Funciones auxiliares
         validateWallet,

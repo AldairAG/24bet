@@ -1,29 +1,45 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { CreateCryptoWalletDto, TipoCrypto, CryptoWalletDto } from '../../types/walletTypes';
+import { CreateCryptoWalletDto, TipoCrypto, CryptoWalletDto, SolicitudDepositoResponse, SolicitudRetiroDto, SolicitudRetiroResponse, SolicitudDepositoDto } from '../../types/walletTypes';
 import { walletService } from '../../service/walletService';
 
 // ========== ESTADO INICIAL ==========
 interface WalletState {
+    // Estados de deposito y retiro
+    isCreatingDepositRequest: boolean;
+    isCreatingWithdrawalRequest: boolean;
+    depositRequestError: string | null;
+    withdrawalRequestError: string | null;
+    depositRequestResponse: SolicitudDepositoResponse | null;
+    withdrawalRequestResponse: SolicitudRetiroResponse | null;
+
     // Estados de carga
     isCreatingWallet: boolean;
     isLoadingUserWallets: boolean;
     isDeactivatingWallet: boolean;
-    
+
     // Datos
     createdWallet: CryptoWalletDto | null;
     userWallets: CryptoWalletDto[];
     availableCryptoTypes: TipoCrypto[];
-    
+
     // Errores
     createWalletError: string | null;
     loadUserWalletsError: string | null;
     deactivateWalletError: string | null;
-    
+
     // Estados de validación
     validationError: string | null;
 }
 
 const initialState: WalletState = {
+    // Estados de deposito y retiro
+    isCreatingDepositRequest: false,
+    isCreatingWithdrawalRequest: false,
+    depositRequestError: null,
+    withdrawalRequestError: null,
+    depositRequestResponse: null,
+    withdrawalRequestResponse: null,
+
     isCreatingWallet: false,
     isLoadingUserWallets: false,
     isDeactivatingWallet: false,
@@ -51,13 +67,53 @@ export const createCryptoWallet = createAsyncThunk<
         try {
             // Validar datos antes de enviar
             walletService.validateCreateWalletData(walletData);
-            
+
             // Crear el wallet
             const createdWallet = await walletService.createWallet(usuarioId, walletData);
-            
+
             return createdWallet;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Error desconocido al crear wallet';
+            return rejectWithValue(errorMessage);
+        }
+    }
+);
+
+/**
+ * Thunk para crear una solicitud de depósito
+ */
+export const createDepositRequest = createAsyncThunk<
+    SolicitudDepositoResponse, // Tipo de retorno
+    { usuarioId: number; depositoData: SolicitudDepositoDto }, // Tipo de parámetros
+    { rejectValue: string } // Tipo del error
+>(
+    'wallet/createDepositRequest',
+    async ({ usuarioId, depositoData }, { rejectWithValue }) => {
+        try {
+            const response = await walletService.createDepositoRequest(usuarioId, depositoData);
+            return response;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Error desconocido al crear solicitud de depósito';
+            return rejectWithValue(errorMessage);
+        }
+    }
+);
+
+/**
+ * Thunk para crear una solicitud de retiro
+ */
+export const createWithdrawalRequest = createAsyncThunk<
+    SolicitudRetiroResponse, // Tipo de retorno
+    { usuarioId: number; retiroData: SolicitudRetiroDto }, // Tipo de parámetros
+    { rejectValue: string } // Tipo del error
+>(
+    'wallet/createWithdrawalRequest',
+    async ({ usuarioId, retiroData }, { rejectWithValue }) => {
+        try {
+            const response = await walletService.createRetiroRequest(usuarioId, retiroData);
+            return response;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Error desconocido al crear solicitud de retiro';
             return rejectWithValue(errorMessage);
         }
     }
@@ -94,7 +150,7 @@ export const getUserWallets = createAsyncThunk<
     'wallet/getUserWallets',
     async (usuarioId, { rejectWithValue }) => {
         try {
-            const wallets = await walletService.getWalletsByUsuario(usuarioId)||[];
+            const wallets = await walletService.getWalletsByUsuario(usuarioId) || [];
             return wallets;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Error al cargar wallets del usuario';
@@ -132,7 +188,7 @@ const walletSlice = createSlice({
         clearCreateWalletError: (state) => {
             state.createWalletError = null;
         },
-        
+
         clearLoadUserWalletsError: (state) => {
             state.loadUserWalletsError = null;
         },
@@ -140,21 +196,31 @@ const walletSlice = createSlice({
         clearDeactivateWalletError: (state) => {
             state.deactivateWalletError = null;
         },
-        
+
         clearValidationError: (state) => {
             state.validationError = null;
         },
-        
+
         // Limpiar wallet creado
         clearCreatedWallet: (state) => {
             state.createdWallet = null;
         },
-        
+
         // Limpiar wallets del usuario
         clearUserWallets: (state) => {
             state.userWallets = [];
         },
-        
+
+        clearWithdrawalRequest: (state) => {
+            state.withdrawalRequestResponse = null;
+            state.withdrawalRequestError = null;
+        },
+
+        clearDepositRequest: (state) => {
+            state.depositRequestResponse = null;
+            state.depositRequestError = null;
+        },
+
         // Limpiar todos los datos del wallet
         clearWalletData: (state) => {
             state.createdWallet = null;
@@ -163,8 +229,13 @@ const walletSlice = createSlice({
             state.loadUserWalletsError = null;
             state.deactivateWalletError = null;
             state.validationError = null;
+            state.depositRequestResponse = null;
+            state.withdrawalRequestResponse = null;
+            state.depositRequestError = null;
+            state.withdrawalRequestError = null;
+
         },
-        
+
         // Establecer error de validación manualmente
         setValidationError: (state, action: PayloadAction<string>) => {
             state.validationError = action.payload;
@@ -233,6 +304,40 @@ const walletSlice = createSlice({
                 state.isDeactivatingWallet = false;
                 state.deactivateWalletError = action.payload || 'Error al desactivar wallet';
             });
+
+        // ========== CREATE DEPOSIT REQUEST ==========
+        builder
+            .addCase(createDepositRequest.pending, (state) => {
+                state.isCreatingDepositRequest = true;
+                state.depositRequestError = null;
+            })
+            .addCase(createDepositRequest.fulfilled, (state, action) => {
+                state.isCreatingDepositRequest = false;
+                state.depositRequestResponse = action.payload;
+                state.depositRequestError = null;
+            })
+            .addCase(createDepositRequest.rejected, (state, action) => {
+                state.isCreatingDepositRequest = false;
+                state.depositRequestError = action.payload || 'Error al crear solicitud de depósito';
+                state.depositRequestResponse = null;
+            });
+
+        // ========== CREATE WITHDRAWAL REQUEST ==========
+        builder
+            .addCase(createWithdrawalRequest.pending, (state) => {
+                state.isCreatingWithdrawalRequest = true;
+                state.withdrawalRequestError = null;
+            })
+            .addCase(createWithdrawalRequest.fulfilled, (state, action) => {
+                state.isCreatingWithdrawalRequest = false;
+                state.withdrawalRequestResponse = action.payload;
+                state.withdrawalRequestError = null;
+            })
+            .addCase(createWithdrawalRequest.rejected, (state, action) => {
+                state.isCreatingWithdrawalRequest = false;
+                state.withdrawalRequestError = action.payload || 'Error al crear solicitud de retiro';
+                state.withdrawalRequestResponse = null;
+            });
     },
 });
 
@@ -248,6 +353,8 @@ export const {
     clearUserWallets,
     clearWalletData,
     setValidationError,
+    clearDepositRequest,
+    clearWithdrawalRequest
 } = walletSlice.actions;
 
 // Selectors
@@ -262,6 +369,21 @@ export const selectLoadUserWalletsError = (state: { wallet: WalletState }) => st
 export const selectDeactivateWalletError = (state: { wallet: WalletState }) => state.wallet.deactivateWalletError;
 export const selectValidationError = (state: { wallet: WalletState }) => state.wallet.validationError;
 export const selectAvailableCryptoTypes = (state: { wallet: WalletState }) => state.wallet.availableCryptoTypes;
+export const selectIsCreatingDepositRequest = (state: { wallet: WalletState }) => state.wallet.isCreatingDepositRequest;
+export const selectIsCreatingWithdrawalRequest = (state: { wallet: WalletState }) => state.wallet.isCreatingWithdrawalRequest;
+
+
+export const selectDepositRequestState = (state: { wallet: WalletState }) => ({
+    isCreating: state.wallet.isCreatingDepositRequest,
+    response: state.wallet.depositRequestResponse,
+    error: state.wallet.depositRequestError,
+});
+
+export const selectWithdrawalRequestState = (state: { wallet: WalletState }) => ({
+    isCreating: state.wallet.isCreatingWithdrawalRequest,
+    response: state.wallet.withdrawalRequestResponse,
+    error: state.wallet.withdrawalRequestError,
+});
 
 // Selector combinado para errores
 export const selectWalletErrors = (state: { wallet: WalletState }) => ({
@@ -269,6 +391,8 @@ export const selectWalletErrors = (state: { wallet: WalletState }) => ({
     loadUserWalletsError: state.wallet.loadUserWalletsError,
     deactivateWalletError: state.wallet.deactivateWalletError,
     validationError: state.wallet.validationError,
+    depositRequestError: state.wallet.depositRequestError,
+    withdrawalRequestError: state.wallet.withdrawalRequestError,
 });
 
 // Selector para estado de carga general
@@ -276,6 +400,8 @@ export const selectWalletLoading = (state: { wallet: WalletState }) => ({
     isCreating: state.wallet.isCreatingWallet,
     isLoadingUserWallets: state.wallet.isLoadingUserWallets,
     isDeactivating: state.wallet.isDeactivatingWallet,
+    isCreatingDepositRequest: state.wallet.isCreatingDepositRequest,
+    isCreatingWithdrawalRequest: state.wallet.isCreatingWithdrawalRequest,
 });
 
 // Reducer

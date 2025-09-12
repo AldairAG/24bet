@@ -61,12 +61,8 @@ export interface SolicitudDepositoResponse {
 export interface SolicitudDepositoDto {
     monto: number;
     metodoPago: MetodoPago;
-    comprobantePago: string;
-    referenciaTransaccion: string;
-    observaciones: string;
     tipoCrypto: TipoCrypto;
     direccionWallet: string;
-    hashTransaccion: string;
 }
 
 
@@ -114,6 +110,7 @@ export interface SolicitudRetiroDto {
     direccionWallet: string;
     tipoCrypto: TipoCrypto;
     observaciones: string;
+    estado: EstadoSolicitud;
 }
 
 export enum EstadoSolicitud {

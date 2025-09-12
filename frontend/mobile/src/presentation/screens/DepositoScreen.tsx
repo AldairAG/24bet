@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -14,6 +14,11 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
 import Toast from 'react-native-toast-message';
+import { Formik } from 'formik';
+import * as Yup from 'yup';
+import { SolicitudDepositoDto, MetodoPago, TipoCrypto } from '../../types/walletTypes';
+import { useWallet } from '../../hooks/useWallet';
+import { useAuth } from '../../hooks/useAuth';
 
 interface CriptomonedaInfo {
     id: string;
@@ -24,6 +29,31 @@ interface CriptomonedaInfo {
     wallet: string;
     red: string;
 }
+
+// Esquema de validación para el formulario de depósito
+const depositoValidationSchema = Yup.object().shape({
+    monto: Yup.number()
+        .min(10, 'El monto mínimo es $10 USD')
+        .max(50000, 'El monto máximo es $50,000 USD')
+        .required('El monto es requerido'),
+    metodoPago: Yup.string()
+        .oneOf(Object.values(MetodoPago), 'Selecciona un método de pago válido')
+        .required('El método de pago es requerido'),
+    tipoCrypto: Yup.string()
+        .oneOf(Object.values(TipoCrypto), 'Selecciona una criptomoneda válida')
+        .required('La criptomoneda es requerida'),
+    direccionWallet: Yup.string()
+        .min(20, 'La dirección de wallet debe tener al menos 20 caracteres')
+        .required('La dirección de wallet es requerida')
+});
+
+// Valores iniciales del formulario
+const initialDepositValues: SolicitudDepositoDto = {
+    monto: 0,
+    metodoPago: MetodoPago.BITCOIN,
+    tipoCrypto: TipoCrypto.BITCOIN,
+    direccionWallet: ''
+};
 
 const criptomonedas: CriptomonedaInfo[] = [
     {
@@ -67,56 +97,72 @@ const criptomonedas: CriptomonedaInfo[] = [
 export default function DepositoScreen() {
     const colorScheme = useColorScheme();
     const styles = getStyles((colorScheme === 'light' || colorScheme === 'dark') ? colorScheme : null);
+    
+    // Hooks
+    const { createDeposit, isCreatingDepositRequest, depositRequestError, depositRequestResponse, clearDeposit } = useWallet();
+    const { user } = useAuth();
 
     const [modalVisible, setModalVisible] = useState(false);
     const [criptoSeleccionada, setCriptoSeleccionada] = useState<CriptomonedaInfo | null>(null);
-    const [cantidad, setCantidad] = useState('');
     const [qrVisible, setQrVisible] = useState(false);
+
+    // Limpiar respuesta cuando se abra el modal
+    useEffect(() => {
+        if (modalVisible) {
+            clearDeposit();
+        }
+    }, [modalVisible, clearDeposit]);
+
+    // Manejar respuesta exitosa
+    useEffect(() => {
+        if (depositRequestResponse) {
+            Toast.show({
+                type: 'success',
+                text1: 'Solicitud de depósito creada',
+                text2: depositRequestResponse.mensaje
+            });
+            setModalVisible(false);
+            setCriptoSeleccionada(null);
+        }
+    }, [depositRequestResponse]);
+
+    // Manejar errores
+    useEffect(() => {
+        if (depositRequestError) {
+            Toast.show({
+                type: 'error',
+                text1: 'Error en el depósito',
+                text2: depositRequestError
+            });
+        }
+    }, [depositRequestError]);
 
     const abrirModal = (cripto: CriptomonedaInfo) => {
         setCriptoSeleccionada(cripto);
-        setCantidad('');
         setModalVisible(true);
     };
 
     const cerrarModal = () => {
         setModalVisible(false);
         setCriptoSeleccionada(null);
-        setCantidad('');
         setQrVisible(false);
     };
 
-    const handleDepositar = () => {
-        if (!cantidad || parseFloat(cantidad) <= 0) {
+    const handleSubmitDeposito = async (values: SolicitudDepositoDto) => {
+        if (!user?.id) {
             Toast.show({
                 type: 'error',
                 text1: 'Error',
-                text2: 'Por favor ingresa una cantidad válida'
+                text2: 'Usuario no autenticado'
             });
             return;
         }
 
-        Alert.alert(
-            'Confirmar depósito',
-            `¿Deseas depositar ${cantidad} ${criptoSeleccionada?.simbolo}?`,
-            [
-                {
-                    text: 'Cancelar',
-                    style: 'cancel'
-                },
-                {
-                    text: 'Confirmar',
-                    onPress: () => {
-                        Toast.show({
-                            type: 'success',
-                            text1: 'Depósito confirmado',
-                            text2: `Tu depósito de ${cantidad} ${criptoSeleccionada?.simbolo} está siendo procesado`
-                        });
-                        cerrarModal();
-                    }
-                }
-            ]
-        );
+        try {
+            await createDeposit(user.id, values);
+        } catch (error) {
+            console.error('Error al crear depósito:', error);
+        }
     };
 
     const copiarWallet = () => {
@@ -127,6 +173,22 @@ export default function DepositoScreen() {
                 text1: 'Copiado',
                 text2: 'Dirección de wallet copiada al portapapeles'
             });
+        }
+    };
+
+    // Mapear criptomoneda a método de pago
+    const getMetodoPagoFromCripto = (tipoCrypto: TipoCrypto): MetodoPago => {
+        switch (tipoCrypto) {
+            case TipoCrypto.BITCOIN:
+                return MetodoPago.BITCOIN;
+            case TipoCrypto.ETHEREUM:
+                return MetodoPago.ETHEREUM;
+            case TipoCrypto.USDT:
+                return MetodoPago.USDT;
+            case TipoCrypto.USDC:
+                return MetodoPago.USDC;
+            default:
+                return MetodoPago.TRANSFERENCIA_CRYPTO;
         }
     };
 
@@ -223,159 +285,232 @@ export default function DepositoScreen() {
                             </TouchableOpacity>
                         </View>
 
-                        <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-                            {/* Instrucciones paso a paso */}
-                            <View style={styles.instructionsSection}>
-                                <Text style={styles.instructionsTitle}>Cómo realizar tu depósito:</Text>
-                                
-                                <View style={styles.stepContainer}>
-                                    <View style={styles.stepNumber}>
-                                        <Text style={styles.stepNumberText}>1</Text>
-                                    </View>
-                                    <Text style={styles.stepText}>
-                                        Copia la dirección de wallet o escanea el código QR
-                                    </Text>
-                                </View>
+                        <Formik
+                            initialValues={{
+                                ...initialDepositValues,
+                                tipoCrypto: criptoSeleccionada ? 
+                                    (Object.values(TipoCrypto).find(crypto => 
+                                        crypto === criptoSeleccionada.simbolo
+                                    ) || TipoCrypto.BITCOIN) : TipoCrypto.BITCOIN,
+                                metodoPago: criptoSeleccionada ? 
+                                    getMetodoPagoFromCripto(
+                                        Object.values(TipoCrypto).find(crypto => 
+                                            crypto === criptoSeleccionada.simbolo
+                                        ) || TipoCrypto.BITCOIN
+                                    ) : MetodoPago.BITCOIN,
+                                direccionWallet: criptoSeleccionada?.wallet || ''
+                            }}
+                            validationSchema={depositoValidationSchema}
+                            onSubmit={handleSubmitDeposito}
+                        >
+                            {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
+                                <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+                                    {/* Instrucciones paso a paso */}
+                                    <View style={styles.instructionsSection}>
+                                        <Text style={styles.instructionsTitle}>Cómo realizar tu depósito:</Text>
+                                        
+                                        <View style={styles.stepContainer}>
+                                            <View style={styles.stepNumber}>
+                                                <Text style={styles.stepNumberText}>1</Text>
+                                            </View>
+                                            <Text style={styles.stepText}>
+                                                Completa el formulario con los datos de tu depósito
+                                            </Text>
+                                        </View>
 
-                                <View style={styles.stepContainer}>
-                                    <View style={styles.stepNumber}>
-                                        <Text style={styles.stepNumberText}>2</Text>
-                                    </View>
-                                    <Text style={styles.stepText}>
-                                        Ingresa la cantidad que deseas depositar
-                                    </Text>
-                                </View>
+                                        <View style={styles.stepContainer}>
+                                            <View style={styles.stepNumber}>
+                                                <Text style={styles.stepNumberText}>2</Text>
+                                            </View>
+                                            <Text style={styles.stepText}>
+                                                Copia la dirección de wallet o escanea el código QR
+                                            </Text>
+                                        </View>
 
-                                <View style={styles.stepContainer}>
-                                    <View style={styles.stepNumber}>
-                                        <Text style={styles.stepNumberText}>3</Text>
-                                    </View>
-                                    <Text style={styles.stepText}>
-                                        Realiza la transferencia desde tu wallet
-                                    </Text>
-                                </View>
+                                        <View style={styles.stepContainer}>
+                                            <View style={styles.stepNumber}>
+                                                <Text style={styles.stepNumberText}>3</Text>
+                                            </View>
+                                            <Text style={styles.stepText}>
+                                                Realiza la transferencia desde tu wallet
+                                            </Text>
+                                        </View>
 
-                                <View style={styles.stepContainer}>
-                                    <View style={styles.stepNumber}>
-                                        <Text style={styles.stepNumberText}>4</Text>
+                                        <View style={styles.stepContainer}>
+                                            <View style={styles.stepNumber}>
+                                                <Text style={styles.stepNumberText}>4</Text>
+                                            </View>
+                                            <Text style={styles.stepText}>
+                                                Confirma el depósito y espera las confirmaciones de red
+                                            </Text>
+                                        </View>
                                     </View>
-                                    <Text style={styles.stepText}>
-                                        Confirma el depósito y espera las confirmaciones de red
-                                    </Text>
-                                </View>
-                            </View>
 
-                            {/* Código QR */}
-                            <View style={styles.qrSection}>
-                                <TouchableOpacity 
-                                    style={styles.qrToggleButton}
-                                    onPress={() => setQrVisible(!qrVisible)}
-                                >
-                                    <Text style={styles.qrTitle}>Código QR</Text>
-                                    <Ionicons 
-                                        name={qrVisible ? "chevron-up" : "chevron-down"} 
-                                        size={20} 
-                                        color={colorScheme === 'dark' ? '#fff' : '#181818'} 
-                                    />
-                                </TouchableOpacity>
-                                
-                                {qrVisible && (
-                                    <View style={styles.qrContent}>
-                                        <View style={styles.qrContainer}>
-                                            {criptoSeleccionada && (
-                                                <QRCode
-                                                    value={criptoSeleccionada.wallet}
-                                                    size={150}
-                                                    backgroundColor={colorScheme === 'dark' ? '#fff' : '#fff'}
-                                                    color={colorScheme === 'dark' ? '#000' : '#000'}
+                                    {/* Formulario de depósito */}
+                                    <View style={styles.formSection}>
+                                        {/* Campo de cantidad */}
+                                        <View style={styles.cantidadSection}>
+                                            <Text style={styles.cantidadTitle}>Monto a depositar (USD)</Text>
+                                            <View style={styles.cantidadContainer}>
+                                                <TextInput
+                                                    style={[
+                                                        styles.cantidadInput,
+                                                        errors.monto && touched.monto && styles.inputError
+                                                    ]}
+                                                    value={values.monto.toString()}
+                                                    onChangeText={(text) => setFieldValue('monto', parseFloat(text) || 0)}
+                                                    onBlur={handleBlur('monto')}
+                                                    placeholder="Ingresa el monto en USD"
+                                                    placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#888'}
+                                                    keyboardType="numeric"
                                                 />
+                                                <Text style={styles.cantidadSimbolo}>USD</Text>
+                                            </View>
+                                            {errors.monto && touched.monto && (
+                                                <Text style={styles.errorText}>{errors.monto}</Text>
                                             )}
                                         </View>
-                                        <Text style={styles.qrSubtitle}>
-                                            Escanea este código QR desde tu wallet para obtener automáticamente la dirección
+
+                                        {/* Selección de método de pago */}
+                                        <View style={styles.pickerSection}>
+                                            <Text style={styles.pickerLabel}>Método de pago</Text>
+                                            <View style={[
+                                                styles.pickerContainer,
+                                                errors.metodoPago && touched.metodoPago && styles.inputError
+                                            ]}>
+                                                <Text style={styles.selectedValue}>
+                                                    {values.metodoPago}
+                                                </Text>
+                                            </View>
+                                            {errors.metodoPago && touched.metodoPago && (
+                                                <Text style={styles.errorText}>{errors.metodoPago}</Text>
+                                            )}
+                                        </View>
+
+                                        {/* Selección de criptomoneda */}
+                                        <View style={styles.pickerSection}>
+                                            <Text style={styles.pickerLabel}>Criptomoneda</Text>
+                                            <View style={[
+                                                styles.pickerContainer,
+                                                errors.tipoCrypto && touched.tipoCrypto && styles.inputError
+                                            ]}>
+                                                <Text style={styles.selectedValue}>
+                                                    {values.tipoCrypto} - {criptoSeleccionada?.nombre}
+                                                </Text>
+                                            </View>
+                                            {errors.tipoCrypto && touched.tipoCrypto && (
+                                                <Text style={styles.errorText}>{errors.tipoCrypto}</Text>
+                                            )}
+                                        </View>
+                                    </View>
+
+                                    {/* Código QR */}
+                                    <View style={styles.qrSection}>
+                                        <TouchableOpacity 
+                                            style={styles.qrToggleButton}
+                                            onPress={() => setQrVisible(!qrVisible)}
+                                        >
+                                            <Text style={styles.qrTitle}>Código QR</Text>
+                                            <Ionicons 
+                                                name={qrVisible ? "chevron-up" : "chevron-down"} 
+                                                size={20} 
+                                                color={colorScheme === 'dark' ? '#fff' : '#181818'} 
+                                            />
+                                        </TouchableOpacity>
+                                        
+                                        {qrVisible && (
+                                            <View style={styles.qrContent}>
+                                                <View style={styles.qrContainer}>
+                                                    {criptoSeleccionada && (
+                                                        <QRCode
+                                                            value={values.direccionWallet}
+                                                            size={150}
+                                                            backgroundColor={colorScheme === 'dark' ? '#fff' : '#fff'}
+                                                            color={colorScheme === 'dark' ? '#000' : '#000'}
+                                                        />
+                                                    )}
+                                                </View>
+                                                <Text style={styles.qrSubtitle}>
+                                                    Escanea este código QR desde tu wallet para obtener automáticamente la dirección
+                                                </Text>
+                                            </View>
+                                        )}
+                                    </View>
+
+                                    {/* Dirección de wallet */}
+                                    <View style={styles.walletSection}>
+                                        <Text style={styles.walletTitle}>Dirección de wallet</Text>
+                                        <View style={styles.walletContainer}>
+                                            <Text style={styles.walletText} numberOfLines={2}>
+                                                {values.direccionWallet}
+                                            </Text>
+                                            <TouchableOpacity
+                                                style={styles.copyButton}
+                                                onPress={copiarWallet}
+                                            >
+                                                <Ionicons name="copy-outline" size={20} color="#d32f2f" />
+                                            </TouchableOpacity>
+                                        </View>
+                                        <Text style={styles.redInfo}>
+                                            Red: {criptoSeleccionada?.red}
                                         </Text>
                                     </View>
-                                )}
-                            </View>
 
-                            {/* Dirección de wallet */}
-                            <View style={styles.walletSection}>
-                                <Text style={styles.walletTitle}>Dirección de wallet</Text>
-                                <View style={styles.walletContainer}>
-                                    <Text style={styles.walletText} numberOfLines={2}>
-                                        {criptoSeleccionada?.wallet}
-                                    </Text>
-                                    <TouchableOpacity
-                                        style={styles.copyButton}
-                                        onPress={copiarWallet}
-                                    >
-                                        <Ionicons name="copy-outline" size={20} color="#d32f2f" />
-                                    </TouchableOpacity>
-                                </View>
-                                <Text style={styles.redInfo}>
-                                    Red: {criptoSeleccionada?.red}
-                                </Text>
-                            </View>
+                                    {/* Información de la transacción */}
+                                    <View style={styles.infoTransaccion}>
+                                        <View style={styles.infoRow}>
+                                            <Text style={styles.infoLabel}>Red:</Text>
+                                            <Text style={styles.infoValue}>{criptoSeleccionada?.red}</Text>
+                                        </View>
+                                        <View style={styles.infoRow}>
+                                            <Text style={styles.infoLabel}>Método:</Text>
+                                            <Text style={styles.infoValue}>{values.metodoPago}</Text>
+                                        </View>
+                                        <View style={styles.infoRow}>
+                                            <Text style={styles.infoLabel}>Criptomoneda:</Text>
+                                            <Text style={styles.infoValue}>{values.tipoCrypto}</Text>
+                                        </View>
+                                        <View style={styles.infoRow}>
+                                            <Text style={styles.infoLabel}>Monto:</Text>
+                                            <Text style={styles.infoValue}>${values.monto} USD</Text>
+                                        </View>
+                                        <View style={styles.infoRow}>
+                                            <Text style={styles.infoLabel}>Tiempo estimado:</Text>
+                                            <Text style={styles.infoValue}>1-3 confirmaciones</Text>
+                                        </View>
+                                        <View style={styles.infoRow}>
+                                            <Text style={styles.infoLabel}>Monto mínimo:</Text>
+                                            <Text style={styles.infoValue}>$10 USD</Text>
+                                        </View>
+                                    </View>
 
-                            {/* Campo de cantidad */}
-                            <View style={styles.cantidadSection}>
-                                <Text style={styles.cantidadTitle}>Cantidad a depositar</Text>
-                                <View style={styles.cantidadContainer}>
-                                    <TextInput
-                                        style={styles.cantidadInput}
-                                        value={cantidad}
-                                        onChangeText={setCantidad}
-                                        placeholder={`Ingresa cantidad en ${criptoSeleccionada?.simbolo}`}
-                                        placeholderTextColor={colorScheme === 'dark' ? '#aaa' : '#888'}
-                                        keyboardType="numeric"
-                                    />
-                                    <Text style={styles.cantidadSimbolo}>
-                                        {criptoSeleccionada?.simbolo}
-                                    </Text>
-                                </View>
-                            </View>
-
-                            {/* Información de la transacción */}
-                            <View style={styles.infoTransaccion}>
-                                <View style={styles.infoRow}>
-                                    <Text style={styles.infoLabel}>Red:</Text>
-                                    <Text style={styles.infoValue}>{criptoSeleccionada?.red}</Text>
-                                </View>
-                                <View style={styles.infoRow}>
-                                    <Text style={styles.infoLabel}>Tiempo estimado:</Text>
-                                    <Text style={styles.infoValue}>1-3 confirmaciones</Text>
-                                </View>
-                                <View style={styles.infoRow}>
-                                    <Text style={styles.infoLabel}>Monto mínimo:</Text>
-                                    <Text style={styles.infoValue}>$10 USD</Text>
-                                </View>
-                            </View>
-                        </ScrollView>
-
-                        <View style={styles.modalFooter}>
-                            <TouchableOpacity
-                                style={[styles.modalButton, styles.cancelButton]}
-                                onPress={cerrarModal}
-                            >
-                                <Text style={styles.cancelButtonText}>Cancelar</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[
-                                    styles.modalButton, 
-                                    styles.depositButton,
-                                    (!cantidad || parseFloat(cantidad) <= 0) && styles.disabledButton
-                                ]}
-                                onPress={handleDepositar}
-                                disabled={!cantidad || parseFloat(cantidad) <= 0}
-                            >
-                                <Text style={[
-                                    styles.depositButtonText,
-                                    (!cantidad || parseFloat(cantidad) <= 0) && styles.disabledButtonText
-                                ]}>
-                                    Depositar
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
+                                    <View style={styles.modalFooter}>
+                                        <TouchableOpacity
+                                            style={[styles.modalButton, styles.cancelButton]}
+                                            onPress={cerrarModal}
+                                        >
+                                            <Text style={styles.cancelButtonText}>Cancelar</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={[
+                                                styles.modalButton, 
+                                                styles.depositButton,
+                                                (Object.keys(errors).length > 0 || isCreatingDepositRequest) && styles.disabledButton
+                                            ]}
+                                            onPress={() => handleSubmit()}
+                                            disabled={Object.keys(errors).length > 0 || isCreatingDepositRequest}
+                                        >
+                                            <Text style={[
+                                                styles.depositButtonText,
+                                                (Object.keys(errors).length > 0 || isCreatingDepositRequest) && styles.disabledButtonText
+                                            ]}>
+                                                {isCreatingDepositRequest ? 'Procesando...' : 'Crear solicitud de depósito'}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </ScrollView>
+                            )}
+                        </Formik>
                     </View>
                 </View>
             </Modal>
@@ -741,5 +876,42 @@ const getStyles = (colorScheme: 'light' | 'dark' | null) =>
         },
         disabledButtonText: {
             color: colorScheme === 'dark' ? '#666' : '#999',
+        },
+        // Estilos para el formulario
+        formSection: {
+            marginBottom: 24,
+        },
+        inputError: {
+            borderColor: '#f44336',
+            borderWidth: 2,
+        },
+        errorText: {
+            color: '#f44336',
+            fontSize: 12,
+            marginTop: 4,
+            marginLeft: 4,
+        },
+        pickerSection: {
+            marginBottom: 16,
+        },
+        pickerLabel: {
+            fontSize: 16,
+            fontWeight: '600',
+            color: colorScheme === 'dark' ? '#fff' : '#181818',
+            marginBottom: 8,
+        },
+        pickerContainer: {
+            backgroundColor: colorScheme === 'dark' ? '#333' : '#f8f8f8',
+            borderRadius: 8,
+            padding: 12,
+            borderWidth: 1,
+            borderColor: colorScheme === 'dark' ? '#444' : '#e0e0e0',
+            minHeight: 48,
+            justifyContent: 'center',
+        },
+        selectedValue: {
+            fontSize: 16,
+            color: colorScheme === 'dark' ? '#fff' : '#181818',
+            fontWeight: '500',
         },
     });
