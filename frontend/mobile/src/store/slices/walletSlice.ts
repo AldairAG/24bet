@@ -151,7 +151,7 @@ export const getUserWallets = createAsyncThunk<
     async (usuarioId, { rejectWithValue }) => {
         try {
             const wallets = await walletService.getWalletsByUsuario(usuarioId) || [];
-            return wallets;
+            return wallets.data || [] ;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Error al cargar wallets del usuario';
             return rejectWithValue(errorMessage);

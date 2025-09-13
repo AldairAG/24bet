@@ -33,12 +33,12 @@ public class CryptoWalletService {
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
         
         // Verificar que no existe un wallet del mismo tipo para el usuario
-        Optional<CryptoWallet> existingWallet = cryptoWalletRepository
+        /* Optional<CryptoWallet> existingWallet = cryptoWalletRepository
             .findByUsuarioAndTipoCrypto(usuario, createDto.getTipoCrypto());
         
         if (existingWallet.isPresent()) {
             throw new RuntimeException("El usuario ya tiene un wallet de tipo " + createDto.getTipoCrypto());
-        }
+        } */
         
         // Verificar que la dirección no esté en uso
         if (cryptoWalletRepository.existsByAddress(createDto.getAddress())) {

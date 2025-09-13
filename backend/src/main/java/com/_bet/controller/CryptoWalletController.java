@@ -1,5 +1,6 @@
 package com._bet.controller;
 
+import com._bet.controller.AuthController.ApiResponseWrapper;
 import com._bet.dto.CryptoWalletDto;
 import com._bet.entity.CryptoWallet;
 import com._bet.entity.SolicitudDeposito;
@@ -53,9 +54,9 @@ public class CryptoWalletController {
      */
     @GetMapping("/usuario/{usuarioId}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<List<CryptoWalletDto>> getWalletsByUsuario(@PathVariable Long usuarioId) {
+    public ResponseEntity<ApiResponseWrapper<List<CryptoWalletDto>>> getWalletsByUsuario(@PathVariable Long usuarioId) {
         List<CryptoWalletDto> wallets = cryptoWalletService.getWalletsByUsuario(usuarioId);
-        return ResponseEntity.ok(wallets);
+        return ResponseEntity.ok(new ApiResponseWrapper<>(true,"Wallets obtenidas correctamente",wallets));
     }
     
     /**

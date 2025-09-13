@@ -499,46 +499,51 @@ export default function RetiroScreen() {
         );
     };
 
-    const renderWalletCard = (wallet: WalletInfo) => (
-        <View key={wallet.id} style={styles.walletCard}>
-            <View style={styles.walletHeader}>
-                <View style={[styles.walletIconContainer, { backgroundColor: wallet.color }]}>
-                    <Ionicons name={wallet.icono as any} size={24} color="#fff" />
-                </View>
-                <View style={styles.walletInfo}>
-                    <Text style={styles.walletNombre}>{wallet.nombre}</Text>
-                    <Text style={styles.walletSimbolo}>{wallet.simbolo}</Text>
-                    <Text style={styles.walletDireccion} numberOfLines={1}>
-                        {wallet.direccion}
-                    </Text>
-                </View>
-                <View style={styles.walletActions}>
-                    <TouchableOpacity 
-                        style={[styles.actionButton, styles.retiroButton]}
-                        onPress={() => abrirModalRetiro(wallet)}
-                    >
-                        <MaterialIcons name="attach-money" size={16} color="#fff" />
-                        <Text style={styles.actionButtonText}>Retirar</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                        style={[
-                            styles.actionButton, 
-                            styles.deleteButton,
-                            isDeactivatingWallet && styles.disabledButton
-                        ]}
-                        onPress={() => eliminarWallet(wallet.id)}
-                        disabled={isDeactivatingWallet}
-                    >
-                        {isDeactivatingWallet ? (
-                            <Text style={[styles.actionButtonText, { fontSize: 10 }]}>...</Text>
-                        ) : (
-                            <Ionicons name="trash-outline" size={16} color="#fff" />
-                        )}
-                    </TouchableOpacity>
+    const renderWalletCard = (walletApi: CryptoWalletDto) => {
+        // Convertir wallet de la API al formato local para UI
+        const wallet = convertirWalletApiALocal(walletApi);
+        
+        return (
+            <View key={wallet.id} style={styles.walletCard}>
+                <View style={styles.walletHeader}>
+                    <View style={[styles.walletIconContainer, { backgroundColor: wallet.color }]}>
+                        <Ionicons name={wallet.icono as any} size={24} color="#fff" />
+                    </View>
+                    <View style={styles.walletInfo}>
+                        <Text style={styles.walletNombre}>{wallet.nombre}</Text>
+                        <Text style={styles.walletSimbolo}>{wallet.simbolo}</Text>
+                        <Text style={styles.walletDireccion} numberOfLines={1}>
+                            {wallet.direccion}
+                        </Text>
+                    </View>
+                    <View style={styles.walletActions}>
+                        <TouchableOpacity 
+                            style={[styles.actionButton, styles.retiroButton]}
+                            onPress={() => abrirModalRetiro(wallet)}
+                        >
+                            <MaterialIcons name="attach-money" size={16} color="#fff" />
+                            <Text style={styles.actionButtonText}>Retirar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                            style={[
+                                styles.actionButton, 
+                                styles.deleteButton,
+                                isDeactivatingWallet && styles.disabledButton
+                            ]}
+                            onPress={() => eliminarWallet(wallet.id)}
+                            disabled={isDeactivatingWallet}
+                        >
+                            {isDeactivatingWallet ? (
+                                <Text style={[styles.actionButtonText, { fontSize: 10 }]}>...</Text>
+                            ) : (
+                                <Ionicons name="trash-outline" size={16} color="#fff" />
+                            )}
+                        </TouchableOpacity>
+                    </View>
                 </View>
             </View>
-        </View>
-    );
+        );
+    };
 
     const renderSolicitudCard = (solicitud: SolicitudRetiro) => {
         const localWallets = getLocalWallets();
@@ -596,7 +601,7 @@ export default function RetiroScreen() {
                         </TouchableOpacity>
                     </View>
 
-                    {getLocalWallets().length === 0 ? (
+                    {userWallets.length === 0 ? (
                         <View style={styles.emptyState}>
                             <Ionicons name="wallet-outline" size={48} color={colorScheme === 'dark' ? '#666' : '#ccc'} />
                             <Text style={styles.emptyStateText}>
@@ -607,7 +612,7 @@ export default function RetiroScreen() {
                             </Text>
                         </View>
                     ) : (
-                        getLocalWallets().map(renderWalletCard)
+                        userWallets.map(renderWalletCard)
                     )}
                 </View>
 
