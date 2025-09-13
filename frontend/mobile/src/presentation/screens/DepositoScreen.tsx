@@ -100,7 +100,7 @@ export default function DepositoScreen() {
     
     // Hooks
     const { createDeposit, isCreatingDepositRequest, depositRequestError, depositRequestResponse, clearDeposit } = useWallet();
-    const { user } = useAuth();
+    const { usuario } = useAuth();
 
     const [modalVisible, setModalVisible] = useState(false);
     const [criptoSeleccionada, setCriptoSeleccionada] = useState<CriptomonedaInfo | null>(null);
@@ -149,7 +149,7 @@ export default function DepositoScreen() {
     };
 
     const handleSubmitDeposito = async (values: SolicitudDepositoDto) => {
-        if (!user?.id) {
+        if (!usuario?.id) {
             Toast.show({
                 type: 'error',
                 text1: 'Error',
@@ -159,7 +159,12 @@ export default function DepositoScreen() {
         }
 
         try {
-            await createDeposit(user.id, values);
+            await createDeposit(usuario.id, values);
+            Toast.show({
+                type: 'success',
+                text1: 'Depósito creado',
+                text2: 'Tu solicitud de depósito ha sido creada con éxito.'
+            });
         } catch (error) {
             console.error('Error al crear depósito:', error);
         }

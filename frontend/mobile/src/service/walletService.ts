@@ -1,5 +1,5 @@
 import { apiBase } from './apiBase';
-import { CreateCryptoWalletDto, TipoCrypto, CryptoWalletDto } from '../types/walletTypes';
+import { CreateCryptoWalletDto, TipoCrypto, CryptoWalletDto, SolicitudDepositoResponse, SolicitudDepositoDto, SolicitudRetiroDto, SolicitudRetiroResponse } from '../types/walletTypes';
 
 /**
  * Servicio para la gestión de wallets de criptomonedas
@@ -23,6 +23,47 @@ class WalletService {
             return response.data;
         } catch (error) {
             console.error('Error creating crypto wallet:', error);
+            throw this.handleError(error);
+        }
+    }
+
+    /**
+     * Crea una solicitud de depósito para un usuario
+     * @param usuarioId ID del usuario
+     * @param depositoData Datos de la solicitud de depósito
+     * @returns Promise con la respuesta de la solicitud de depósito
+     */
+    async createSolicitudDeposito(usuarioId: number, depositoData: SolicitudDepositoDto): Promise<SolicitudDepositoResponse> {
+        try {
+            const response = await apiBase.post<SolicitudDepositoResponse>(
+                `${this.baseUrl}/usuario/${usuarioId}/solicitud-deposito`,
+                depositoData
+            );
+
+            return response.data;
+        } catch (error) {
+            console.error('Error creating deposit request:', error);
+            throw this.handleError(error);
+        }
+    }
+
+    /**
+     * Crea una solicitud de retiro
+     * @param usuarioId ID del usuario
+     * @param retiroData Datos de la solicitud de retiro
+     * @returns Promise con la respuesta de la solicitud de retiro  
+     */
+    async createSolicitudRetiro(usuarioId: number, retiroData: SolicitudRetiroDto): Promise<SolicitudRetiroResponse> {
+
+        try {
+            const response = await apiBase.post<SolicitudRetiroResponse>(
+                `${this.baseUrl}/usuario/${usuarioId}/solicitud-retiro`,
+                retiroData
+            );
+
+            return response.data;
+        } catch (error) {
+            console.error('Error creating withdrawal request:', error);
             throw this.handleError(error);
         }
     }

@@ -90,7 +90,7 @@ export const createDepositRequest = createAsyncThunk<
     'wallet/createDepositRequest',
     async ({ usuarioId, depositoData }, { rejectWithValue }) => {
         try {
-            const response = await walletService.createDepositoRequest(usuarioId, depositoData);
+            const response = await walletService.createSolicitudDeposito(usuarioId, depositoData);
             return response;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Error desconocido al crear solicitud de depósito';
@@ -110,7 +110,7 @@ export const createWithdrawalRequest = createAsyncThunk<
     'wallet/createWithdrawalRequest',
     async ({ usuarioId, retiroData }, { rejectWithValue }) => {
         try {
-            const response = await walletService.createRetiroRequest(usuarioId, retiroData);
+            const response = await walletService.createSolicitudRetiro(usuarioId, retiroData);
             return response;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Error desconocido al crear solicitud de retiro';
