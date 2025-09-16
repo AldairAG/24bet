@@ -56,7 +56,7 @@ export default function LoginScreen({ navigation }: Props) {
     const Icon = React.memo(() => (
         <View style={styles.IconContainer}>
             <Image
-                source={require('../../assets/Mesa-de-trabajo.png')}
+                source={require('../../assets/24bet-icon.png')}
                 style={styles.Icon}
                 resizeMode="contain"
             />

@@ -14,7 +14,7 @@ import EventDetailScreen from '../screens/EventDetailScreen';
 const HeaderIcon = React.memo(() => (
     <View style={styles.headerIconContainer}>
         <Image
-            source={require('../../assets/Mesa-de-trabajo.png')}
+            source={require('../../assets/24bet-icon.png')}
             style={styles.headerIcon}
             resizeMode="contain"
         />
