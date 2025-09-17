@@ -24,7 +24,7 @@ import java.util.Map;
  * Diseñado para aplicaciones de casino y apuestas deportivas
  */
 @RestController
-@RequestMapping("/api/eventos-deportivos")
+@RequestMapping("/24bet/eventos-deportivos")
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")

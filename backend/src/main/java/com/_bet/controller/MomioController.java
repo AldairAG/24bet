@@ -19,7 +19,7 @@ import java.util.List;
  * Controlador REST para gestionar momios (odds)
  */
 @RestController
-@RequestMapping("/api/momios")
+@RequestMapping("/24bet/momios")
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "*")

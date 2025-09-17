@@ -11,9 +11,15 @@ import {
 } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import EventoItem from '../components/items/EventoItem';
+import EventosWebSocketScreen from '../../components/EventosWebSocketScreen';
 
 export default function HomeScreen() {
-    const colorScheme = useColorScheme();
+
+    return (
+        <EventosWebSocketScreen />
+    );
+
+   /*  const colorScheme = useColorScheme();
     const isDark = colorScheme === 'dark';
     
     const handleBetPress = (event: any, betType: 'home' | 'draw' | 'away', odds: number) => {
@@ -100,13 +106,13 @@ export default function HomeScreen() {
     return (
         <View style={[styles.container, { backgroundColor: isDark ? '#121212' : '#f5f5f5' }]}>
             <ScrollView style={styles.scrollView}>
-                {/* Header con bienvenida */}
+                {/* Header con bienvenida 
                 <View style={[styles.header, { backgroundColor: isDark ? '#1a1a1a' : '#d32f2f' }]}>
                     <Text style={styles.welcomeText}>¡Bienvenido al Casino!</Text>
                     <Text style={styles.subtitleText}>Disfruta de la mejor experiencia de apuestas</Text>
                 </View>
 
-                {/* Sección de deportes populares */}
+                {/* Sección de deportes populares 
                 <View style={styles.section}>
                     <Text style={[styles.sectionTitle, { color: isDark ? 'white' : '#333' }]}>Deportes Populares</Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -129,7 +135,7 @@ export default function HomeScreen() {
                     </ScrollView>
                 </View>
 
-                {/* Eventos en vivo destacados */}
+                {/* Eventos en vivo destacados 
                 <View style={styles.section}>
                     <Text style={[styles.sectionTitle, { color: isDark ? 'white' : '#333' }]}>Eventos en Vivo</Text>
                     {liveEvents.map((event) => (
@@ -143,7 +149,7 @@ export default function HomeScreen() {
                     ))}
                 </View>
 
-                {/* Próximos eventos */}
+                {/* Próximos eventos 
                 <View style={styles.section}>
                     <Text style={[styles.sectionTitle, { color: isDark ? 'white' : '#333' }]}>Próximos Eventos</Text>
                     {upcomingEvents.map((event) => (
@@ -158,7 +164,9 @@ export default function HomeScreen() {
                 </View>
             </ScrollView>
         </View>
-    );
+    );*/
+
+
 }
 
 const styles = StyleSheet.create({

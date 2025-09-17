@@ -71,6 +71,14 @@ public class SecurityConfig {
                         .requestMatchers("/24bet/usuarios/**").permitAll()
                         .requestMatchers("/24bet/crypto-wallets/**").permitAll()
 
+                        .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/app/**").permitAll()
+                        .requestMatchers("/topic/**").permitAll()
+                        .requestMatchers("/queue/**").permitAll()
+                        
+                        // 📡 Webhook endpoints (para recibir actualizaciones)
+                        .requestMatchers("/24bet/api/webhook/**").permitAll()
+
                         // Swagger y documentación
                         //.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
 

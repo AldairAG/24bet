@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { deportesWebSocketService, EventoDeportivo, Momio, EstadisticasEventos, Liga } from '../service/eventoService';
+import { deportesWebSocketService, EventoDeportivo, Momio, EstadisticasEventos, Liga } from '../../service/eventoService';
 
 // Tipos para el estado
 export interface EventosState {

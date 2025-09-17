@@ -66,7 +66,7 @@ export class EventosWebSocketService {
     eventosEspecificos: new Map<number, Set<EventoEspecificoCallback>>()
   };
 
-  constructor(baseUrl: string = 'http://localhost:8080') {
+  constructor(baseUrl: string = 'http://localhost:8080/ws') {
     this.baseUrl = baseUrl;
     this.initializeClient();
   }
@@ -75,7 +75,7 @@ export class EventosWebSocketService {
    * Inicializa el cliente WebSocket
    */
   private initializeClient(): void {
-    const socket = new SockJS(`${this.baseUrl}/ws`);
+    const socket = new SockJS(`${this.baseUrl}`);
     
     this.client = new Client({
       webSocketFactory: () => socket as any,
@@ -123,16 +123,16 @@ export class EventosWebSocketService {
 
       const onConnect = () => {
         if (this.client) {
-          this.client.onConnect = undefined;
-          this.client.onStompError = undefined;
+          this.client.onConnect = () => {}; // Callback vacío en lugar de undefined
+          this.client.onStompError = () => {}; // Callback vacío en lugar de undefined
         }
         resolve();
       };
 
       const onError = (frame: any) => {
         if (this.client) {
-          this.client.onConnect = undefined;
-          this.client.onStompError = undefined;
+          this.client.onConnect = () => {}; // Callback vacío en lugar de undefined
+          this.client.onStompError = () => {}; // Callback vacío en lugar de undefined
         }
         reject(new Error(`Error de conexión: ${frame.headers?.message || 'Desconocido'}`));
       };
@@ -363,7 +363,7 @@ export class EventosWebSocketService {
 }
 
 // Instancia singleton del servicio
-export const deportesWebSocketService = new DeportesWebSocketService();
+export const deportesWebSocketService = new EventosWebSocketService();
 
 // Hook personalizado para React Native (opcional)
 export const useDeportesWebSocket = () => {
@@ -394,4 +394,4 @@ export const useDeportesWebSocket = () => {
 };
 
 // Exportar también la clase para uso directo
-export default DeportesWebSocketService;
+export default EventosWebSocketService;
