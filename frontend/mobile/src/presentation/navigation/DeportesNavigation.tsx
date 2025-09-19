@@ -9,6 +9,7 @@ import MisApuestasScreen from '../screens/MisApuestasScreen';
 import DeportesScreen from '../screens/DeportesScreen';
 import SportEventsScreen from '../screens/SportEventsScreen';
 import EventDetailScreen from '../screens/EventDetailScreen';
+import SportManager from '../screens/SportManager';
 
 // Componente del icono del header
 const HeaderIcon = React.memo(() => (
@@ -46,6 +47,12 @@ export type MainCasinoStackParamList = {
             awayTeam: string;
             venue?: string;
         };
+    };
+    SportManager: {
+        deporte: string;
+        region: string;
+        liga: string;
+        evento?: string;
     };
 };
 
@@ -155,6 +162,15 @@ export default function CasinoNavigation() {
                 component={EventDetailScreen}
                 options={{
                     headerShown: false,
+                }}
+            />
+            <MainCasinoStack.Screen 
+                name="SportManager" 
+                component={SportManager}
+                options={{
+                    headerShown: true,
+                    title: 'Gestión Deportiva',
+                    headerTintColor: '#d32f2f',
                 }}
             />
         </MainCasinoStack.Navigator>

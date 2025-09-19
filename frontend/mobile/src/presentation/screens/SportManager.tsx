@@ -1,14 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { RouteProp, useRoute } from '@react-navigation/native';
+import { MainCasinoStackParamList } from '../navigation/DeportesNavigation';
 
-// Interfaces para tipar los props
-interface SportManagerProps {
-    deporte: string;
-    region: string;
-    liga: string;
-    evento: string;
-}
+// Tipo para los parámetros de ruta de SportManager
+type SportManagerRouteProp = RouteProp<MainCasinoStackParamList, 'SportManager'>;
 
+// Interfaces para tipar los props de los componentes
 interface ComponenteDeporteProps {
     deporte?: string;
     region?: string;
@@ -16,15 +14,25 @@ interface ComponenteDeporteProps {
     evento?: string;
 }
 
-const SportManager: React.FC<SportManagerProps> = ({ deporte, region, liga, evento }) => {
+const SportManager: React.FC = () => {
+    const route = useRoute<SportManagerRouteProp>();
+    const { deporte, region, liga, evento } = route.params;
+
     return (
         <View>
             <View style={styles.breadcrumb}>
-                <Text style={styles.breadcrumbText}>{deporte} / {region} / {liga} / {evento}</Text>
+                <Text style={styles.breadcrumbText}>
+                    {deporte} / {region} / {liga} {evento ? `/ ${evento}` : ''}
+                </Text>
             </View>
-            <ComponenteDeporte deporte={deporte} region={region} liga={liga} evento={evento} />
+
+            {evento ? (<ComponenteEvento evento={evento} />)
+                : liga ? (<ComponenteLiga liga={liga} />)
+                    : region ? (<ComponenteRegion region={region} />)
+                        : deporte && (<ComponenteDeporte deporte={deporte} />)}
+
         </View>
-  );
+    );
 };
 
 const ComponenteDeporte: React.FC<ComponenteDeporteProps> = ({ deporte, region, liga, evento }) => {
@@ -70,3 +78,5 @@ const styles = StyleSheet.create({
         color: '#666',
     },
 });
+
+export default SportManager;

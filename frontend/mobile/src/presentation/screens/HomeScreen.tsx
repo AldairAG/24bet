@@ -12,13 +12,20 @@ import {
     Alert,
 } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import EventoItem from '../components/items/EventoItem';
 import { useEventos } from '../../hooks/useEventos';
 import { EventoDeportivoResponse } from '../../types/EventosType';
+import { MainCasinoStackParamList } from '../navigation/DeportesNavigation';
+
+// Tipo para la navegación
+type HomeScreenNavigationProp = NativeStackNavigationProp<MainCasinoStackParamList>;
 
 export default function HomeScreen() {
     const colorScheme = useColorScheme();
     const isDark = colorScheme === 'dark';
+    const navigation = useNavigation<HomeScreenNavigationProp>();
     
     // Hook para gestión de eventos deportivos
     const {
@@ -104,31 +111,67 @@ export default function HomeScreen() {
         console.log(`Apuesta seleccionada: ${betType} en ${event.title} con cuota ${odds}`);
     };
     
-    const handleLigaPress = (ligaNombre: string) => {
-        // Aquí puedes agregar la lógica para navegar a la liga específica
-        console.log(`Liga seleccionada: ${ligaNombre}`);
+    const handleLigaPress = (liga: { nombre: string; deporte: string; pais: string }) => {
+        // Navegar a SportManager con los parámetros de la liga seleccionada
+        navigation.navigate('SportManager', {
+            deporte: liga.deporte,
+            region: liga.pais,
+            liga: liga.nombre,
+            evento: '', // Sin evento específico por ahora
+        });
+        console.log(`Liga seleccionada: ${liga.nombre} - ${liga.deporte} - ${liga.pais}`);
     };
     
     // Datos de ligas principales
     const ligasPrincipales = [
+        // Fútbol
         { id: '1', nombre: 'Liga MX', icon: 'football', tipo: 'Ionicons', deporte: 'fútbol', pais: 'México' },
         { id: '2', nombre: 'Liga MX Femenil', icon: 'football', tipo: 'Ionicons', deporte: 'fútbol', pais: 'México' },
-        { id: '3', nombre: 'NFL', icon: 'american-football', tipo: 'Ionicons', deporte: 'fútbol americano', pais: 'Estados Unidos' },
-        { id: '4', nombre: 'NCAAF', icon: 'american-football', tipo: 'Ionicons', deporte: 'fútbol americano', pais: 'Estados Unidos' },
-        { id: '5', nombre: 'MLB', icon: 'baseball', tipo: 'Ionicons', deporte: 'béisbol', pais: 'Estados Unidos' },
         { id: '6', nombre: 'Premier League', icon: 'football', tipo: 'Ionicons', deporte: 'fútbol', pais: 'Inglaterra' },
         { id: '7', nombre: 'La Liga', icon: 'football', tipo: 'Ionicons', deporte: 'fútbol', pais: 'España' },
         { id: '8', nombre: 'Bundesliga', icon: 'football', tipo: 'Ionicons', deporte: 'fútbol', pais: 'Alemania' },
         { id: '9', nombre: 'Serie A', icon: 'football', tipo: 'Ionicons', deporte: 'fútbol', pais: 'Italia' },
         { id: '10', nombre: 'Liga 1', icon: 'football', tipo: 'Ionicons', deporte: 'fútbol', pais: 'Francia' },
+        { id: '16', nombre: 'MLS', icon: 'football', tipo: 'Ionicons', deporte: 'fútbol', pais: 'Estados Unidos' },
+        { id: '17', nombre: 'Primera División', icon: 'football', tipo: 'Ionicons', deporte: 'fútbol', pais: 'Argentina' },
+        { id: '18', nombre: 'Eredivisie', icon: 'football', tipo: 'Ionicons', deporte: 'fútbol', pais: 'Países Bajos' },
+        
+        // Competiciones Internacionales de Fútbol
         { id: '11', nombre: 'UEFA Champions League', icon: 'trophy', tipo: 'Ionicons', deporte: 'fútbol', pais: 'Europa' },
         { id: '12', nombre: 'UEFA Liga Europa', icon: 'trophy-outline', tipo: 'Ionicons', deporte: 'fútbol', pais: 'Europa' },
         { id: '13', nombre: 'UEFA Conference League', icon: 'medal', tipo: 'Ionicons', deporte: 'fútbol', pais: 'Europa' },
         { id: '14', nombre: 'Copa Libertadores', icon: 'trophy', tipo: 'Ionicons', deporte: 'fútbol', pais: 'Sudamérica' },
         { id: '15', nombre: 'Copa Sudamericana', icon: 'trophy-outline', tipo: 'Ionicons', deporte: 'fútbol', pais: 'Sudamérica' },
-        { id: '16', nombre: 'MLS', icon: 'football', tipo: 'Ionicons', deporte: 'fútbol', pais: 'Estados Unidos' },
-        { id: '17', nombre: 'Primera División', icon: 'football', tipo: 'Ionicons', deporte: 'fútbol', pais: 'Argentina' },
-        { id: '18', nombre: 'Eredivisie', icon: 'football', tipo: 'Ionicons', deporte: 'fútbol', pais: 'Países Bajos' },
+        
+        // Fútbol Americano
+        { id: '3', nombre: 'NFL', icon: 'american-football', tipo: 'Ionicons', deporte: 'fútbol americano', pais: 'Estados Unidos' },
+        { id: '4', nombre: 'NCAAF', icon: 'american-football', tipo: 'Ionicons', deporte: 'fútbol americano', pais: 'Estados Unidos' },
+        
+        // Béisbol
+        { id: '5', nombre: 'MLB', icon: 'baseball', tipo: 'Ionicons', deporte: 'béisbol', pais: 'Estados Unidos' },
+        { id: '19', nombre: 'Liga Mexicana de Béisbol', icon: 'baseball', tipo: 'Ionicons', deporte: 'béisbol', pais: 'México' },
+        { id: '20', nombre: 'NPB', icon: 'baseball', tipo: 'Ionicons', deporte: 'béisbol', pais: 'Japón' },
+        
+        // Básquetbol
+        { id: '21', nombre: 'NBA', icon: 'basketball', tipo: 'Ionicons', deporte: 'básquetbol', pais: 'Estados Unidos' },
+        { id: '22', nombre: 'EuroLeague', icon: 'basketball', tipo: 'Ionicons', deporte: 'básquetbol', pais: 'Europa' },
+        { id: '23', nombre: 'LNBP', icon: 'basketball', tipo: 'Ionicons', deporte: 'básquetbol', pais: 'México' },
+        
+        // Hockey
+        { id: '24', nombre: 'NHL', icon: 'hockey-sticks', tipo: 'MaterialIcons', deporte: 'hockey', pais: 'Estados Unidos/Canadá' },
+        
+        // Tenis
+        { id: '25', nombre: 'ATP Tour', icon: 'tennis', tipo: 'MaterialIcons', deporte: 'tenis', pais: 'Mundial' },
+        { id: '26', nombre: 'WTA Tour', icon: 'tennis', tipo: 'MaterialIcons', deporte: 'tenis', pais: 'Mundial' },
+        { id: '27', nombre: 'Grand Slams', icon: 'trophy', tipo: 'Ionicons', deporte: 'tenis', pais: 'Mundial' },
+        
+        // Boxeo/MMA
+        { id: '28', nombre: 'UFC', icon: 'fitness', tipo: 'Ionicons', deporte: 'MMA', pais: 'Mundial' },
+        { id: '29', nombre: 'Boxing', icon: 'fitness', tipo: 'Ionicons', deporte: 'boxeo', pais: 'Mundial' },
+        
+        // Esports
+        { id: '30', nombre: 'League of Legends', icon: 'game-controller', tipo: 'Ionicons', deporte: 'esports', pais: 'Mundial' },
+        { id: '31', nombre: 'Counter-Strike', icon: 'game-controller', tipo: 'Ionicons', deporte: 'esports', pais: 'Mundial' },
     ];
     
     return (
@@ -219,15 +262,23 @@ export default function HomeScreen() {
                             <TouchableOpacity 
                                 key={liga.id} 
                                 style={[styles.ligaItem, { backgroundColor: isDark ? '#1e1e1e' : 'white' }]}
-                                onPress={() => handleLigaPress(liga.nombre)}
+                                onPress={() => handleLigaPress({ nombre: liga.nombre, deporte: liga.deporte, pais: liga.pais })}
                             >
                                 <View style={styles.ligaContent}>
                                     <View style={styles.ligaIconContainer}>
-                                        <Ionicons 
-                                            name={liga.icon as any} 
-                                            size={24} 
-                                            color="#d32f2f" 
-                                        />
+                                        {liga.tipo === 'MaterialIcons' ? (
+                                            <MaterialIcons 
+                                                name={liga.icon as any} 
+                                                size={24} 
+                                                color="#d32f2f" 
+                                            />
+                                        ) : (
+                                            <Ionicons 
+                                                name={liga.icon as any} 
+                                                size={24} 
+                                                color="#d32f2f" 
+                                            />
+                                        )}
                                     </View>
                                     <View style={styles.ligaInfo}>
                                         <Text style={[styles.ligaNombre, { color: isDark ? 'white' : '#333' }]}>

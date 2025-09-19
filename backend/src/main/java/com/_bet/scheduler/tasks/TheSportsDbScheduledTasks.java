@@ -34,7 +34,7 @@ public class TheSportsDbScheduledTasks {
         
         try {
             // Usar la versión optimizada que solo sincroniza eventos próximos
-            //theSportsDbService.sincronizarEventosProximos7Dias().join();
+            theSportsDbService.sincronizarEventosProximos7Dias().join();
             log.info("✅ Sincronización automática OPTIMIZADA completada exitosamente");
         } catch (Exception e) {
             log.error("❌ Error en la sincronización automática optimizada: {}", e.getMessage(), e);
@@ -45,7 +45,7 @@ public class TheSportsDbScheduledTasks {
      * Sincronización completa de eventos - solo los fines de semana
      * Para mantener datos históricos actualizados sin afectar el rendimiento diario
      */
-    @Scheduled(cron = "0 0 1 * * SAT", zone = "America/Mexico_City") // Sábados a la 1:00 AM
+    /*@Scheduled(cron = "0 0 1 * * SAT", zone = "America/Mexico_City") // Sábados a la 1:00 AM
     @Async("theSportsDbTaskExecutor")
     public void sincronizacionCompletaFinDeSemana() {
         log.info("🔄 Iniciando sincronización COMPLETA semanal de eventos");
@@ -56,7 +56,7 @@ public class TheSportsDbScheduledTasks {
         } catch (Exception e) {
             log.error("❌ Error en la sincronización completa semanal: {}", e.getMessage(), e);
         }
-    }
+    }*/
 
     /**
      * Sincronización de datos maestros (deportes, ligas, equipos) - cada 24 horas
@@ -94,7 +94,7 @@ public class TheSportsDbScheduledTasks {
      * Sincronización inicial al arrancar la aplicación (opcional)
      * Solo se ejecuta si no hay datos en la base de datos
      */
-    @EventListener(ApplicationReadyEvent.class)
+    /*@EventListener(ApplicationReadyEvent.class)
     @Async("theSportsDbTaskExecutor")
     public void sincronizacionInicialAlArranque() {
         log.info("🚀 Verificando si es necesaria una sincronización inicial...");
@@ -112,7 +112,7 @@ public class TheSportsDbScheduledTasks {
         } catch (Exception e) {
             log.error("❌ Error en la sincronización inicial: {}", e.getMessage(), e);
         }
-    }
+    }*/
 
     /**
      * Sincronización de eventos en vivo - cada 5 minutos durante horas de juego
@@ -141,7 +141,7 @@ public class TheSportsDbScheduledTasks {
      * Verificación de eventos en vivo cada 30 segundos durante finales de semana
      * Solo sábados y domingos durante horarios deportivos
      */
-    @Scheduled(fixedRate = 30000) // 30 segundos
+    /*@Scheduled(fixedRate = 30000) // 30 segundos
     @Async("theSportsDbTaskExecutor") 
     public void sincronizacionEventosFinDeSemana() {
         // Solo ejecutar en fin de semana
@@ -165,5 +165,5 @@ public class TheSportsDbScheduledTasks {
         } catch (Exception e) {
             log.error("❌ Error en la sincronización de fin de semana: {}", e.getMessage(), e);
         }
-    }
+    }*/
 }
