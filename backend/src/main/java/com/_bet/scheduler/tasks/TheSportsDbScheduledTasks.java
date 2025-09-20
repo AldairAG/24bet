@@ -45,7 +45,8 @@ public class TheSportsDbScheduledTasks {
     /**
      * Sincronización de datos maestros (deportes, ligas, equipos) - cada 24 horas
      */
-    @Scheduled(cron = "0 0 2 * * *", zone = "America/Mexico_City") // Todos los días a las 2:00 AM
+    //@Scheduled(cron = "0 0 2 * * *", zone = "America/Mexico_City") // Todos los días a las 2:00 AM
+    @Scheduled(fixedRate = 86400000, zone = "America/Mexico_City") // Cada 24 horas
     @Async("theSportsDbTaskExecutor")
     public void sincronizacionDatosMaestros() {
         log.info("🔄 Iniciando sincronización diaria de datos maestros (deportes, ligas, equipos)");
