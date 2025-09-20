@@ -4,6 +4,7 @@ import com._bet.config.TheSportsDbV2Properties;
 import com._bet.dto.thesportsdb.v2.TheSportsDbV2LiveEventDto;
 import com._bet.dto.thesportsdb.v2.TheSportsDbV2LiveEventsResponseDto;
 import com._bet.dto.thesportsdb.TheSportDbEventDto;
+import com._bet.dto.thesportsdb.TheSportDbLeagueDto;
 import com._bet.entity.EventoDeportivo;
 import com._bet.entity.Liga;
 import com._bet.entity.Equipo;
@@ -16,7 +17,9 @@ import com._bet.service.theSportsDb.TheSportsDbService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
@@ -25,6 +28,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Servicio para TheSportsDB API v2 con autenticación por header
@@ -43,6 +47,10 @@ public class TheSportsDbV2Service {
     private final DeporteRepository deporteRepository;
     private final TheSportsDbService theSportsDbService;
 
+    private static final List<String> whiteListDeportes = List.of("Soccer", "Motorsport", "Baseball", "Basketball",
+            "American Football", "Ice Hockey", "Golf", "Tennis", "Australian Football", "ESports", "Table Tennis",
+            "Badminton");
+
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -54,16 +62,15 @@ public class TheSportsDbV2Service {
 
         try {
             String url = properties.getV2().getBaseUrl() + "/livescore/all";
-            
+
             HttpHeaders headers = crearHeadersConAutenticacion();
             HttpEntity<String> entity = new HttpEntity<>(headers);
 
             ResponseEntity<TheSportsDbV2LiveEventsResponseDto> response = restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                entity,
-                TheSportsDbV2LiveEventsResponseDto.class
-            );
+                    url,
+                    HttpMethod.GET,
+                    entity,
+                    TheSportsDbV2LiveEventsResponseDto.class);
 
             TheSportsDbV2LiveEventsResponseDto resultado = response.getBody();
             if (resultado != null && resultado.getEvents() != null) {
@@ -91,6 +98,175 @@ public class TheSportsDbV2Service {
     }
 
     /**
+     * Obtiene eventos próximos para una liga específica
+     */
+    @Async
+    public CompletableFuture<TheSportsDbV2LiveEventsResponseDto> sincronizarEventosProximosPorLiga(String idLiga) {
+        log.info("Obteniendo eventos próximos para liga: {}", idLiga);
+
+        try {
+            String url = properties.getV2().getBaseUrl() + "/schedule/next/league/" + idLiga;
+
+            HttpHeaders headers = crearHeadersConAutenticacion();
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+
+            ResponseEntity<TheSportsDbV2LiveEventsResponseDto> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    entity,
+                    TheSportsDbV2LiveEventsResponseDto.class);
+
+            TheSportsDbV2LiveEventsResponseDto resultado = response.getBody();
+            if (resultado != null && resultado.getEvents() != null) {
+                log.info("Obtenidos {} eventos próximos para liga {}", resultado.getEvents().size(), idLiga);
+                return CompletableFuture.completedFuture(resultado);
+            }
+
+            log.warn("No se obtuvieron eventos próximos para la liga: {}", idLiga);
+            return CompletableFuture.completedFuture(new TheSportsDbV2LiveEventsResponseDto());
+
+        } catch (Exception e) {
+            log.error("Error al obtener eventos próximos por liga {}: {}", idLiga, e.getMessage());
+            return CompletableFuture.completedFuture(new TheSportsDbV2LiveEventsResponseDto());
+        }
+    }
+
+    /**
+     * Sincronización de datos maestros (deportes, ligas, equipos)
+     */
+    public void sincronizacionDatosMaestros() {
+        log.info("Iniciando sincronización de datos maestros");
+
+        try {
+            // 1. Sincronizar países primero
+            // sincronizarPaises();
+            Thread.sleep(1000);
+
+            // 2. Sincronizar deportes
+            // sincronizarDeportes().join();
+
+            obtenerLigasConDatosFaltantes();
+            Thread.sleep(1000);
+
+            /*
+             * // 3. Sincronizar ligas para cada deporte usando países
+             * List<Deporte> deportes = deporteRepository.findByActivoTrue();
+             * for (Deporte deporte : deportes) {
+             * sincronizarTodasLigasPorDeporte(deporte.getNombreIngles()).join();
+             * Thread.sleep(1000); // Pausa más larga entre deportes
+             * }
+             * 
+             * // 4. Sincronizar equipos para cada liga activa
+             * List<Liga> ligas = ligaRepository.findByActivaTrue();
+             * for (Liga liga : ligas) {
+             * sincronizarEquiposPorLiga(liga.getSportsDbId()).join();
+             * Thread.sleep(500); // Pausa entre llamadas
+             * }
+             */
+
+            log.info("Sincronización de datos maestros completada");
+        } catch (Exception e) {
+            log.error("Error en la sincronización de datos maestros: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Sincroniza eventos de los próximos días desde hoy para todas las ligas
+     * activas
+     * Esta es la función optimizada que solo obtiene eventos recientes y próximos
+     * Limitado a 100 peticiones por minuto según límites de la API
+     */
+    @Async
+    @Transactional
+    public CompletableFuture<Void> sincronizarEventosProximosDias() {
+        log.info("Iniciando sincronización de eventos de los próximos días");
+
+        try {
+            List<Liga> ligasActivas = ligaRepository.findByActivaTrue();
+            int totalEventosProcesados = 0;
+            int peticionesRealizadas = 0;
+            final int MAX_PETICIONES_POR_MINUTO = 100;
+            final long TIEMPO_MINUTO_MS = 60000; // 60 segundos en milisegundos
+            long inicioMinuto = System.currentTimeMillis();
+
+            log.info("Procesando {} ligas activas con límite de {} peticiones por minuto", 
+                    ligasActivas.size(), MAX_PETICIONES_POR_MINUTO);
+
+            for (Liga liga : ligasActivas) {
+                try {
+                    // Verificar si hemos alcanzado el límite de peticiones por minuto
+                    long tiempoTranscurrido = System.currentTimeMillis() - inicioMinuto;
+                    
+                    if (peticionesRealizadas >= MAX_PETICIONES_POR_MINUTO && tiempoTranscurrido < TIEMPO_MINUTO_MS) {
+                        long tiempoEspera = TIEMPO_MINUTO_MS - tiempoTranscurrido;
+                        log.info("Límite de {} peticiones por minuto alcanzado. Esperando {} ms antes de continuar...", 
+                                MAX_PETICIONES_POR_MINUTO, tiempoEspera);
+                        Thread.sleep(tiempoEspera);
+                        
+                        // Reiniciar contador y tiempo
+                        peticionesRealizadas = 0;
+                        inicioMinuto = System.currentTimeMillis();
+                    }
+
+                    // Obtener eventos próximos para la liga
+                    TheSportsDbV2LiveEventsResponseDto eventosProximos = sincronizarEventosProximosPorLiga(
+                            liga.getSportsDbId()).join();
+                    
+                    peticionesRealizadas++; // Incrementar contador de peticiones
+                    log.debug("Petición {} de {} realizada para liga: {}", 
+                            peticionesRealizadas, MAX_PETICIONES_POR_MINUTO, liga.getNombre());
+
+                    // Procesar y guardar los eventos obtenidos
+                    if (eventosProximos != null && eventosProximos.getEvents() != null
+                            && !eventosProximos.getEvents().isEmpty()) {
+
+                        // Filtrar eventos por deportes en la whitelist
+                        List<TheSportsDbV2LiveEventDto> eventosFiltrados = eventosProximos.getEvents().stream()
+                                .filter(evento -> evento.getStrSport() != null &&
+                                        whiteListDeportes.contains(evento.getStrSport().trim()))
+                                .toList();
+
+                        log.info("Eventos filtrados por whitelist para liga {}: {} de {} eventos totales",
+                                liga.getNombre(), eventosFiltrados.size(), eventosProximos.getEvents().size());
+
+                        // Procesar cada evento filtrado
+                        for (TheSportsDbV2LiveEventDto eventoDto : eventosFiltrados) {
+                            try {
+                                procesarEventoEnVivo(eventoDto);
+                                totalEventosProcesados++;
+                            } catch (Exception e) {
+                                log.error("Error al procesar evento próximo {} de liga {}: {}",
+                                        eventoDto.getIdEvent(), liga.getNombre(), e.getMessage());
+                            }
+                        }
+
+                        log.info("Procesados {} eventos próximos para liga: {} ({})",
+                                eventosFiltrados.size(), liga.getNombre(), liga.getSportsDbId());
+                    } else {
+                        log.info("No se encontraron eventos próximos para liga: {} ({})",
+                                liga.getNombre(), liga.getSportsDbId());
+                    }
+
+                    // Pausa mínima entre llamadas (600ms = 100 peticiones/minuto máximo)
+                    Thread.sleep(600);
+
+                } catch (Exception e) {
+                    log.error("Error sincronizando eventos próximos días para liga {}: {}",
+                            liga.getNombre(), e.getMessage(), e);
+                }
+            }
+
+            log.info("Sincronización de eventos de los próximos días completada. " +
+                    "Total eventos procesados: {}, Total peticiones realizadas: {}", 
+                    totalEventosProcesados, peticionesRealizadas);
+        } catch (Exception e) {
+            log.error("Error en la sincronización de eventos de los próximos días: {}", e.getMessage(), e);
+        }
+
+        return CompletableFuture.completedFuture(null);
+    }
+
+    /**
      * Obtiene eventos en vivo por liga específica
      */
     public TheSportsDbV2LiveEventsResponseDto obtenerEventosEnVivoPorLiga(String idLiga) {
@@ -98,16 +274,15 @@ public class TheSportsDbV2Service {
 
         try {
             String url = properties.getV2().getBaseUrl() + "/livescore.php?l=" + idLiga;
-            
+
             HttpHeaders headers = crearHeadersConAutenticacion();
             HttpEntity<String> entity = new HttpEntity<>(headers);
 
             ResponseEntity<TheSportsDbV2LiveEventsResponseDto> response = restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                entity,
-                TheSportsDbV2LiveEventsResponseDto.class
-            );
+                    url,
+                    HttpMethod.GET,
+                    entity,
+                    TheSportsDbV2LiveEventsResponseDto.class);
 
             TheSportsDbV2LiveEventsResponseDto resultado = response.getBody();
             if (resultado != null && resultado.getEvents() != null) {
@@ -125,6 +300,89 @@ public class TheSportsDbV2Service {
     }
 
     /**
+     * Obtener ligas de la v2 con datos faltantes
+     */
+    @Async
+    public CompletableFuture<List<TheSportDbLeagueDto>> obtenerLigasV2ConDatosFaltantes() {
+        log.info("Obteniendo ligas de la v2 con datos faltantes");
+        String url = properties.getV2().getBaseUrl() + "/all/leagues";
+
+        try {
+            HttpHeaders headers = crearHeadersConAutenticacion();
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+
+            ResponseEntity<TheSportDbLeagueDto[]> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    entity,
+                    TheSportDbLeagueDto[].class);
+
+            TheSportDbLeagueDto[] ligasArray = response.getBody();
+            if (ligasArray != null) {
+                List<TheSportDbLeagueDto> ligas = List.of(ligasArray);
+                log.info("Obtenidas {} ligas desde API v2", ligas.size());
+                return CompletableFuture.completedFuture(ligas);
+            } else {
+                log.warn("No se obtuvieron ligas desde la API v2");
+                return CompletableFuture.completedFuture(List.of());
+            }
+
+        } catch (Exception e) {
+            log.error("Error al obtener ligas desde API v2: {}", e.getMessage());
+            return CompletableFuture.completedFuture(List.of());
+        }
+    }
+
+    /**
+     * Obtiene todas las ligas con datos faltantes con un deporte en string
+     */
+    @Async
+    @Transactional
+    public CompletableFuture<Void> obtenerLigasConDatosFaltantes() {
+        log.info("Obteniendo ligas con datos faltantes desde API v2");
+
+        try {
+            List<TheSportDbLeagueDto> ligasV2 = obtenerLigasV2ConDatosFaltantes().join();
+
+            for (TheSportDbLeagueDto ligaDto : ligasV2) {
+
+                ligaRepository.findBySportsDbId(ligaDto.getIdLeague()).ifPresent(liga -> {
+                    // Si la liga ya existe, omitir
+                    return;
+                });
+
+                if (ligaDto.getIdLeague() == null || ligaDto.getIdLeague().trim().isEmpty()) {
+                    continue; // Omitir ligas sin ID válido
+                }
+
+                Optional<Deporte> deporteExistente = deporteRepository.findByNombreIngles(ligaDto.getStrSport());
+
+                if (deporteExistente.isEmpty()) {
+                    log.warn("Deporte '{}' no encontrado en BD para liga {}, omitiendo",
+                            ligaDto.getStrSport(), ligaDto.getIdLeague());
+                    continue;
+                }
+
+                ligaRepository.save(Liga.builder()
+                        .sportsDbId(ligaDto.getIdLeague())
+                        .nombre(ligaDto.getStrLeague() != null ? ligaDto.getStrLeague().trim()
+                                : "Liga " + ligaDto.getIdLeague())
+                        .nombreAlternativo(ligaDto.getStrLeagueAlternate())
+                        .descripcion(ligaDto.getStrDescriptionEN())
+                        .deporte(deporteExistente.get())
+                        .fechaCreacion(LocalDateTime.now())
+                        .fechaActualizacion(LocalDateTime.now())
+                        .build());
+
+            }
+        } catch (Exception e) {
+            log.error("Error al obtener ligas con datos faltantes desde API v2: {}", e.getMessage());
+        }
+
+        return CompletableFuture.completedFuture(null);
+    }
+
+    /**
      * Sincroniza eventos en vivo con la base de datos
      */
     public void sincronizarEventosEnVivo() {
@@ -132,7 +390,20 @@ public class TheSportsDbV2Service {
 
         try {
             TheSportsDbV2LiveEventsResponseDto eventosEnVivo = obtenerEventosEnVivo();
-            
+
+            // Filtrar eventos por deportes en la whitelist
+            if (eventosEnVivo.getEvents() != null) {
+                List<TheSportsDbV2LiveEventDto> eventosFiltrados = eventosEnVivo.getEvents().stream()
+                        .filter(evento -> evento.getStrSport() != null &&
+                                whiteListDeportes.contains(evento.getStrSport().trim()))
+                        .toList();
+
+                log.info("Eventos filtrados por whitelist: {} de {} eventos totales",
+                        eventosFiltrados.size(), eventosEnVivo.getEvents().size());
+
+                eventosEnVivo.setEvents(eventosFiltrados);
+            }
+
             if (eventosEnVivo.getEvents() != null && !eventosEnVivo.getEvents().isEmpty()) {
                 for (TheSportsDbV2LiveEventDto eventoDto : eventosEnVivo.getEvents()) {
                     try {
@@ -152,6 +423,48 @@ public class TheSportsDbV2Service {
     }
 
     /**
+     * Sincroniza los proximos eventos de las ligas activas
+     */
+    public void sincronizarProximosEventos() {
+        log.info("Iniciando sincronización de próximos eventos para ligas activas");
+
+        try {
+            List<Liga> ligasActivas = ligaRepository.findAll();
+
+            for (Liga liga : ligasActivas) {
+                try {
+                    TheSportsDbV2LiveEventsResponseDto eventosProximos = obtenerEventosEnVivoPorLiga(
+                            liga.getSportsDbId());
+
+                    if (eventosProximos.getEvents() != null && !eventosProximos.getEvents().isEmpty()) {
+                        for (TheSportsDbV2LiveEventDto eventoDto : eventosProximos.getEvents()) {
+                            try {
+                                procesarEventoEnVivo(eventoDto);
+                            } catch (Exception e) {
+                                log.error("Error al procesar próximo evento {}: {}", eventoDto.getIdEvent(),
+                                        e.getMessage());
+                            }
+                        }
+                        log.info("Sincronización de próximos eventos completada para liga {}", liga.getNombre());
+                    } else {
+                        log.info("No hay próximos eventos para la liga {}", liga.getNombre());
+                    }
+
+                    // Pausa entre llamadas para evitar rate limiting
+                    Thread.sleep(500);
+
+                } catch (Exception e) {
+                    log.error("Error al sincronizar próximos eventos para liga {}: {}", liga.getNombre(),
+                            e.getMessage());
+                }
+            }
+
+        } catch (Exception e) {
+            log.error("Error en la sincronización de próximos eventos", e);
+        }
+    }
+
+    /**
      * Procesa un evento individual en vivo y actualiza la base de datos
      * Solo procesa el evento si el deporte existe en la base de datos
      */
@@ -163,13 +476,13 @@ public class TheSportsDbV2Service {
 
         // Verificar que el deporte existe en la base de datos
         if (!validarDeporteExiste(eventoDto)) {
-            log.warn("Deporte '{}' no encontrado en la base de datos. Omitiendo evento: {}", 
-                     eventoDto.getStrSport(), eventoDto.getIdEvent());
+            log.warn("Deporte '{}' no encontrado en la base de datos. Omitiendo evento: {}",
+                    eventoDto.getStrSport(), eventoDto.getIdEvent());
             return;
         }
 
         Optional<EventoDeportivo> eventoExistente = eventoDeportivoRepository.findBySportsDbId(eventoDto.getIdEvent());
-        
+
         if (eventoExistente.isPresent()) {
             // Actualizar evento existente con datos en vivo
             actualizarEventoConDatosEnVivo(eventoExistente.get(), eventoDto);
@@ -188,12 +501,12 @@ public class TheSportsDbV2Service {
         // Actualizar marcador
         Integer marcadorLocal = eventoDto.getHomeScoreAsInt();
         Integer marcadorVisitante = eventoDto.getAwayScoreAsInt();
-        
+
         if (marcadorLocal != null && !marcadorLocal.equals(evento.getResultadoLocal())) {
             evento.setResultadoLocal(marcadorLocal);
             actualizado = true;
         }
-        
+
         if (marcadorVisitante != null && !marcadorVisitante.equals(evento.getResultadoVisitante())) {
             evento.setResultadoVisitante(marcadorVisitante);
             actualizado = true;
@@ -233,24 +546,27 @@ public class TheSportsDbV2Service {
      */
     private void crearEventoDesdeEventoEnVivo(TheSportsDbV2LiveEventDto eventoDto) {
         try {
-            log.info("Evento no encontrado en BD, obteniendo detalles completos desde API v1 para evento: {}", eventoDto.getIdEvent());
-            
+            log.info("Evento no encontrado en BD, obteniendo detalles completos desde API v1 para evento: {}",
+                    eventoDto.getIdEvent());
+
             // Obtener detalles completos del evento desde la API v1
             TheSportDbEventDto eventoCompleto = theSportsDbService.obtenerEventoDesdeApi(eventoDto.getIdEvent());
-            
+
             if (eventoCompleto != null) {
                 // Procesar el evento completo usando el método existente del servicio v1
                 theSportsDbService.procesarEvento(eventoCompleto);
                 log.info("Evento {} creado exitosamente desde API v1", eventoDto.getIdEvent());
-                
+
                 // Ahora actualizar con los datos en vivo del v2
-                Optional<EventoDeportivo> eventoCreado = eventoDeportivoRepository.findBySportsDbId(eventoDto.getIdEvent());
+                Optional<EventoDeportivo> eventoCreado = eventoDeportivoRepository
+                        .findBySportsDbId(eventoDto.getIdEvent());
                 if (eventoCreado.isPresent()) {
                     actualizarEventoConDatosEnVivo(eventoCreado.get(), eventoDto);
                 }
             } else {
                 // Si no se puede obtener desde API v1, crear evento básico con datos v2
-                log.warn("No se pudo obtener evento completo desde API v1, creando evento básico con datos v2: {}", eventoDto.getIdEvent());
+                log.warn("No se pudo obtener evento completo desde API v1, creando evento básico con datos v2: {}",
+                        eventoDto.getIdEvent());
                 crearEventoBasicoDesdeV2(eventoDto);
             }
 
@@ -266,7 +582,8 @@ public class TheSportsDbV2Service {
     }
 
     /**
-     * Crea un evento básico con solo los datos disponibles en V2 (método de fallback)
+     * Crea un evento básico con solo los datos disponibles en V2 (método de
+     * fallback)
      */
     private void crearEventoBasicoDesdeV2(TheSportsDbV2LiveEventDto eventoDto) {
         // Crear nombre del evento con fallback si strEvent está vacío
@@ -283,35 +600,35 @@ public class TheSportsDbV2Service {
         }
 
         EventoDeportivo evento = EventoDeportivo.builder()
-            .sportsDbId(eventoDto.getIdEvent())
-            .nombre(nombreEvento)
-            .fechaEvento(eventoDto.getEventDateTime())
-            .resultadoLocal(eventoDto.getHomeScoreAsInt())
-            .resultadoVisitante(eventoDto.getAwayScoreAsInt())
-            .estado(eventoDto.getStrStatus())
-            .enVivo(eventoDto.isLive())
-            .temporada(eventoDto.getStrSeason())
-            .esPostemporada(false)
-            .activo(true)
-            .fechaCreacion(LocalDateTime.now())
-            .fechaActualizacion(LocalDateTime.now())
-            .build();
+                .sportsDbId(eventoDto.getIdEvent())
+                .nombre(nombreEvento)
+                .fechaEvento(eventoDto.getEventDateTime())
+                .resultadoLocal(eventoDto.getHomeScoreAsInt())
+                .resultadoVisitante(eventoDto.getAwayScoreAsInt())
+                .estado(eventoDto.getStrStatus())
+                .enVivo(eventoDto.isLive())
+                .temporada(eventoDto.getStrSeason())
+                .esPostemporada(false)
+                .activo(true)
+                .fechaCreacion(LocalDateTime.now())
+                .fechaActualizacion(LocalDateTime.now())
+                .build();
 
         // Buscar y asignar liga
         if (eventoDto.getIdLeague() != null) {
             ligaRepository.findBySportsDbId(eventoDto.getIdLeague())
-                .ifPresent(evento::setLiga);
+                    .ifPresent(evento::setLiga);
         }
 
         // Buscar y asignar equipos
         if (eventoDto.getIdHomeTeam() != null) {
             equipoRepository.findBySportsDbId(eventoDto.getIdHomeTeam())
-                .ifPresent(evento::setEquipoLocal);
+                    .ifPresent(evento::setEquipoLocal);
         }
 
         if (eventoDto.getIdAwayTeam() != null) {
             equipoRepository.findBySportsDbId(eventoDto.getIdAwayTeam())
-                .ifPresent(evento::setEquipoVisitante);
+                    .ifPresent(evento::setEquipoVisitante);
         }
 
         eventoDeportivoRepository.save(evento);
@@ -324,17 +641,17 @@ public class TheSportsDbV2Service {
     private HttpHeaders crearHeadersConAutenticacion() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        
+
         String apiKey = properties.getV2().getKey();
         String headerName = properties.getV2().getHeaderName();
-        
-        if (apiKey != null && !apiKey.trim().isEmpty() && 
-            headerName != null && !headerName.trim().isEmpty()) {
+
+        if (apiKey != null && !apiKey.trim().isEmpty() &&
+                headerName != null && !headerName.trim().isEmpty()) {
             headers.set(headerName, apiKey);
         } else {
             log.warn("API key o header name no configurados para API v2");
         }
-        
+
         return headers;
     }
 
@@ -346,16 +663,15 @@ public class TheSportsDbV2Service {
 
         try {
             String url = properties.getV2().getBaseUrl() + "/lookupevent.php?id=" + idEvento;
-            
+
             HttpHeaders headers = crearHeadersConAutenticacion();
             HttpEntity<String> entity = new HttpEntity<>(headers);
 
             ResponseEntity<TheSportsDbV2LiveEventsResponseDto> response = restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                entity,
-                TheSportsDbV2LiveEventsResponseDto.class
-            );
+                    url,
+                    HttpMethod.GET,
+                    entity,
+                    TheSportsDbV2LiveEventsResponseDto.class);
 
             TheSportsDbV2LiveEventsResponseDto resultado = response.getBody();
             if (resultado != null && resultado.getEvents() != null && !resultado.getEvents().isEmpty()) {
@@ -384,6 +700,7 @@ public class TheSportsDbV2Service {
 
     /**
      * Valida que el deporte del evento existe en la base de datos
+     * 
      * @param eventoDto El evento a validar
      * @return true si el deporte existe, false si no
      */
@@ -394,10 +711,10 @@ public class TheSportsDbV2Service {
         }
 
         String nombreDeporte = eventoDto.getStrSport().trim();
-        
+
         // Buscar el deporte por nombre (case insensitive)
         Optional<Deporte> deporte = deporteRepository.findByNombreIgnoreCase(nombreDeporte);
-        
+
         if (deporte.isPresent()) {
             log.debug("Deporte '{}' encontrado en BD para evento {}", nombreDeporte, eventoDto.getIdEvent());
             return true;
@@ -405,15 +722,17 @@ public class TheSportsDbV2Service {
 
         // Intentar buscar por nombre en inglés si no se encuentra
         Optional<Deporte> deporteIngles = deporteRepository.findByNombreInglesIgnoreCase(nombreDeporte);
-        
+
         if (deporteIngles.isPresent()) {
-            log.debug("Deporte '{}' encontrado en BD por nombre en inglés para evento {}", nombreDeporte, eventoDto.getIdEvent());
+            log.debug("Deporte '{}' encontrado en BD por nombre en inglés para evento {}", nombreDeporte,
+                    eventoDto.getIdEvent());
             return true;
         }
 
-        log.info("Deporte '{}' no encontrado en la base de datos para evento {}. Deportes disponibles pueden consultarse en el log de debug.", 
-                 nombreDeporte, eventoDto.getIdEvent());
-        
+        log.info(
+                "Deporte '{}' no encontrado en la base de datos para evento {}. Deportes disponibles pueden consultarse en el log de debug.",
+                nombreDeporte, eventoDto.getIdEvent());
+
         return false;
     }
 }
