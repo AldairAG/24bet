@@ -163,7 +163,6 @@ public class TheSportsDbV2Service {
      * Limitado a 100 peticiones por minuto según límites de la API
      */
     @Async
-    @Transactional
     public CompletableFuture<Void> sincronizarEventosProximosDias() {
         log.info("Iniciando sincronización de eventos de los próximos días");
 
