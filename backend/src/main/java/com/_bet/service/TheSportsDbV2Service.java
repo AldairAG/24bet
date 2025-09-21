@@ -4,6 +4,8 @@ import com._bet.config.TheSportsDbV2Properties;
 import com._bet.dto.thesportsdb.v2.AllLeaguesResponse;
 import com._bet.dto.thesportsdb.v2.ProximosEventosDto;
 import com._bet.dto.thesportsdb.v2.ResponseLookupLeague;
+import com._bet.dto.thesportsdb.v2.ResponseTeamDto;
+import com._bet.dto.thesportsdb.v2.ResponseTeamsByLeague;
 import com._bet.dto.thesportsdb.v2.TheSportsDbV2LiveEventDto;
 import com._bet.dto.thesportsdb.v2.TheSportsDbV2LiveEventsResponseDto;
 import com._bet.dto.thesportsdb.TheSportDbEventDto;
@@ -20,6 +22,8 @@ import com._bet.repository.DeporteRepository;
 import com._bet.service.theSportsDb.TheSportsDbService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -151,8 +155,10 @@ public class TheSportsDbV2Service {
             // 2. Sincronizar deportes
             // sincronizarDeportes().join();
 
-            obtenerLigasConDatosFaltantes();
+            //obtenerLigasConDatosFaltantes().join();
             Thread.sleep(1000);
+
+            obtenerEquiposPorLigas();
 
             log.info("Sincronización de datos maestros completada");
         } catch (Exception e) {
@@ -320,6 +326,105 @@ public class TheSportsDbV2Service {
             log.error("Error al obtener ligas desde API v2: {}", e.getMessage());
             return CompletableFuture.completedFuture(List.of());
         }
+    }
+
+    /**
+     * Obtener los equipos por liga
+     */
+    @Async
+    @Transactional
+    public CompletableFuture<Void> obtenerEquiposPorLigas() {
+        log.info("Obteniendo equipos por ligas desde API v2");
+
+        try {
+            List<Liga> ligas = ligaRepository.findAll();
+            int totalEquiposProcesados = 0;
+            int peticionesRealizadas = 0;
+            final int MAX_PETICIONES_POR_MINUTO = 100;
+            final long TIEMPO_MINUTO_MS = 60000; // 60 segundos en milisegundos
+            long inicioMinuto = System.currentTimeMillis();
+
+            log.info("Procesando {} ligas con límite de {} peticiones por minuto",
+                    ligas.size(), MAX_PETICIONES_POR_MINUTO);
+
+            for (Liga liga : ligas) {
+                try {
+                    // Verificar si hemos alcanzado el límite de peticiones por minuto
+                    long tiempoTranscurrido = System.currentTimeMillis() - inicioMinuto;
+
+                    if (peticionesRealizadas >= MAX_PETICIONES_POR_MINUTO && tiempoTranscurrido < TIEMPO_MINUTO_MS) {
+                        long tiempoEspera = TIEMPO_MINUTO_MS - tiempoTranscurrido;
+                        log.info("Límite de {} peticiones por minuto alcanzado. Esperando {} ms antes de continuar...",
+                                MAX_PETICIONES_POR_MINUTO, tiempoEspera);
+                        Thread.sleep(tiempoEspera);
+
+                        // Reiniciar contador y tiempo
+                        peticionesRealizadas = 0;
+                        inicioMinuto = System.currentTimeMillis();
+                    }
+
+                    String url = properties.getV2().getBaseUrl() + "/list/teams/" + liga.getSportsDbId();
+
+                    HttpHeaders headers = crearHeadersConAutenticacion();
+                    HttpEntity<String> entity = new HttpEntity<>(headers);
+
+                    ResponseEntity<ResponseTeamsByLeague> response = restTemplate.exchange(
+                            url,
+                            HttpMethod.GET,
+                            entity,
+                            ResponseTeamsByLeague.class
+                    );
+
+                    peticionesRealizadas++; // Incrementar contador de peticiones
+                    log.debug("Petición {} de {} realizada para liga: {}",
+                            peticionesRealizadas, MAX_PETICIONES_POR_MINUTO, liga.getNombre());
+
+                    List<ResponseTeamDto> equiposDto = response.getBody().getTeams();
+
+                    for (ResponseTeamDto equipoDto : equiposDto) {
+                        try {
+                            Optional<Equipo> equipoExistente = equipoRepository
+                                    .findBySportsDbId(equipoDto.getIdTeam());
+
+                            if (equipoExistente.isEmpty()) {
+                                // Equipo no existe, crear nuevo
+                                Equipo nuevoEquipo = Equipo.builder()
+                                        .sportsDbId(equipoDto.getIdTeam())
+                                        .nombre(equipoDto.getStrTeam() != null ? equipoDto.getStrTeam().trim()
+                                                : "Equipo " + equipoDto.getIdTeam())
+                                        .nombreCorto(equipoDto.getStrTeamShort())
+                                        .colores(equipoDto.getStrColour1())
+                                        .liga(liga)
+                                        .pais(equipoDto.getStrCountry())
+                                        .logoUrl(equipoDto.getStrBadge())
+                                        .bannerUrl(equipoDto.getStrBanner())
+                                        .fanartUrl(equipoDto.getStrFanart1())
+                                        .fechaCreacion(LocalDateTime.now())
+                                        .fechaActualizacion(LocalDateTime.now())
+                                        .build();
+
+                                equipoRepository.save(nuevoEquipo);
+                                totalEquiposProcesados++;
+                                log.debug("Nuevo equipo creado: {} ({})", nuevoEquipo.getNombre(),
+                                        nuevoEquipo.getSportsDbId());
+                            }
+                        } catch (Exception e) {
+                            log.error("Error al procesar equipo {} de liga {}: {}",
+                                    equipoDto.getIdTeam(), liga.getNombre(), e.getMessage());
+                        }
+                    }
+
+                } catch (Exception e) {
+                    log.error("Error obteniendo equipos para liga {}: {}", liga.getNombre(), e.getMessage());
+                }
+            }
+            log.info(
+                    "Obtención de equipos por ligas completada. Total equipos procesados: {}, Total peticiones realizadas: {}",
+                    totalEquiposProcesados, peticionesRealizadas);
+        } catch (Exception e) {
+            log.error("Error al obtener equipos por ligas desde API v2: {}", e.getMessage());
+        }
+        return CompletableFuture.completedFuture(null);
     }
 
     /**
@@ -690,13 +795,13 @@ public class TheSportsDbV2Service {
             // Buscar la liga de forma segura
             Optional<Liga> ligaOpt = ligaRepository.findBySportsDbId(eventoDto.getIdLeague());
             if (ligaOpt.isEmpty()) {
-                log.warn("Liga {} no encontrada en BD para evento {}. Omitiendo evento.", 
-                         eventoDto.getIdLeague(), eventoDto.getIdEvent());
+                log.warn("Liga {} no encontrada en BD para evento {}. Omitiendo evento.",
+                        eventoDto.getIdLeague(), eventoDto.getIdEvent());
                 return;
             }
 
             Liga liga = ligaOpt.get();
-            
+
             // Obtener nombre del país de forma segura evitando lazy loading
             String nombrePais = null;
             try {
@@ -706,8 +811,8 @@ public class TheSportsDbV2Service {
                     nombrePais = liga.getPaisNombre();
                 }
             } catch (Exception e) {
-                log.debug("Error accediendo al país de la liga {}: {}. Usando paisNombre como fallback.", 
-                         liga.getSportsDbId(), e.getMessage());
+                log.debug("Error accediendo al país de la liga {}: {}. Usando paisNombre como fallback.",
+                        liga.getSportsDbId(), e.getMessage());
                 nombrePais = liga.getPaisNombre();
             }
 
@@ -741,27 +846,28 @@ public class TheSportsDbV2Service {
 
             // Validar campos obligatorios antes del guardado
             if (evento.getSportsDbId() == null || evento.getNombre() == null) {
-                log.error("Evento con datos incompletos no puede ser guardado. SportsDbId: {}, Nombre: {}", 
-                         evento.getSportsDbId(), evento.getNombre());
+                log.error("Evento con datos incompletos no puede ser guardado. SportsDbId: {}, Nombre: {}",
+                        evento.getSportsDbId(), evento.getNombre());
                 return;
             }
 
             try {
                 EventoDeportivo eventoGuardado = eventoDeportivoRepository.saveAndFlush(evento);
-                
+
                 if (eventoGuardado != null && eventoGuardado.getId() != null) {
-                    log.info("Nuevo evento básico en vivo creado exitosamente - ID: {}, SportsDbId: {}", 
+                    log.info("Nuevo evento básico en vivo creado exitosamente - ID: {}, SportsDbId: {}",
                             eventoGuardado.getId(), eventoGuardado.getSportsDbId());
                 } else {
-                    log.error("ERROR: El repositorio devolvió null o sin ID al guardar evento {}", eventoDto.getIdEvent());
+                    log.error("ERROR: El repositorio devolvió null o sin ID al guardar evento {}",
+                            eventoDto.getIdEvent());
                 }
-                
+
             } catch (Exception saveException) {
-                log.error("Excepción al guardar evento {} en base de datos: {}", 
-                         eventoDto.getIdEvent(), saveException.getMessage(), saveException);
+                log.error("Excepción al guardar evento {} en base de datos: {}",
+                        eventoDto.getIdEvent(), saveException.getMessage(), saveException);
                 throw saveException; // Re-lanzar para que se maneje en niveles superiores
             }
-            
+
         } catch (Exception e) {
             log.error("Error al crear evento básico desde V2 para evento {}: {}", eventoDto.getIdEvent(),
                     e.getMessage(), e);
