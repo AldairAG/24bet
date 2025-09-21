@@ -3,6 +3,7 @@ package com._bet.service;
 import com._bet.config.TheSportsDbV2Properties;
 import com._bet.dto.thesportsdb.v2.AllLeaguesResponse;
 import com._bet.dto.thesportsdb.v2.ProximosEventosDto;
+import com._bet.dto.thesportsdb.v2.ResponseLookupLeague;
 import com._bet.dto.thesportsdb.v2.TheSportsDbV2LiveEventDto;
 import com._bet.dto.thesportsdb.v2.TheSportsDbV2LiveEventsResponseDto;
 import com._bet.dto.thesportsdb.TheSportDbEventDto;
@@ -48,6 +49,7 @@ public class TheSportsDbV2Service {
     private final EquipoRepository equipoRepository;
     private final DeporteRepository deporteRepository;
     private final TheSportsDbService theSportsDbService;
+    private final CountryService countryRepository;
 
     private static final List<String> whiteListDeportes = List.of("Soccer", "Motorsport", "Baseball", "Basketball",
             "American Football", "Ice Hockey", "Golf", "Tennis", "Australian Football", "ESports", "Table Tennis",
@@ -329,6 +331,8 @@ public class TheSportsDbV2Service {
         try {
             List<TheSportDbLeagueDto> ligasV2 = obtenerLigasV2ConDatosFaltantes().join();
 
+            completarDatosLigas(ligasV2);
+
             for (TheSportDbLeagueDto ligaDto : ligasV2) {
 
                 ligaRepository.findBySportsDbId(ligaDto.getIdLeague()).ifPresent(liga -> {
@@ -365,6 +369,87 @@ public class TheSportsDbV2Service {
         }
 
         return CompletableFuture.completedFuture(null);
+    }
+
+    /**
+     * Completa los datos de las ligas utilizando la API v2
+     * Limitado a 100 peticiones por minuto según límites de la API
+     */
+    private void completarDatosLigas(List<TheSportDbLeagueDto> ligas) {
+        int peticionesRealizadas = 0;
+        final int MAX_PETICIONES_POR_MINUTO = 100;
+        final long TIEMPO_MINUTO_MS = 60000; // 60 segundos en milisegundos
+        long inicioMinuto = System.currentTimeMillis();
+
+        log.info("Completando datos para {} ligas con límite de {} peticiones por minuto",
+                ligas.size(), MAX_PETICIONES_POR_MINUTO);
+
+        for (TheSportDbLeagueDto ligaDto : ligas) {
+            if (ligaDto.getIdLeague() == null || ligaDto.getIdLeague().trim().isEmpty()) {
+                continue; // Omitir ligas sin ID válido
+            }
+
+            try {
+                // Verificar si hemos alcanzado el límite de peticiones por minuto
+                long tiempoTranscurrido = System.currentTimeMillis() - inicioMinuto;
+
+                if (peticionesRealizadas >= MAX_PETICIONES_POR_MINUTO && tiempoTranscurrido < TIEMPO_MINUTO_MS) {
+                    long tiempoEspera = TIEMPO_MINUTO_MS - tiempoTranscurrido;
+                    log.info(
+                            "Límite de {} peticiones por minuto alcanzado completando datos de ligas. Esperando {} ms antes de continuar...",
+                            MAX_PETICIONES_POR_MINUTO, tiempoEspera);
+                    Thread.sleep(tiempoEspera);
+
+                    // Reiniciar contador y tiempo
+                    peticionesRealizadas = 0;
+                    inicioMinuto = System.currentTimeMillis();
+                }
+
+                String url = properties.getV2().getBaseUrl() + "/lookup/league/" + ligaDto.getIdLeague();
+
+                HttpHeaders headers = crearHeadersConAutenticacion();
+                HttpEntity<String> entity = new HttpEntity<>(headers);
+
+                ResponseEntity<ResponseLookupLeague> response = restTemplate.exchange(
+                        url,
+                        HttpMethod.GET,
+                        entity,
+                        ResponseLookupLeague.class);
+
+                peticionesRealizadas++; // Incrementar contador de peticiones
+                log.debug("Petición {} de {} realizada para completar datos de liga: {}",
+                        peticionesRealizadas, MAX_PETICIONES_POR_MINUTO, ligaDto.getIdLeague());
+
+                List<TheSportDbLeagueDto> resultado = response.getBody().getLeague();
+                if (resultado != null && !resultado.isEmpty()) {
+                    TheSportDbLeagueDto ligaCompleta = resultado.get(0);
+
+                    ligaRepository.findBySportsDbId(ligaDto.getIdSport()).ifPresent(ligaExistente -> {
+                        // Actualizar solo los campos faltantes
+                        if (ligaExistente.getStrSport() == null || ligaExistente.getStrSport().trim().isEmpty()) {
+                            ligaExistente.setStrSport(ligaCompleta.getStrSport());
+                        }
+
+                        if (ligaExistente.getStrCountry() == null || ligaExistente.getStrCountry().trim().isEmpty()) {
+                            ligaExistente.setStrCountry(ligaCompleta.getStrCountry());
+                            countryRepository.findByNombre(ligaCompleta.getStrCountry().trim())
+                                    .ifPresent(pais -> ligaExistente.setStrCountry(pais.getNombre()));
+                        }
+                        log.debug("Datos completados para liga: {}", ligaExistente.getIdLeague());
+                    });
+                } else {
+                    log.warn("No se obtuvieron datos completos para liga: {}", ligaDto.getIdLeague());
+                }
+
+                // Pausa mínima entre llamadas (600ms = 100 peticiones/minuto máximo)
+                Thread.sleep(600);
+
+            } catch (Exception e) {
+                log.error("Error al completar datos para liga {}: {}", ligaDto.getIdLeague(), e.getMessage());
+            }
+        }
+
+        log.info("Completado el proceso de datos para ligas. Total peticiones realizadas: {}", peticionesRealizadas);
     }
 
     /**
@@ -595,7 +680,7 @@ public class TheSportsDbV2Service {
                         .ifPresent(evento::setEquipoVisitante);
             }
 
-            EventoDeportivo eventod =eventoDeportivoRepository.saveAndFlush(evento);
+            EventoDeportivo eventod = eventoDeportivoRepository.saveAndFlush(evento);
             log.info("Nuevo evento básico en vivo creado: {}", evento.getSportsDbId());
         } catch (Exception e) {
             log.error("Error al crear evento básico desde V2 para evento {}: {}", eventoDto.getIdEvent(),
