@@ -3,19 +3,18 @@ package com._bet.service;
 import com._bet.entity.EventoDeportivo;
 import com._bet.entity.Liga;
 import com._bet.entity.Equipo;
+import com._bet.dto.response.LigaPorDeporteResponse;
 import com._bet.repository.EventoDeportivoRepository;
+import com._bet.repository.LigaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Servicio para gestionar eventos deportivos
@@ -28,6 +27,7 @@ import java.util.Optional;
 public class EventoDeportivoService {
 
     private final EventoDeportivoRepository eventoDeportivoRepository;
+    private final LigaRepository ligaRepository;
 
     /**
      * Obtiene todos los eventos en vivo
@@ -53,6 +53,7 @@ public class EventoDeportivoService {
 
     /**
      * Obtiene eventos próximos en un rango de tiempo específico
+     * 
      * @param horas Número de horas hacia el futuro
      */
     @Transactional(readOnly = true)
@@ -162,7 +163,7 @@ public class EventoDeportivoService {
     public List<EventoDeportivo> getEventosEnVivoConApuestas() {
         log.debug("Obteniendo eventos en vivo con apuestas disponibles");
         List<EventoDeportivo> eventosEnVivo = getEventosEnVivo();
-        
+
         // Filtrar eventos que tengan momios disponibles
         // Esta lógica se puede expandir según las reglas de negocio
         return eventosEnVivo;
@@ -175,7 +176,7 @@ public class EventoDeportivoService {
     public List<EventoDeportivo> getEventosProximosConApuestas() {
         log.debug("Obteniendo eventos próximos con apuestas disponibles");
         List<EventoDeportivo> eventosProximos = getEventosProximos();
-        
+
         // Filtrar eventos que tengan momios disponibles
         // Esta lógica se puede expandir según las reglas de negocio
         return eventosProximos;
@@ -186,20 +187,20 @@ public class EventoDeportivoService {
      */
     public EventoDeportivo actualizarEstadoEvento(Long eventoId, String nuevoEstado) {
         log.info("Actualizando estado del evento {} a {}", eventoId, nuevoEstado);
-        
+
         Optional<EventoDeportivo> eventoOpt = eventoDeportivoRepository.findById(eventoId);
         if (eventoOpt.isPresent()) {
             EventoDeportivo evento = eventoOpt.get();
             evento.setEstado(nuevoEstado);
-            
+
             // Si el estado indica que está en vivo, actualizar el campo enVivo
-            boolean enVivo = nuevoEstado != null && 
-                           (nuevoEstado.equals("Live") || 
-                            nuevoEstado.equals("1H") || 
-                            nuevoEstado.equals("2H") || 
+            boolean enVivo = nuevoEstado != null &&
+                    (nuevoEstado.equals("Live") ||
+                            nuevoEstado.equals("1H") ||
+                            nuevoEstado.equals("2H") ||
                             nuevoEstado.equals("HT"));
             evento.setEnVivo(enVivo);
-            
+
             return eventoDeportivoRepository.save(evento);
         } else {
             throw new RuntimeException("Evento no encontrado con ID: " + eventoId);
@@ -211,7 +212,7 @@ public class EventoDeportivoService {
      */
     public void desactivarEvento(Long eventoId) {
         log.info("Desactivando evento con ID: {}", eventoId);
-        
+
         Optional<EventoDeportivo> eventoOpt = eventoDeportivoRepository.findById(eventoId);
         if (eventoOpt.isPresent()) {
             EventoDeportivo evento = eventoOpt.get();
@@ -229,5 +230,27 @@ public class EventoDeportivoService {
     public List<EventoDeportivo> getEventosActivos() {
         log.debug("Obteniendo todos los eventos activos");
         return eventoDeportivoRepository.findByActivoTrue();
+    }
+
+    /**
+     * Obtiene las ligas por deporte con información del país y bandera
+     */
+    @Transactional(readOnly = true)
+    public List<LigaPorDeporteResponse> getLigasPorDeporte(String deporte) {
+        log.debug("Obteniendo ligas para el deporte: {}", deporte);
+
+        List<Liga> ligas = ligaRepository.findByDeporteNombreIgnoreCaseAndActivaTrue(deporte);
+
+        return ligas.stream()
+                .map(liga -> LigaPorDeporteResponse.builder()
+                        .id(liga.getId())
+                        .nombreLiga(liga.getNombre())
+                        .pais(liga.getPais() != null ? liga.getPais().getName()
+                                : (liga.getPaisNombre() != null ? liga.getPaisNombre() : ""))
+                        .banderaPais(liga.getPais() != null ? liga.getPais().getFlagUrl() : "")
+                        .deporte(liga.getDeporte().getNombre())
+                        .activa(liga.getActiva())
+                        .build())
+                .collect(Collectors.toList());
     }
 }

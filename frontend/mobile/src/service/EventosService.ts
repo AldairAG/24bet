@@ -19,13 +19,6 @@ class EventosService {
                 `${this.baseUrl}/en-vivo`
             );
             
-            // Debug: Ver qué está devolviendo la API
-            console.log('🔍 Respuesta completa del API:', response);
-            console.log('🔍 Datos de la respuesta:', response.data);
-            console.log('🔍 Tipo de datos:', typeof response.data);
-            console.log('🔍 Es array?', Array.isArray(response.data));
-            console.log('🔍 Longitud:', response.data?.length);
-            
             return response.data;
         } catch (error) {
             console.error('Error fetching live events:', error);

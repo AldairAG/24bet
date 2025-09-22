@@ -1,7 +1,10 @@
 package com._bet.controller;
 
+import com._bet.controller.AuthController.ApiResponseWrapper;
 import com._bet.dto.response.EventoDeportivoResponse;
+import com._bet.dto.response.LigaPorDeporteResponse;
 import com._bet.service.EventoDeportivoService;
+
 import com._bet.helpers.EventoDeportivoMapper;
 import com._bet.entity.EventoDeportivo;
 import lombok.RequiredArgsConstructor;
@@ -31,14 +34,19 @@ public class EventoDeportivoController {
      * GET /api/eventos/en-vivo
      */
     @GetMapping("/en-vivo")
-    public ResponseEntity<List<EventoDeportivoResponse>> getEventosEnVivo() {
-        log.info("Obteniendo eventos en vivo");
-        
-        List<EventoDeportivo> eventosEnVivo = eventoDeportivoService.getEventosEnVivo();
-        List<EventoDeportivoResponse> response = eventoDeportivoMapper.toResponseList(eventosEnVivo);
-        
-        log.info("Se encontraron {} eventos en vivo", response.size());
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ApiResponseWrapper<List<EventoDeportivoResponse>>> getEventosEnVivo() {
+        try {
+            log.info("Obteniendo eventos en vivo");
+
+            List<EventoDeportivo> eventosEnVivo = eventoDeportivoService.getEventosEnVivo();
+            List<EventoDeportivoResponse> response = eventoDeportivoMapper.toResponseList(eventosEnVivo);
+
+            log.info("Se encontraron {} eventos en vivo", response.size());
+            return ResponseEntity.ok(new ApiResponseWrapper<List<EventoDeportivoResponse>>(false, null, response));
+        } catch (Exception e) {
+            log.error("Error al obtener eventos en vivo", e);
+            return ResponseEntity.status(500).build();
+        }
     }
 
     /**
@@ -48,10 +56,10 @@ public class EventoDeportivoController {
     @GetMapping("/proximos")
     public ResponseEntity<List<EventoDeportivoResponse>> getEventosProximos() {
         log.info("Obteniendo eventos próximos");
-        
+
         List<EventoDeportivo> eventosProximos = eventoDeportivoService.getEventosProximos();
         List<EventoDeportivoResponse> response = eventoDeportivoMapper.toResponseList(eventosProximos);
-        
+
         log.info("Se encontraron {} eventos próximos", response.size());
         return ResponseEntity.ok(response);
     }
@@ -64,14 +72,14 @@ public class EventoDeportivoController {
     public ResponseEntity<List<EventoDeportivoResponse>> getEventosProximos(
             @PathVariable int horas) {
         log.info("Obteniendo eventos próximos en las próximas {} horas", horas);
-        
+
         if (horas <= 0 || horas > 168) { // Máximo 7 días (168 horas)
             return ResponseEntity.badRequest().build();
         }
-        
+
         List<EventoDeportivo> eventosProximos = eventoDeportivoService.getEventosProximos(horas);
         List<EventoDeportivoResponse> response = eventoDeportivoMapper.toResponseList(eventosProximos);
-        
+
         log.info("Se encontraron {} eventos próximos en {} horas", response.size(), horas);
         return ResponseEntity.ok(response);
     }
@@ -83,10 +91,10 @@ public class EventoDeportivoController {
     @GetMapping("/en-vivo/con-apuestas")
     public ResponseEntity<List<EventoDeportivoResponse>> getEventosEnVivoConApuestas() {
         log.info("Obteniendo eventos en vivo con apuestas disponibles");
-        
+
         List<EventoDeportivo> eventosEnVivo = eventoDeportivoService.getEventosEnVivoConApuestas();
         List<EventoDeportivoResponse> response = eventoDeportivoMapper.toResponseList(eventosEnVivo);
-        
+
         log.info("Se encontraron {} eventos en vivo con apuestas", response.size());
         return ResponseEntity.ok(response);
     }
@@ -98,10 +106,10 @@ public class EventoDeportivoController {
     @GetMapping("/proximos/con-apuestas")
     public ResponseEntity<List<EventoDeportivoResponse>> getEventosProximosConApuestas() {
         log.info("Obteniendo eventos próximos con apuestas disponibles");
-        
+
         List<EventoDeportivo> eventosProximos = eventoDeportivoService.getEventosProximosConApuestas();
         List<EventoDeportivoResponse> response = eventoDeportivoMapper.toResponseList(eventosProximos);
-        
+
         log.info("Se encontraron {} eventos próximos con apuestas", response.size());
         return ResponseEntity.ok(response);
     }
@@ -113,9 +121,9 @@ public class EventoDeportivoController {
     @GetMapping("/{id}")
     public ResponseEntity<EventoDeportivoResponse> getEventoById(@PathVariable Long id) {
         log.info("Obteniendo evento con ID: {}", id);
-        
+
         Optional<EventoDeportivo> eventoOpt = eventoDeportivoService.getEventoById(id);
-        
+
         if (eventoOpt.isPresent()) {
             EventoDeportivoResponse response = eventoDeportivoMapper.toResponse(eventoOpt.get());
             return ResponseEntity.ok(response);
@@ -132,9 +140,9 @@ public class EventoDeportivoController {
     @GetMapping("/sports-db/{sportsDbId}")
     public ResponseEntity<EventoDeportivoResponse> getEventoBySportsDbId(@PathVariable String sportsDbId) {
         log.info("Obteniendo evento con SportsDB ID: {}", sportsDbId);
-        
+
         Optional<EventoDeportivo> eventoOpt = eventoDeportivoService.getEventoBySportsDbId(sportsDbId);
-        
+
         if (eventoOpt.isPresent()) {
             EventoDeportivoResponse response = eventoDeportivoMapper.toResponse(eventoOpt.get());
             return ResponseEntity.ok(response);
@@ -152,10 +160,10 @@ public class EventoDeportivoController {
     public ResponseEntity<List<EventoDeportivoResponse>> getEventosByLiga(
             @PathVariable String ligaSportsDbId) {
         log.info("Obteniendo eventos para liga con SportsDB ID: {}", ligaSportsDbId);
-        
+
         List<EventoDeportivo> eventos = eventoDeportivoService.getEventosByLigaSportsDbId(ligaSportsDbId);
         List<EventoDeportivoResponse> response = eventoDeportivoMapper.toResponseList(eventos);
-        
+
         log.info("Se encontraron {} eventos para la liga", response.size());
         return ResponseEntity.ok(response);
     }
@@ -167,10 +175,10 @@ public class EventoDeportivoController {
     @GetMapping("/estado/{estado}")
     public ResponseEntity<List<EventoDeportivoResponse>> getEventosByEstado(@PathVariable String estado) {
         log.info("Obteniendo eventos con estado: {}", estado);
-        
+
         List<EventoDeportivo> eventos = eventoDeportivoService.getEventosByEstado(estado);
         List<EventoDeportivoResponse> response = eventoDeportivoMapper.toResponseList(eventos);
-        
+
         log.info("Se encontraron {} eventos con estado {}", response.size(), estado);
         return ResponseEntity.ok(response);
     }
@@ -182,10 +190,10 @@ public class EventoDeportivoController {
     @GetMapping("/futuros")
     public ResponseEntity<List<EventoDeportivoResponse>> getEventosFuturos() {
         log.info("Obteniendo todos los eventos futuros");
-        
+
         List<EventoDeportivo> eventosFuturos = eventoDeportivoService.getEventosFuturos();
         List<EventoDeportivoResponse> response = eventoDeportivoMapper.toResponseList(eventosFuturos);
-        
+
         log.info("Se encontraron {} eventos futuros", response.size());
         return ResponseEntity.ok(response);
     }
@@ -197,10 +205,10 @@ public class EventoDeportivoController {
     @GetMapping("/pasados")
     public ResponseEntity<List<EventoDeportivoResponse>> getEventosPasados() {
         log.info("Obteniendo eventos pasados");
-        
+
         List<EventoDeportivo> eventosPasados = eventoDeportivoService.getEventosPasados();
         List<EventoDeportivoResponse> response = eventoDeportivoMapper.toResponseList(eventosPasados);
-        
+
         log.info("Se encontraron {} eventos pasados", response.size());
         return ResponseEntity.ok(response);
     }
@@ -212,11 +220,30 @@ public class EventoDeportivoController {
     @GetMapping("/activos")
     public ResponseEntity<List<EventoDeportivoResponse>> getEventosActivos() {
         log.info("Obteniendo todos los eventos activos");
-        
+
         List<EventoDeportivo> eventosActivos = eventoDeportivoService.getEventosActivos();
         List<EventoDeportivoResponse> response = eventoDeportivoMapper.toResponseList(eventosActivos);
-        
+
         log.info("Se encontraron {} eventos activos", response.size());
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Obtiene las ligas por deporte con información del país y bandera
+     * GET /api/eventos/ligas/{deporte}
+     */
+    @GetMapping("/ligas/{deporte}")
+    public ResponseEntity<List<LigaPorDeporteResponse>> getLigasPorDeporte(
+            @PathVariable String deporte) {
+        log.info("Obteniendo ligas para el deporte: {}", deporte);
+
+        try {
+            List<LigaPorDeporteResponse> ligas = eventoDeportivoService.getLigasPorDeporte(deporte);
+            log.info("Se encontraron {} ligas para el deporte {}", ligas.size(), deporte);
+            return ResponseEntity.ok(ligas);
+        } catch (Exception e) {
+            log.error("Error al obtener ligas por deporte {}: {}", deporte, e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

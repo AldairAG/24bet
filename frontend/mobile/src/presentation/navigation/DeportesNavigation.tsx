@@ -25,6 +25,7 @@ const HeaderIcon = React.memo(() => (
 // Tipos de navegación para el stack principal
 export type MainCasinoStackParamList = {
     CasinoTabs: undefined;
+    DeportesScreen: { selectedSportId?: string } | undefined;
     SportEvents: {
         sport: {
             id: string;
@@ -61,7 +62,12 @@ export type CasinoTabParamList = {
     Inicio: undefined;
     EnVivo: undefined;
     MisApuestas: undefined;
-    Deportes: undefined;
+    Deportes: { selectedSportId?: string } | undefined;
+};
+
+// Tipos adicionales para pantallas específicas
+export type DeportesScreenParams = {
+    selectedSportId?: string;
 };
 
 const MainCasinoStack = createNativeStackNavigator<MainCasinoStackParamList>();

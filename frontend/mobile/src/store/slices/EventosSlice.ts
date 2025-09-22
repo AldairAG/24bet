@@ -56,10 +56,7 @@ export const getEventosEnVivo = createAsyncThunk<
     'eventos/getEventosEnVivo',
     async (_, { rejectWithValue }) => {
         try {
-            console.log('🚀 Iniciando carga de eventos en vivo...');
             const eventos = await eventosService.getEventosEnVivo();
-            console.log('✅ Eventos recibidos en thunk:', eventos);
-            console.log('✅ Cantidad de eventos:', eventos?.length || 0);
             return eventos;
         } catch (error) {
             console.error('❌ Error en thunk:', error);

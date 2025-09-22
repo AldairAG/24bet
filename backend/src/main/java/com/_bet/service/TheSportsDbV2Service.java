@@ -158,7 +158,7 @@ public class TheSportsDbV2Service {
             //obtenerLigasConDatosFaltantes().join();
             Thread.sleep(1000);
 
-            obtenerEquiposPorLigas();
+            //obtenerEquiposPorLigas();
 
             log.info("Sincronización de datos maestros completada");
         } catch (Exception e) {

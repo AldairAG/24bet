@@ -12,15 +12,19 @@ import {
     Alert,
 } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CompositeNavigationProp } from '@react-navigation/native';
+import { MaterialTopTabNavigationProp } from '@react-navigation/material-top-tabs';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import EventoItem from '../components/items/EventoItem';
 import { useEventos } from '../../hooks/useEventos';
 import { EventoDeportivoResponse } from '../../types/EventosType';
-import { MainCasinoStackParamList } from '../navigation/DeportesNavigation';
+import { CasinoTabParamList, MainCasinoStackParamList } from '../navigation/DeportesNavigation';
 
-// Tipo para la navegación
-type HomeScreenNavigationProp = NativeStackNavigationProp<MainCasinoStackParamList>;
+// Tipo compuesto para la navegación que incluye tanto el tab como el stack
+type HomeScreenNavigationProp = CompositeNavigationProp<
+    MaterialTopTabNavigationProp<CasinoTabParamList>,
+    NativeStackNavigationProp<MainCasinoStackParamList>
+>;
 
 export default function HomeScreen() {
     const colorScheme = useColorScheme();
@@ -45,18 +49,8 @@ export default function HomeScreen() {
     // Cargar eventos en vivo al montar el componente
     useEffect(() => {
         console.log('🏠 HomeScreen montado, cargando eventos...');
-        loadEventosEnVivo();
+        loadEventosEnVivo();        
     }, []);
-
-    // Debug: Mostrar estado actual de eventos
-    useEffect(() => {
-        console.log('🏠 Estado actual en HomeScreen:');
-        console.log('🏠 - isLoadingEventosEnVivo:', isLoadingEventosEnVivo);
-        console.log('🏠 - eventosEnVivoFiltrados:', eventosEnVivoFiltrados);
-        console.log('🏠 - eventosEnVivoFiltrados.length:', eventosEnVivoFiltrados?.length || 'N/A');
-        console.log('🏠 - hasEventos:', hasEventos);
-        console.log('🏠 - loadEventosEnVivoError:', loadEventosEnVivoError);
-    }, [isLoadingEventosEnVivo, eventosEnVivoFiltrados, hasEventos, loadEventosEnVivoError]);
 
     // Manejar errores de carga
     useEffect(() => {
@@ -187,19 +181,31 @@ export default function HomeScreen() {
                 <View style={styles.section}>
                     <Text style={[styles.sectionTitle, { color: isDark ? 'white' : '#333' }]}>Deportes Populares</Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        <TouchableOpacity style={[styles.sportCard, { backgroundColor: isDark ? '#1e1e1e' : 'white' }]}>
+                        <TouchableOpacity 
+                            style={[styles.sportCard, { backgroundColor: isDark ? '#1e1e1e' : 'white' }]}
+                            onPress={() => navigation.navigate('Deportes', { selectedSportId: 'futbol' })}
+                        >
                             <Ionicons name="football" size={30} color="#d32f2f" />
                             <Text style={[styles.sportText, { color: isDark ? 'white' : '#333' }]}>Fútbol</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={[styles.sportCard, { backgroundColor: isDark ? '#1e1e1e' : 'white' }]}>
+                        <TouchableOpacity 
+                            style={[styles.sportCard, { backgroundColor: isDark ? '#1e1e1e' : 'white' }]}
+                            onPress={() => navigation.navigate('Deportes', { selectedSportId: 'basquet' })}
+                        >
                             <Ionicons name="basketball" size={30} color="#d32f2f" />
                             <Text style={[styles.sportText, { color: isDark ? 'white' : '#333' }]}>Básquet</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={[styles.sportCard, { backgroundColor: isDark ? '#1e1e1e' : 'white' }]}>
+                        <TouchableOpacity 
+                            style={[styles.sportCard, { backgroundColor: isDark ? '#1e1e1e' : 'white' }]}
+                            onPress={() => navigation.navigate('Deportes', { selectedSportId: 'tenis' })}
+                        >
                             <MaterialIcons name="sports-tennis" size={30} color="#d32f2f" />
                             <Text style={[styles.sportText, { color: isDark ? 'white' : '#333' }]}>Tenis</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={[styles.sportCard, { backgroundColor: isDark ? '#1e1e1e' : 'white' }]}>
+                        <TouchableOpacity 
+                            style={[styles.sportCard, { backgroundColor: isDark ? '#1e1e1e' : 'white' }]}
+                            onPress={() => navigation.navigate('Deportes', { selectedSportId: 'baseball' })}
+                        >
                             <MaterialIcons name="sports-baseball" size={30} color="#d32f2f" />
                             <Text style={[styles.sportText, { color: isDark ? 'white' : '#333' }]}>Béisbol</Text>
                         </TouchableOpacity>
@@ -235,9 +241,8 @@ export default function HomeScreen() {
                             </TouchableOpacity>
                         </View>
                     ) : (
-                        Array.isArray(eventosEnVivoFiltrados) ? 
+                    eventosEnVivoFiltrados ? 
                             eventosEnVivoFiltrados
-                                .filter(evento => isEventoEnVivo(evento)) // Usar función de validación
                                 .slice(0, 5) // Mostrar máximo 5 eventos en vivo
                                 .map((evento) => {
                                     const eventoFormatted = convertToEventoItemFormat(evento);
