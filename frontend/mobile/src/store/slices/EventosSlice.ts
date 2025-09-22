@@ -29,6 +29,8 @@ export interface EventosState {
     
     // Última actualización
     ultimaActualizacion: string | null;
+
+    ligasPorDeporte:
 }
 
 const initialState: EventosState = {

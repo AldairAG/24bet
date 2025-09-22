@@ -19,6 +19,12 @@ export interface LigaBasica {
 }
 
 /**
+ * DTO para respuesta de ligas por deporte
+ */
+export interface LigasPorDeporteResponse {
+    
+
+/**
  * DTO básico para equipo
  */
 export interface EquipoBasico {
