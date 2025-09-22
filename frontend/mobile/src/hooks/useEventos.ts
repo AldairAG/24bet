@@ -29,10 +29,15 @@ import {
     selectEventosEnVivoStats,
     selectEventosErrors,
     selectEventosLoading,
+    selectLigasPorDeporte,
+    selectIsLoadingLigasPorDeporte,
+    selectLoadLigasPorDeporteError,
+    // Types
     // Helpers
     getEventoNombreFormateado,
     getEventoResultadoFormateado,
     getEventoTiempoFormateado,
+    getLigasPorDeporte,
 } from '../store/slices/EventosSlice';
 import { eventosService } from '../service/EventosService';
 
@@ -56,8 +61,19 @@ export const useEventos = () => {
     const eventosStats = useSelector(selectEventosEnVivoStats);
     const eventosErrors = useSelector(selectEventosErrors);
     const eventosLoading = useSelector(selectEventosLoading);
+    const ligasPorDeporte = useSelector(selectLigasPorDeporte);
+    const isLoadingLigasPorDeporte = useSelector(selectIsLoadingLigasPorDeporte);
+    const loadLigasPorDeporteError = useSelector(selectLoadLigasPorDeporteError);
 
     // ========== ACCIONES PRINCIPALES ==========
+
+    /**
+     * Carga ligas por deporte desde el servidor
+     */
+    const loadLigasPorDeporte = useCallback(async (deporte: string) => {
+        const result = await dispatch(getLigasPorDeporte(deporte) as any);
+        return result;
+    }, [dispatch]);
 
     /**
      * Carga todos los eventos en vivo desde el servidor
@@ -351,11 +367,13 @@ export const useEventos = () => {
     return {
         // Estado completo
         eventosState,
+        ligasPorDeporte,
 
         // Estados de carga
         isLoadingEventosEnVivo,
         isLoading: eventosLoading.isLoading,
         loading: eventosLoading,
+        isLoadingLigasPorDeporte,
 
         // Datos principales
         eventosEnVivo,
@@ -370,6 +388,7 @@ export const useEventos = () => {
 
         // Errores
         loadEventosEnVivoError,
+        loadLigasPorDeporteError,
         errors: eventosErrors,
         hasErrors: hasErrors(),
         allErrors: getAllErrors(),

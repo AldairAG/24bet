@@ -1,5 +1,5 @@
 import { apiBase } from './apiBase';
-import { EventoDeportivoResponse, EventosEnVivoResponse } from '../types/EventosType';
+import { EventoDeportivoResponse, EventosEnVivoResponse, LigaPorDeporteResponse } from '../types/EventosType';
 
 /**
  * Servicio para la gestión de eventos deportivos
@@ -29,9 +29,9 @@ class EventosService {
     /**
      * Obtiene ligas por deporte
      */
-    async getLigasPorDeporte(deporte: string): Promise<string[]> {
+    async getLigasPorDeporte(deporte: string): Promise<LigaPorDeporteResponse[]> {
         try {
-            const response = await apiBase.get<string[]>(
+            const response = await apiBase.get<LigaPorDeporteResponse[]>(
                 `${this.baseUrl}/ligas`,
                 { params: { deporte } }
             );

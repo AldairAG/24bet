@@ -1,42 +1,67 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { EventoDeportivoResponse, EventosEnVivoResponse } from '../../types/EventosType';
+import { EventoDeportivoResponse, EventosEnVivoResponse, LigaPorDeporteResponse } from '../../types/EventosType';
 import { eventosService } from '../../service/EventosService';
 import type { RootState } from '../index';
 
 // ========== ESTADO INICIAL ==========
 export interface EventosState {
     // Estados de carga
+    isLoadingEventos: boolean;
+    isLoadingLigasPorDeporte: boolean;
+    isLoadingEventoDetail: boolean;
     isLoadingEventosEnVivo: boolean;
-    
+
     // Datos
     eventosEnVivo: EventosEnVivoResponse;
-    
+    ligasPorDeporte: LigaPorDeporteResponse[];
+    eventoDetail: EventoDeportivoResponse | null;
+    eventos: EventoDeportivoResponse[];
+
     // Errores
     loadEventosEnVivoError: string | null;
-    
+    loadLigasPorDeporteError: string | null;
+    loadEventoDetailError: string | null;
+    loadEventosError: string | null;
+
     // Estados de filtrado y búsqueda
     filtros: {
         deporte?: string;
         pais?: string;
         terminoBusqueda?: string;
     };
-    
+
     // Configuración de ordenamiento
     ordenamiento: {
         campo: 'fecha' | 'nombre';
         direccion: 'asc' | 'desc';
     };
-    
+
     // Última actualización
     ultimaActualizacion: string | null;
 
-    ligasPorDeporte:
 }
 
 const initialState: EventosState = {
+    // Estados de carga
+    isLoadingEventos: false,
     isLoadingEventosEnVivo: false,
+    isLoadingLigasPorDeporte: false,
+    isLoadingEventoDetail: false,
+
+
+    // Datos
     eventosEnVivo: [],
+    ligasPorDeporte: [],
+    eventoDetail: null,
+    eventos: [],
+
+    // Errores
     loadEventosEnVivoError: null,
+    loadLigasPorDeporteError: null,
+    loadEventoDetailError: null,
+    loadEventosError: null,
+
+    // Estados de filtrado y búsqueda
     filtros: {},
     ordenamiento: {
         campo: 'fecha',
@@ -46,6 +71,27 @@ const initialState: EventosState = {
 };
 
 // ========== THUNKS ASÍNCRONOS ==========
+
+/**
+ * Thunk para cargar ligas por deporte
+ */
+export const getLigasPorDeporte = createAsyncThunk<
+    LigaPorDeporteResponse[], // Tipo de retorno
+    string, // Parámetro: deporte
+    { rejectValue: string } // Tipo del error
+>(
+    'eventos/getLigasPorDeporte',
+    async (deporte, { rejectWithValue }) => {
+        try {
+            const ligas = await eventosService.getLigasPorDeporte(deporte);
+            return ligas;
+        } catch (error) {
+            console.error('❌ Error en thunk:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Error al cargar ligas por deporte';
+            return rejectWithValue(errorMessage);
+        }
+    }
+);
 
 /**
  * Thunk para cargar eventos en vivo
@@ -74,21 +120,42 @@ const eventosSlice = createSlice({
     initialState,
     reducers: {
         // ========== ACCIONES DE LIMPIEZA ==========
-        
+
+        /**
+         * Limpia el error de carga de ligas por deporte
+         */
+        clearLoadLigasPorDeporteError: (state) => {
+            state.loadLigasPorDeporteError = null;
+        },
+
+        /**
+         * Limpia el error de carga de detalles de evento
+         */
+        clearLoadEventoDetailError: (state) => {
+            state.loadEventoDetailError = null;
+        },
+
+        /**
+         * Limpia el error de carga de eventos
+         */
+        clearLoadEventosError: (state) => {
+            state.loadEventosError = null;
+        },
+
         /**
          * Limpia el error de carga de eventos en vivo
          */
         clearLoadEventosEnVivoError: (state) => {
             state.loadEventosEnVivoError = null;
         },
-        
+
         /**
          * Limpia los eventos en vivo
          */
         clearEventosEnVivo: (state) => {
             state.eventosEnVivo = [];
         },
-        
+
         /**
          * Limpia todos los datos de eventos
          */
@@ -98,80 +165,80 @@ const eventosSlice = createSlice({
             state.filtros = {};
             state.ultimaActualizacion = null;
         },
-        
+
         // ========== ACCIONES DE FILTRADO ==========
-        
+
         /**
          * Establece filtro por deporte
          */
         setFiltroDeporte: (state, action: PayloadAction<string | undefined>) => {
             state.filtros.deporte = action.payload;
         },
-        
+
         /**
          * Establece filtro por país
          */
         setFiltroPais: (state, action: PayloadAction<string | undefined>) => {
             state.filtros.pais = action.payload;
         },
-        
+
         /**
          * Establece término de búsqueda
          */
         setTerminoBusqueda: (state, action: PayloadAction<string | undefined>) => {
             state.filtros.terminoBusqueda = action.payload;
         },
-        
+
         /**
          * Limpia todos los filtros
          */
         clearFiltros: (state) => {
             state.filtros = {};
         },
-        
+
         // ========== ACCIONES DE ORDENAMIENTO ==========
-        
+
         /**
          * Establece el ordenamiento
          */
         setOrdenamiento: (state, action: PayloadAction<{ campo: 'fecha' | 'nombre'; direccion: 'asc' | 'desc' }>) => {
             state.ordenamiento = action.payload;
         },
-        
+
         /**
          * Cambia la dirección del ordenamiento actual
          */
         toggleDireccionOrdenamiento: (state) => {
             state.ordenamiento.direccion = state.ordenamiento.direccion === 'asc' ? 'desc' : 'asc';
         },
-        
+
         // ========== ACCIONES DE ACTUALIZACIÓN LOCAL ==========
-        
+
         /**
          * Actualiza un evento específico en el estado local
          */
         updateEventoEnVivo: (state, action: PayloadAction<EventoDeportivoResponse>) => {
             const eventoActualizado = action.payload;
             const index = state.eventosEnVivo.findIndex(evento => evento.id === eventoActualizado.id);
-            
+
             if (index !== -1) {
                 state.eventosEnVivo[index] = eventoActualizado;
                 state.ultimaActualizacion = new Date().toISOString();
             }
         },
-        
+
         /**
          * Actualiza el resultado de un evento
          */
-        updateResultadoEvento: (state, action: PayloadAction<{ 
-            eventoId: number; 
-            resultadoLocal: number; 
+        updateResultadoEvento: (state, action: PayloadAction<{
+            eventoId: number;
+            resultadoLocal: number;
             resultadoVisitante: number;
             tiempoPartido?: string;
         }>) => {
             const { eventoId, resultadoLocal, resultadoVisitante, tiempoPartido } = action.payload;
             const evento = state.eventosEnVivo.find(e => e.id === eventoId);
-            
+
             if (evento) {
                 evento.resultadoLocal = resultadoLocal;
                 evento.resultadoVisitante = resultadoVisitante;
@@ -204,6 +271,22 @@ const eventosSlice = createSlice({
                 state.loadEventosEnVivoError = action.payload || 'Error al cargar eventos en vivo';
                 state.eventosEnVivo = [];
             });
+        // ========== GET LIGAS POR DEPORTE ==========
+        builder
+            .addCase(getLigasPorDeporte.pending, (state) => {
+                state.isLoadingLigasPorDeporte = true;
+                state.loadLigasPorDeporteError = null;
+            })
+            .addCase(getLigasPorDeporte.fulfilled, (state, action) => {
+                state.isLoadingLigasPorDeporte = false;
+                state.ligasPorDeporte = action.payload;
+                state.loadLigasPorDeporteError = null;
+            })
+            .addCase(getLigasPorDeporte.rejected, (state, action) => {
+                state.isLoadingLigasPorDeporte = false;
+                state.loadLigasPorDeporteError = action.payload || 'Error al cargar ligas por deporte';
+                state.ligasPorDeporte = [];
+            });
     },
 });
 
@@ -220,6 +303,9 @@ export const {
     toggleDireccionOrdenamiento,
     updateEventoEnVivo,
     updateResultadoEvento,
+    clearLoadLigasPorDeporteError,
+    clearLoadEventoDetailError,
+    clearLoadEventosError
 } = eventosSlice.actions;
 
 // ========== SELECTORS ==========
@@ -230,6 +316,9 @@ export const selectLoadEventosEnVivoError = (state: RootState) => state.eventos?
 export const selectFiltros = (state: RootState) => state.eventos?.filtros ?? {};
 export const selectOrdenamiento = (state: RootState) => state.eventos?.ordenamiento ?? { campo: 'fecha' as const, direccion: 'asc' as const };
 export const selectUltimaActualizacion = (state: RootState) => state.eventos?.ultimaActualizacion ?? null;
+export const selectLigasPorDeporte = (state: RootState) => state.eventos?.ligasPorDeporte ?? [];
+export const selectIsLoadingLigasPorDeporte = (state: RootState) => state.eventos?.isLoadingLigasPorDeporte ?? false;
+export const selectLoadLigasPorDeporteError = (state: RootState) => state.eventos?.loadLigasPorDeporteError ?? null;
 
 // ========== SELECTORS COMBINADOS ==========
 
@@ -238,16 +327,16 @@ export const selectUltimaActualizacion = (state: RootState) => state.eventos?.ul
  */
 export const selectEventosEnVivoFiltrados = (state: RootState): EventosEnVivoResponse => {
     const { eventosEnVivo, filtros, ordenamiento } = state.eventos;
-    
+
     // Verificación de seguridad: asegurarse de que eventosEnVivo sea un array
     if (!Array.isArray(eventosEnVivo)) {
         console.log('🚨 eventosEnVivo no es un array:', eventosEnVivo);
         return [];
     }
-    
+
     console.log('🔍 Selector - eventosEnVivo original:', eventosEnVivo);
     console.log('🔍 Selector - cantidad de eventos:', eventosEnVivo.length);
-    
+
     // Debug: Analizar el primer evento para ver su estructura
     if (eventosEnVivo.length > 0) {
         const primerEvento = eventosEnVivo[0];
@@ -260,7 +349,7 @@ export const selectEventosEnVivoFiltrados = (state: RootState): EventosEnVivoRes
             fechaEvento: primerEvento.fechaEvento
         });
     }
-    
+
     let eventosFiltrados = [...eventosEnVivo];
 
     // Aplicar filtros
@@ -283,7 +372,7 @@ export const selectEventosEnVivoFiltrados = (state: RootState): EventosEnVivoRes
         eventosFiltrados = eventosFiltrados.sort((a, b) => {
             const nombreA = a.nombre.toLowerCase();
             const nombreB = b.nombre.toLowerCase();
-            
+
             if (ordenamiento.direccion === 'asc') {
                 return nombreA.localeCompare(nombreB);
             } else {
@@ -291,7 +380,7 @@ export const selectEventosEnVivoFiltrados = (state: RootState): EventosEnVivoRes
             }
         });
     }
-    
+
     console.log('🔍 Selector - eventosFiltrados finales:', eventosFiltrados);
     console.log('🔍 Selector - cantidad final:', eventosFiltrados.length);
 
@@ -314,7 +403,7 @@ export const selectEventosEnVivoPorLiga = (state: RootState): Map<string, Evento
  */
 export const selectEventosEnVivoStats = (state: RootState) => {
     const eventos = state.eventos.eventosEnVivo;
-    
+
     // Verificación de seguridad
     if (!Array.isArray(eventos)) {
         return {
@@ -327,20 +416,20 @@ export const selectEventosEnVivoStats = (state: RootState) => {
             eventosFinalizados: 0
         };
     }
-    
+
     const totalEventos = eventos.length;
     const eventosPorDeporte = eventos.reduce((acc, evento) => {
         const deporte = evento.liga.deporte;
         acc[deporte] = (acc[deporte] || 0) + 1;
         return acc;
     }, {} as Record<string, number>);
-    
+
     const eventosPorPais = eventos.reduce((acc, evento) => {
         const pais = evento.pais || evento.liga.pais || 'Sin país';
         acc[pais] = (acc[pais] || 0) + 1;
         return acc;
     }, {} as Record<string, number>);
-    
+
     return {
         totalEventos,
         eventosPorDeporte,

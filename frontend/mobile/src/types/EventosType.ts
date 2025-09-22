@@ -21,8 +21,14 @@ export interface LigaBasica {
 /**
  * DTO para respuesta de ligas por deporte
  */
-export interface LigasPorDeporteResponse {
-    
+export interface LigaPorDeporteResponse {
+    id: number;
+    nombreLiga: string;
+    pais: string;
+    banderaPais: string;
+    deporte: string;
+    activa: boolean;
+}
 
 /**
  * DTO básico para equipo
