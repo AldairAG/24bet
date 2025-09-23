@@ -306,20 +306,16 @@ const eventosSlice = createSlice({
         // ========== GET EVENTOS FUTUROS ==========
         builder
             .addCase(getEventosFuturos.pending, (state) => {
-                console.log('⏳ Cargando eventos futuros...');
                 state.isLoadingEventosFuturos = true;
                 state.loadEventosFuturosError = null;
             })
             .addCase(getEventosFuturos.fulfilled, (state, action) => {
-                console.log('✅ Eventos futuros cargados exitosamente:', action.payload);
-                console.log('✅ Cantidad de eventos futuros en reducer:', action.payload?.length || 0);
                 state.isLoadingEventosFuturos = false;
                 state.eventosFuturos = action.payload;
                 state.loadEventosFuturosError = null;
                 state.ultimaActualizacion = new Date().toISOString();
             })
             .addCase(getEventosFuturos.rejected, (state, action) => {
-                console.error('❌ Error al cargar eventos futuros:', action.payload);
                 state.isLoadingEventosFuturos = false;
                 state.loadEventosFuturosError = action.payload || 'Error al cargar eventos futuros';
                 state.eventosFuturos = [];

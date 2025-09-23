@@ -81,6 +81,9 @@ export interface EventoDeportivoResponse {
     activo: boolean;
     fechaCreacion: string; // LocalDateTime se mapea a string en JSON
     fechaActualizacion: string; // LocalDateTime se mapea a string en JSON
+
+    strEquipoLocal?: string; // Opcional
+    strEquipoVisitante?: string; // Opcional
     
     // Información de la liga
     liga: LigaBasica;

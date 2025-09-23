@@ -152,9 +152,9 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporte, region }) => {
 
     const renderEvent = (evento: EventoDeportivoResponse) => {
         const status = getEventStatus(evento);
-        const equipoLocal = evento.equipoLocal?.nombre || 'Equipo Local';
-        const equipoVisitante = evento.equipoVisitante?.nombre || 'Equipo Visitante';
-        
+        const equipoLocal = evento.strEquipoLocal || 'Equipo Local';
+        const equipoVisitante = evento.strEquipoVisitante || 'Equipo Visitante';
+
         return (
             <View key={evento.id} style={[styles.eventCard, { backgroundColor: isDark ? '#2a2a2a' : 'white' }]}>
                 <View style={styles.eventHeader}>
@@ -190,17 +190,6 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporte, region }) => {
                         </Text>
                     </View>
                 )}
-
-                <View style={styles.eventDetails}>
-                    <Text style={[styles.ligaName, { color: isDark ? '#bbb' : '#666' }]}>
-                        {evento.liga.nombre}
-                    </Text>
-                    {evento.jornada && (
-                        <Text style={[styles.jornada, { color: isDark ? '#888' : '#999' }]}>
-                            Jornada {evento.jornada}
-                        </Text>
-                    )}
-                </View>
             </View>
         );
     };

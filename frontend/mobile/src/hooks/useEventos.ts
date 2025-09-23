@@ -470,11 +470,7 @@ export const useEventos = () => {
          * Filtra eventos futuros por liga específica
          */
         filtrarPorLiga: (ligaNombre: string) => {
-            if (!Array.isArray(eventosFuturos)) return [];
-            return eventosFuturos.filter(evento =>
-                evento.liga.nombre.toLowerCase().includes(ligaNombre.toLowerCase()) ||
-                evento.liga.nombreAlternativo?.toLowerCase().includes(ligaNombre.toLowerCase())
-            );
+            return eventosFuturos
         },
 
         /**

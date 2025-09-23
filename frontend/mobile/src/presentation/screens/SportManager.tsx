@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, useColorScheme, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { RouteProp, useRoute } from '@react-navigation/native';
+import { CompositeNavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { MainCasinoStackParamList } from '../navigation/DeportesNavigation';
+import { CasinoTabParamList, MainCasinoStackParamList } from '../navigation/DeportesNavigation';
 import LigaScreen from './sportManager/LigaScreen';
 import { useEventos } from '../../hooks/useEventos';
+import { MaterialTopTabNavigationProp } from '@react-navigation/material-top-tabs';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 // Tipo para los parámetros de ruta de SportManager
 type SportManagerRouteProp = RouteProp<MainCasinoStackParamList, 'SportManager'>;
@@ -39,8 +41,13 @@ interface PaisesAcordeon {
     [paisNombre: string]: PaisPorLigas;
 }
 
+type SportManagerNavigationProp = CompositeNavigationProp<
+    MaterialTopTabNavigationProp<CasinoTabParamList>,
+    NativeStackNavigationProp<MainCasinoStackParamList>
+>;
+
 // Exportar la interfaz para uso en otras pantallas
-export type { ComponenteDeporteProps };
+export type { ComponenteDeporteProps, SportManagerNavigationProp };
 
 const SportManager: React.FC = () => {
     const route = useRoute<SportManagerRouteProp>();
@@ -115,6 +122,7 @@ const SportManager: React.FC = () => {
 };
 
 const ComponenteDeporte: React.FC<ComponenteDeporteProps> = ({ deporteId }) => {
+    const navigation = useNavigation<SportManagerNavigationProp>();
     const { ligasManager, paisesManager } = useEventos();
     const [paisesAcordeon, setPaisesAcordeon] = useState<PaisesAcordeon>({});
     const [paisesAbiertos, setPaisesAbiertos] = useState<{ [pais: string]: boolean }>({});
@@ -192,8 +200,11 @@ const ComponenteDeporte: React.FC<ComponenteDeporteProps> = ({ deporteId }) => {
 
     // Función para manejar la selección de una liga
     const handleLigaSelection = (liga: LigaInfo, pais: string) => {
-        console.log(`Liga seleccionada: ${liga.nombre} de ${pais}`);
-        // Aquí puedes navegar a la pantalla de la liga o realizar otra acción
+        navigation.navigate('SportManager', {
+            deporte: deporteId||'',
+            region: pais,
+            liga: liga.nombre
+        });        
     };
 
     // Renderizar estado de carga
