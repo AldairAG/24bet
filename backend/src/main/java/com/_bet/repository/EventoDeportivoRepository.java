@@ -132,4 +132,11 @@ public interface EventoDeportivoRepository extends JpaRepository<EventoDeportivo
      */
     @Query("SELECT e FROM EventoDeportivo e WHERE e.estado IN ('1H', '2H', 'HT', 'Live') AND e.activo = true ORDER BY e.fechaEvento ASC")
     List<EventoDeportivo> findEventosEnVivoParaApuestas();
+
+    /**
+     * Busca eventos de los próximos 7 dias por nombre de liga
+     */
+    @Query("SELECT e FROM EventoDeportivo e WHERE e.liga.nombre = :ligaNombre AND e.fechaEvento BETWEEN :ahora AND :fechaLimite AND e.activo = true ORDER BY e.fechaEvento ASC")
+    List<EventoDeportivo> findEventosProximosByLigaNombre(@Param("ligaNombre") String ligaNombre, @Param("ahora") LocalDateTime ahora, @Param("fechaLimite") LocalDateTime fechaLimite);
+
 }

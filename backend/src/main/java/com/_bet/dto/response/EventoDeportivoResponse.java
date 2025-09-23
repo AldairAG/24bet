@@ -46,6 +46,11 @@ public class EventoDeportivoResponse {
     private Boolean activo;
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaActualizacion;
+
+    private String strEquipoLocal;
+    private String strEquipoVisitante;
+    private String urlBadgeEquipoLocal;
+    private String urlBadgeEquipoVisitante;
     
     // Información de la liga
     private LigaBasicaResponse liga;

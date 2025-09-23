@@ -246,4 +246,24 @@ public class EventoDeportivoController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    /**
+     * Proximos eventos por liga hasta 5 días por nombre de liga
+     */
+    @GetMapping("/proximos/ligas/{ligaNombre}")
+    public ResponseEntity<ApiResponseWrapper<List<EventoDeportivoResponse>>> getEventosProximosPorLiga(
+            @PathVariable String ligaNombre) {
+        try {
+            log.info("Obteniendo eventos próximos para la liga con nombre: {}", ligaNombre);
+
+            List<EventoDeportivoResponse> eventosProximos = eventoDeportivoService.getEventosProximosPorLigaByName(ligaNombre);
+
+            log.info("Se encontraron {} eventos próximos para la liga", eventosProximos.size());
+            return ResponseEntity.ok(new ApiResponseWrapper(true, "Eventos próximos obtenidos exitosamente", eventosProximos));
+        } catch (Exception e) {
+            log.error("Error al obtener eventos próximos para la liga {}: {}", ligaNombre, e.getMessage());
+            return ResponseEntity.status(500)
+                    .body(new ApiResponseWrapper(false, "Error al obtener eventos próximos", null));
+        }
+    }
 }

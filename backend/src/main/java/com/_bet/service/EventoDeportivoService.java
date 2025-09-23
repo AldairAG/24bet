@@ -3,6 +3,7 @@ package com._bet.service;
 import com._bet.entity.EventoDeportivo;
 import com._bet.entity.Liga;
 import com._bet.entity.Equipo;
+import com._bet.dto.response.EventoDeportivoResponse;
 import com._bet.dto.response.LigaPorDeporteResponse;
 import com._bet.repository.EventoDeportivoRepository;
 import com._bet.repository.LigaRepository;
@@ -250,6 +251,29 @@ public class EventoDeportivoService {
                         .banderaPais(liga.getPais() != null ? liga.getPais().getFlagUrl() : "")
                         .deporte(liga.getDeporte().getNombre())
                         .activa(liga.getActiva())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    public List<EventoDeportivoResponse> getEventosProximosPorLigaByName(String ligaNombre) {
+        log.debug("Obteniendo eventos próximos para la liga: {}", ligaNombre);
+        LocalDateTime ahora = LocalDateTime.now();
+        LocalDateTime fechaLimite = ahora.plusDays(7);
+        List<EventoDeportivo> eventos = eventoDeportivoRepository.findEventosProximosByLigaNombre(ligaNombre, ahora, fechaLimite);
+        
+        return eventos.stream()
+                .map(evento -> EventoDeportivoResponse.builder()
+                        .id(evento.getId())
+                        .sportsDbId(evento.getSportsDbId())
+                        .fechaEvento(evento.getFechaEvento())
+                        .estado(evento.getEstado())
+                        .enVivo(evento.getEnVivo())
+                        .strEquipoLocal(evento.getEquipoLocal().getNombre())
+                        .strEquipoVisitante(evento.getEquipoVisitante().getNombre())
+                        .ubicacion(evento.getUbicacion())
+                        .pais(ligaNombre)
+                        .urlBadgeEquipoLocal(evento.getEquipoLocal().getBadgeUrl())
+                        .urlBadgeEquipoVisitante(evento.getEquipoVisitante().getBadgeUrl())
                         .build())
                 .collect(Collectors.toList());
     }
