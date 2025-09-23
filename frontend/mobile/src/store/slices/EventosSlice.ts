@@ -10,15 +10,18 @@ export interface EventosState {
     isLoadingLigasPorDeporte: boolean;
     isLoadingEventoDetail: boolean;
     isLoadingEventosEnVivo: boolean;
+    isLoadingEventosFuturos: boolean;
 
     // Datos
     eventosEnVivo: EventosEnVivoResponse;
+    eventosFuturos: EventosEnVivoResponse;
     ligasPorDeporte: LigaPorDeporteResponse[];
     eventoDetail: EventoDeportivoResponse | null;
     eventos: EventoDeportivoResponse[];
 
     // Errores
     loadEventosEnVivoError: string | null;
+    loadEventosFuturosError: string | null;
     loadLigasPorDeporteError: string | null;
     loadEventoDetailError: string | null;
     loadEventosError: string | null;
@@ -45,18 +48,21 @@ const initialState: EventosState = {
     // Estados de carga
     isLoadingEventos: false,
     isLoadingEventosEnVivo: false,
+    isLoadingEventosFuturos: false,
     isLoadingLigasPorDeporte: false,
     isLoadingEventoDetail: false,
 
 
     // Datos
     eventosEnVivo: [],
+    eventosFuturos: [],
     ligasPorDeporte: [],
     eventoDetail: null,
     eventos: [],
 
     // Errores
     loadEventosEnVivoError: null,
+    loadEventosFuturosError: null,
     loadLigasPorDeporteError: null,
     loadEventoDetailError: null,
     loadEventosError: null,
@@ -94,6 +100,24 @@ export const getLigasPorDeporte = createAsyncThunk<
 );
 
 /**
+ * Thunk para cargar eventos futuros
+ */
+export const getEventosFuturos = createAsyncThunk<
+    EventosEnVivoResponse, // Tipo de datos de retorno
+    void, // Tipo de parámetro de entrada
+    { rejectValue: string } // Tipo de error
+>(
+    'eventos/getEventosFuturos',
+    async (_, { rejectWithValue }) => {
+        try {
+            return await eventosService.getEventosFuturos();
+        } catch (error) {
+            return rejectWithValue(error instanceof Error ? error.message : 'Error desconocido');
+        }
+    }
+);
+
+/**
  * Thunk para cargar eventos en vivo
  */
 export const getEventosEnVivo = createAsyncThunk<
@@ -120,6 +144,13 @@ const eventosSlice = createSlice({
     initialState,
     reducers: {
         // ========== ACCIONES DE LIMPIEZA ==========
+
+        /**
+         * Limpia el error de carga de eventos futuros
+         */
+        clearLoadEventosFuturosError: (state) => {
+            state.loadEventosFuturosError = null;
+        },
 
         /**
          * Limpia el error de carga de ligas por deporte
@@ -271,6 +302,29 @@ const eventosSlice = createSlice({
                 state.loadEventosEnVivoError = action.payload || 'Error al cargar eventos en vivo';
                 state.eventosEnVivo = [];
             });
+        
+        // ========== GET EVENTOS FUTUROS ==========
+        builder
+            .addCase(getEventosFuturos.pending, (state) => {
+                console.log('⏳ Cargando eventos futuros...');
+                state.isLoadingEventosFuturos = true;
+                state.loadEventosFuturosError = null;
+            })
+            .addCase(getEventosFuturos.fulfilled, (state, action) => {
+                console.log('✅ Eventos futuros cargados exitosamente:', action.payload);
+                console.log('✅ Cantidad de eventos futuros en reducer:', action.payload?.length || 0);
+                state.isLoadingEventosFuturos = false;
+                state.eventosFuturos = action.payload;
+                state.loadEventosFuturosError = null;
+                state.ultimaActualizacion = new Date().toISOString();
+            })
+            .addCase(getEventosFuturos.rejected, (state, action) => {
+                console.error('❌ Error al cargar eventos futuros:', action.payload);
+                state.isLoadingEventosFuturos = false;
+                state.loadEventosFuturosError = action.payload || 'Error al cargar eventos futuros';
+                state.eventosFuturos = [];
+            });
+        
         // ========== GET LIGAS POR DEPORTE ==========
         builder
             .addCase(getLigasPorDeporte.pending, (state) => {
@@ -293,6 +347,7 @@ const eventosSlice = createSlice({
 // ========== ACTIONS ==========
 export const {
     clearLoadEventosEnVivoError,
+    clearLoadEventosFuturosError,
     clearEventosEnVivo,
     clearEventosData,
     setFiltroDeporte,
@@ -313,6 +368,9 @@ export const selectEventosState = (state: RootState) => state.eventos;
 export const selectIsLoadingEventosEnVivo = (state: RootState) => state.eventos?.isLoadingEventosEnVivo ?? false;
 export const selectEventosEnVivo = (state: RootState) => state.eventos?.eventosEnVivo ?? [];
 export const selectLoadEventosEnVivoError = (state: RootState) => state.eventos?.loadEventosEnVivoError ?? null;
+export const selectIsLoadingEventosFuturos = (state: RootState) => state.eventos?.isLoadingEventosFuturos ?? false;
+export const selectEventosFuturos = (state: RootState) => state.eventos?.eventosFuturos ?? [];
+export const selectLoadEventosFuturosError = (state: RootState) => state.eventos?.loadEventosFuturosError ?? null;
 export const selectFiltros = (state: RootState) => state.eventos?.filtros ?? {};
 export const selectOrdenamiento = (state: RootState) => state.eventos?.ordenamiento ?? { campo: 'fecha' as const, direccion: 'asc' as const };
 export const selectUltimaActualizacion = (state: RootState) => state.eventos?.ultimaActualizacion ?? null;

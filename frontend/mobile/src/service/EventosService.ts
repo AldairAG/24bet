@@ -32,12 +32,29 @@ class EventosService {
     async getLigasPorDeporte(deporte: string): Promise<LigaPorDeporteResponse[]> {
         try {
             const response = await apiBase.get<LigaPorDeporteResponse[]>(
-                `${this.baseUrl}/ligas`,
-                { params: { deporte } }
+                `${this.baseUrl}/ligas/${deporte}`
             );
             return response.data;
         } catch (error) {
             console.error('Error fetching leagues by sport:', error);
+            throw this.handleError(error);
+        }
+    }
+
+    /**
+     * Obtiene todos los eventos futuros
+     * GET /24bet/eventos/futuros
+     * @returns Promise con la lista de eventos futuros
+     */
+    async getEventosFuturos(): Promise<EventosEnVivoResponse> {
+        try {
+            const response = await apiBase.get<EventosEnVivoResponse>(
+                `${this.baseUrl}/futuros`
+            );
+
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching future events:', error);
             throw this.handleError(error);
         }
     }
@@ -132,6 +149,19 @@ class EventosService {
 
             return orden === 'asc' ? fechaA - fechaB : fechaB - fechaA;
         });
+    }
+
+    /**
+     * Filtra eventos por liga específica
+     * @param eventos Lista de eventos
+     * @param ligaNombre Nombre de la liga a filtrar
+     * @returns Eventos filtrados por liga
+     */
+    filterEventosByLiga(eventos: EventosEnVivoResponse, ligaNombre: string): EventosEnVivoResponse {
+        return eventos.filter(evento =>
+            evento.liga.nombre.toLowerCase().includes(ligaNombre.toLowerCase()) ||
+            evento.liga.nombreAlternativo?.toLowerCase().includes(ligaNombre.toLowerCase())
+        );
     }
 
     /**

@@ -188,14 +188,14 @@ public class EventoDeportivoController {
      * GET /api/eventos/futuros
      */
     @GetMapping("/futuros")
-    public ResponseEntity<List<EventoDeportivoResponse>> getEventosFuturos() {
+    public ResponseEntity<ApiResponseWrapper<List<EventoDeportivoResponse>>> getEventosFuturos() {
         log.info("Obteniendo todos los eventos futuros");
 
         List<EventoDeportivo> eventosFuturos = eventoDeportivoService.getEventosFuturos();
         List<EventoDeportivoResponse> response = eventoDeportivoMapper.toResponseList(eventosFuturos);
 
         log.info("Se encontraron {} eventos futuros", response.size());
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(new ApiResponseWrapper<List<EventoDeportivoResponse>>(false, null, response));
     }
 
     /**
@@ -233,14 +233,14 @@ public class EventoDeportivoController {
      * GET /api/eventos/ligas/{deporte}
      */
     @GetMapping("/ligas/{deporte}")
-    public ResponseEntity<List<LigaPorDeporteResponse>> getLigasPorDeporte(
+    public ResponseEntity<ApiResponseWrapper<List<LigaPorDeporteResponse>>> getLigasPorDeporte(
             @PathVariable String deporte) {
         log.info("Obteniendo ligas para el deporte: {}", deporte);
 
         try {
             List<LigaPorDeporteResponse> ligas = eventoDeportivoService.getLigasPorDeporte(deporte);
             log.info("Se encontraron {} ligas para el deporte {}", ligas.size(), deporte);
-            return ResponseEntity.ok(ligas);
+            return ResponseEntity.ok(new ApiResponseWrapper<>(true, "", ligas));
         } catch (Exception e) {
             log.error("Error al obtener ligas por deporte {}: {}", deporte, e.getMessage());
             return ResponseEntity.internalServerError().build();
