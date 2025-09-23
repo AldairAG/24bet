@@ -7,12 +7,13 @@ import {
     TouchableOpacity,
     useColorScheme,
     ActivityIndicator,
-    Animated,
     LayoutAnimation,
     Platform,
     UIManager,
 } from 'react-native';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
+import { useEventos } from '../../../hooks/useEventos';
+import { EventoDeportivoResponse } from '../../../types/EventosType';
 
 // Habilitar LayoutAnimation en Android
 if (Platform.OS === 'android') {
@@ -27,26 +28,10 @@ interface LigaScreenProps {
     region?: string;
 }
 
-interface Event {
-    id: string;
-    homeTeam: string;
-    awayTeam: string;
-    date: string;
-    time: string;
-    venue?: string;
-    round?: string;
-    status: 'scheduled' | 'live' | 'finished';
-    odds?: {
-        home: number;
-        draw?: number;
-        away: number;
-    };
-}
-
 interface DateGroup {
     date: string;
     displayDate: string;
-    events: Event[];
+    events: EventoDeportivoResponse[];
     isExpanded: boolean;
 }
 
@@ -55,52 +40,13 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporte, region }) => {
     const isDark = colorScheme === 'dark';
     const [isLoading, setIsLoading] = useState(true);
     const [dateGroups, setDateGroups] = useState<DateGroup[]>([]);
+    const [error, setError] = useState<string | null>(null);
 
-    // Datos de ejemplo - en una implementación real, estos vendrían de una API
-    const generateMockEvents = (): Event[] => {
-        const events: Event[] = [];
-        const teams = liga?.toLowerCase().includes('liga mx') ? 
-            ['América', 'Chivas', 'Cruz Azul', 'Pumas', 'Tigres', 'Rayados', 'León', 'Santos', 'Toluca', 'Atlas', 'Pachuca', 'Puebla'] :
-            liga?.toLowerCase().includes('premier league') ?
-            ['Arsenal', 'Liverpool', 'Man City', 'Man United', 'Chelsea', 'Tottenham', 'Newcastle', 'Brighton', 'Aston Villa', 'West Ham'] :
-            ['Equipo A', 'Equipo B', 'Equipo C', 'Equipo D', 'Equipo E', 'Equipo F'];
-
-        const today = new Date();
-        
-        // Generar eventos para las próximas 5 fechas (próximos 15 días, 3 días por fecha)
-        for (let dateIndex = 0; dateIndex < 5; dateIndex++) {
-            const eventsPerDate = Math.floor(Math.random() * 4) + 2; // 2-5 eventos por fecha
-            
-            for (let eventIndex = 0; eventIndex < eventsPerDate; eventIndex++) {
-                const eventDate = new Date(today);
-                eventDate.setDate(today.getDate() + (dateIndex * 3) + Math.floor(Math.random() * 3));
-                
-                const homeTeamIndex = Math.floor(Math.random() * teams.length);
-                let awayTeamIndex = Math.floor(Math.random() * teams.length);
-                while (awayTeamIndex === homeTeamIndex) {
-                    awayTeamIndex = Math.floor(Math.random() * teams.length);
-                }
-
-                events.push({
-                    id: `${dateIndex}-${eventIndex}`,
-                    homeTeam: teams[homeTeamIndex],
-                    awayTeam: teams[awayTeamIndex],
-                    date: eventDate.toISOString().split('T')[0],
-                    time: `${Math.floor(Math.random() * 12) + 9}:${Math.random() > 0.5 ? '00' : '30'}`,
-                    venue: `Estadio ${teams[homeTeamIndex]}`,
-                    round: `Jornada ${dateIndex + 1}`,
-                    status: 'scheduled',
-                    odds: {
-                        home: parseFloat((Math.random() * 3 + 1.2).toFixed(2)),
-                        draw: parseFloat((Math.random() * 2 + 2.8).toFixed(2)),
-                        away: parseFloat((Math.random() * 3 + 1.2).toFixed(2)),
-                    },
-                });
-            }
-        }
-
-        return events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    };
+    const { 
+        eventosFuturosManager,
+        isLoadingEventosFuturos,
+        loadEventosFuturosError 
+    } = useEventos();
 
     const formatDisplayDate = (dateString: string): string => {
         const date = new Date(dateString);
@@ -108,53 +54,69 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporte, region }) => {
         const tomorrow = new Date(today);
         tomorrow.setDate(today.getDate() + 1);
 
-        if (date.toDateString() === today.toDateString()) {
-            return 'Hoy';
-        } else if (date.toDateString() === tomorrow.toDateString()) {
-            return 'Mañana';
-        } else {
-            return date.toLocaleDateString('es-ES', {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long'
-            });
-        }
+        const isToday = date.toDateString() === today.toDateString();
+        const isTomorrow = date.toDateString() === tomorrow.toDateString();
+
+        if (isToday) return 'Hoy';
+        if (isTomorrow) return 'Mañana';
+
+        return date.toLocaleDateString('es-ES', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
     };
 
-    const groupEventsByDate = (events: Event[]): DateGroup[] => {
-        const grouped: { [key: string]: Event[] } = {};
+    const groupEventsByDate = (events: EventoDeportivoResponse[]): DateGroup[] => {
+        const grouped: { [key: string]: EventoDeportivoResponse[] } = {};
 
-        events.forEach(event => {
-            if (!grouped[event.date]) {
-                grouped[event.date] = [];
+        events.forEach(evento => {
+            const fechaEvento = new Date(evento.fechaEvento).toDateString();
+            if (!grouped[fechaEvento]) {
+                grouped[fechaEvento] = [];
             }
-            grouped[event.date].push(event);
+            grouped[fechaEvento].push(evento);
         });
 
         return Object.keys(grouped)
-            .sort()
+            .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
             .map(date => ({
                 date,
                 displayDate: formatDisplayDate(date),
-                events: grouped[date],
-                isExpanded: false,
+                events: grouped[date].sort((a, b) => 
+                    new Date(a.fechaEvento).getTime() - new Date(b.fechaEvento).getTime()
+                ),
+                isExpanded: false
             }));
     };
 
     useEffect(() => {
-        const loadEvents = async () => {
+        const cargarEventos = async () => {
+            if (!liga) return;
+
             setIsLoading(true);
-            // Simular carga de datos
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            const events = generateMockEvents();
-            const groupedEvents = groupEventsByDate(events);
-            
-            setDateGroups(groupedEvents);
-            setIsLoading(false);
+            setError(null);
+
+            try {
+                // Cargar eventos futuros
+                await eventosFuturosManager.cargarEventosFuturos();
+                
+                // Filtrar por liga
+                const eventosFiltrados = eventosFuturosManager.filtrarPorLiga(liga);
+                
+                // Agrupar por fecha
+                const grupos = groupEventsByDate(eventosFiltrados);
+                setDateGroups(grupos);
+            } catch (err) {
+                console.error('Error cargando eventos de liga:', err);
+                setError('Error al cargar los eventos de la liga');
+            } finally {
+                setIsLoading(false);
+            }
         };
 
-        loadEvents();
+        cargarEventos();
     }, [liga, deporte, region]);
 
     const toggleDateGroup = (index: number) => {
@@ -166,60 +128,99 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporte, region }) => {
         );
     };
 
-    const renderEvent = (event: Event) => (
-        <View key={event.id} style={[styles.eventCard, { backgroundColor: isDark ? '#2a2a2a' : 'white' }]}>
-            <View style={styles.eventHeader}>
-                <View style={styles.teamsContainer}>
-                    <Text style={[styles.homeTeam, { color: isDark ? 'white' : '#333' }]}>{event.homeTeam}</Text>
-                    <Text style={[styles.vs, { color: isDark ? '#bbb' : '#666' }]}>vs</Text>
-                    <Text style={[styles.awayTeam, { color: isDark ? 'white' : '#333' }]}>{event.awayTeam}</Text>
+    const formatEventTime = (fechaEvento: string): string => {
+        const fecha = new Date(fechaEvento);
+        return fecha.toLocaleTimeString('es-ES', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    const getEventStatus = (evento: EventoDeportivoResponse): { text: string; color: string } => {
+        const estado = evento.estado?.toLowerCase() || '';
+        
+        if (estado.includes('vivo') || estado.includes('live')) {
+            return { text: 'EN VIVO', color: '#ff4444' };
+        }
+        
+        if (estado.includes('finalizado') || estado.includes('finished')) {
+            return { text: 'FINALIZADO', color: '#888' };
+        }
+        
+        return { text: 'PROGRAMADO', color: '#4CAF50' };
+    };
+
+    const renderEvent = (evento: EventoDeportivoResponse) => {
+        const status = getEventStatus(evento);
+        const equipoLocal = evento.equipoLocal?.nombre || 'Equipo Local';
+        const equipoVisitante = evento.equipoVisitante?.nombre || 'Equipo Visitante';
+        
+        return (
+            <View key={evento.id} style={[styles.eventCard, { backgroundColor: isDark ? '#2a2a2a' : 'white' }]}>
+                <View style={styles.eventHeader}>
+                    <View style={styles.teamsContainer}>
+                        <Text style={[styles.homeTeam, { color: isDark ? 'white' : '#333' }]}>
+                            {equipoLocal}
+                        </Text>
+                        <Text style={[styles.vs, { color: isDark ? '#bbb' : '#666' }]}>vs</Text>
+                        <Text style={[styles.awayTeam, { color: isDark ? 'white' : '#333' }]}>
+                            {equipoVisitante}
+                        </Text>
+                    </View>
+                    <View style={styles.eventMeta}>
+                        <Text style={[styles.eventTime, { color: isDark ? '#bbb' : '#666' }]}>
+                            {formatEventTime(evento.fechaEvento)}
+                        </Text>
+                        <View style={[styles.statusBadge, { backgroundColor: status.color }]}>
+                            <Text style={styles.statusText}>{status.text}</Text>
+                        </View>
+                    </View>
                 </View>
-                <View style={styles.eventMeta}>
-                    <Text style={[styles.eventTime, { color: isDark ? '#bbb' : '#666' }]}>{event.time}</Text>
-                    {event.round && (
-                        <Text style={[styles.eventRound, { color: isDark ? '#888' : '#999' }]}>{event.round}</Text>
+
+                {evento.ubicacion && (
+                    <Text style={[styles.venue, { color: isDark ? '#888' : '#999' }]}>
+                        📍 {evento.ubicacion}
+                    </Text>
+                )}
+
+                {(evento.resultadoLocal !== null && evento.resultadoVisitante !== null) && (
+                    <View style={styles.scoreContainer}>
+                        <Text style={[styles.score, { color: isDark ? '#fff' : '#d32f2f' }]}>
+                            {evento.resultadoLocal} - {evento.resultadoVisitante}
+                        </Text>
+                    </View>
+                )}
+
+                <View style={styles.eventDetails}>
+                    <Text style={[styles.ligaName, { color: isDark ? '#bbb' : '#666' }]}>
+                        {evento.liga.nombre}
+                    </Text>
+                    {evento.jornada && (
+                        <Text style={[styles.jornada, { color: isDark ? '#888' : '#999' }]}>
+                            Jornada {evento.jornada}
+                        </Text>
                     )}
                 </View>
             </View>
-            
-            {event.venue && (
-                <Text style={[styles.venue, { color: isDark ? '#888' : '#999' }]}>📍 {event.venue}</Text>
-            )}
-            
-            {event.odds && (
-                <View style={styles.oddsContainer}>
-                    <TouchableOpacity style={styles.oddButton}>
-                        <Text style={styles.oddLabel}>Local</Text>
-                        <Text style={styles.oddValue}>{event.odds.home}</Text>
-                    </TouchableOpacity>
-                    {event.odds.draw && (
-                        <TouchableOpacity style={styles.oddButton}>
-                            <Text style={styles.oddLabel}>Empate</Text>
-                            <Text style={styles.oddValue}>{event.odds.draw}</Text>
-                        </TouchableOpacity>
-                    )}
-                    <TouchableOpacity style={styles.oddButton}>
-                        <Text style={styles.oddLabel}>Visitante</Text>
-                        <Text style={styles.oddValue}>{event.odds.away}</Text>
-                    </TouchableOpacity>
-                </View>
-            )}
-        </View>
-    );
+        );
+    };
 
     const renderDateGroup = (dateGroup: DateGroup, index: number) => (
-        <View key={dateGroup.date} style={[styles.dateGroupContainer, { backgroundColor: isDark ? '#1e1e1e' : '#f8f9fa' }]}>
+        <View
+            key={dateGroup.date}
+            style={[styles.dateGroupContainer, { backgroundColor: isDark ? '#2a2a2a' : '#f8f9fa' }]}
+        >
             <TouchableOpacity
                 style={styles.dateHeader}
                 onPress={() => toggleDateGroup(index)}
                 activeOpacity={0.7}
             >
                 <View style={styles.dateInfo}>
-                    <Text style={[styles.dateTitle, { color: isDark ? 'white' : '#333' }]}>
+                    <Text style={[styles.dateTitle, { color: isDark ? '#fff' : '#333' }]}>
                         {dateGroup.displayDate}
                     </Text>
                     <Text style={[styles.eventCount, { color: isDark ? '#bbb' : '#666' }]}>
-                        {dateGroup.events.length} {dateGroup.events.length === 1 ? 'evento' : 'eventos'}
+                        {dateGroup.events.length} evento{dateGroup.events.length !== 1 ? 's' : ''}
                     </Text>
                 </View>
                 <Ionicons
@@ -228,7 +229,7 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporte, region }) => {
                     color={isDark ? '#bbb' : '#666'}
                 />
             </TouchableOpacity>
-            
+
             {dateGroup.isExpanded && (
                 <View style={styles.eventsContainer}>
                     {dateGroup.events.map(renderEvent)}
@@ -237,42 +238,63 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporte, region }) => {
         </View>
     );
 
-    if (isLoading) {
+    if (isLoading || isLoadingEventosFuturos) {
         return (
             <View style={[styles.loadingContainer, { backgroundColor: isDark ? '#121212' : '#f5f5f5' }]}>
                 <ActivityIndicator size="large" color="#d32f2f" />
-                <Text style={[styles.loadingText, { color: isDark ? '#bbb' : '#666' }]}>
+                <Text style={[styles.loadingText, { color: isDark ? '#fff' : '#666' }]}>
                     Cargando eventos de {liga}...
                 </Text>
             </View>
         );
     }
 
+    if (error || loadEventosFuturosError) {
+        return (
+            <View style={[styles.container, { backgroundColor: isDark ? '#121212' : '#f5f5f5' }]}>
+                <View style={[styles.errorContainer, { backgroundColor: isDark ? '#2a2a2a' : 'white' }]}>
+                    <Ionicons name="alert-circle" size={48} color="#d32f2f" />
+                    <Text style={[styles.errorText, { color: isDark ? '#fff' : '#333' }]}>
+                        {error || loadEventosFuturosError}
+                    </Text>
+                    <TouchableOpacity
+                        style={styles.retryButton}
+                        onPress={() => {
+                            setError(null);
+                            eventosFuturosManager.cargarEventosFuturos();
+                        }}
+                    >
+                        <Text style={styles.retryButtonText}>Reintentar</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        );
+    }
+
     return (
         <View style={[styles.container, { backgroundColor: isDark ? '#121212' : '#f5f5f5' }]}>
-            <View style={styles.header}>
-                <Text style={[styles.ligaTitle, { color: isDark ? 'white' : '#333' }]}>
-                    {liga}
-                </Text>
+            <View style={[styles.header, { backgroundColor: isDark ? '#1e1e1e' : 'white' }]}>
+                <Text style={[styles.ligaTitle, { color: isDark ? '#fff' : '#333' }]}>{liga}</Text>
                 <Text style={[styles.ligaSubtitle, { color: isDark ? '#bbb' : '#666' }]}>
                     {deporte} • {region}
                 </Text>
             </View>
 
-            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-                <Text style={[styles.sectionTitle, { color: isDark ? 'white' : '#333' }]}>
-                    Próximos Eventos
-                </Text>
-                
+            <ScrollView style={styles.content}>
                 {dateGroups.length > 0 ? (
-                    <View style={styles.dateGroupsList}>
-                        {dateGroups.map(renderDateGroup)}
-                    </View>
+                    <>
+                        <Text style={[styles.sectionTitle, { color: isDark ? '#fff' : '#333' }]}>
+                            Próximos Eventos
+                        </Text>
+                        <View style={styles.dateGroupsList}>
+                            {dateGroups.map(renderDateGroup)}
+                        </View>
+                    </>
                 ) : (
                     <View style={[styles.noEventsContainer, { backgroundColor: isDark ? '#2a2a2a' : 'white' }]}>
-                        <Ionicons name="calendar-outline" size={48} color={isDark ? '#666' : '#999'} />
-                        <Text style={[styles.noEventsText, { color: isDark ? '#bbb' : '#666' }]}>
-                            No hay eventos programados para esta liga
+                        <Ionicons name="calendar-outline" size={48} color={isDark ? '#666' : '#ccc'} />
+                        <Text style={[styles.noEventsText, { color: isDark ? '#888' : '#666' }]}>
+                            No hay eventos programados para {liga}
                         </Text>
                     </View>
                 )}
@@ -296,6 +318,36 @@ const styles = StyleSheet.create({
         marginTop: 16,
         fontSize: 16,
         color: '#666',
+    },
+    errorContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+        margin: 20,
+        borderRadius: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    errorText: {
+        fontSize: 16,
+        textAlign: 'center',
+        marginTop: 16,
+        marginBottom: 20,
+    },
+    retryButton: {
+        backgroundColor: '#d32f2f',
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+        borderRadius: 8,
+    },
+    retryButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: '600',
     },
     header: {
         padding: 20,
@@ -386,6 +438,7 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#666',
         marginVertical: 2,
+        textAlign: 'center',
     },
     awayTeam: {
         fontSize: 16,
@@ -402,36 +455,48 @@ const styles = StyleSheet.create({
         color: '#666',
         marginBottom: 4,
     },
-    eventRound: {
-        fontSize: 12,
-        color: '#999',
+    statusBadge: {
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 12,
+        backgroundColor: '#4CAF50',
+    },
+    statusText: {
+        fontSize: 10,
+        fontWeight: 'bold',
+        color: 'white',
     },
     venue: {
         fontSize: 12,
         color: '#999',
-        marginBottom: 12,
+        marginBottom: 8,
     },
-    oddsContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        marginTop: 8,
-    },
-    oddButton: {
-        backgroundColor: '#f0f0f0',
-        borderRadius: 8,
-        padding: 8,
+    scoreContainer: {
         alignItems: 'center',
-        minWidth: 70,
+        marginVertical: 8,
     },
-    oddLabel: {
-        fontSize: 10,
-        color: '#666',
-        marginBottom: 2,
-    },
-    oddValue: {
-        fontSize: 14,
+    score: {
+        fontSize: 20,
         fontWeight: 'bold',
         color: '#d32f2f',
+    },
+    eventDetails: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 8,
+        paddingTop: 8,
+        borderTopWidth: 1,
+        borderTopColor: '#f0f0f0',
+    },
+    ligaName: {
+        fontSize: 12,
+        color: '#666',
+        fontWeight: '500',
+    },
+    jornada: {
+        fontSize: 12,
+        color: '#999',
     },
     noEventsContainer: {
         backgroundColor: 'white',

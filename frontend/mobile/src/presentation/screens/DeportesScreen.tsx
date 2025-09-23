@@ -150,7 +150,7 @@ export default function DeportesScreen() {
 
     const navigateToSportEvents = (sport: Sport) => {
         // Navegar a la pantalla de eventos del deporte específico
-        navigation.navigate('SportManager', { deporte: sport.name, region: "", liga: '' , evento: undefined });
+        navigation.navigate('SportManager', { deporte: sport.id, region: "", liga: '' , evento: undefined });
     };
 
     const navigateToEventDetail = (event: Event) => {
