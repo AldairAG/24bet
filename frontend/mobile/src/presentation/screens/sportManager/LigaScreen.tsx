@@ -14,6 +14,11 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useEventos } from '../../../hooks/useEventos';
 import { EventoDeportivoResponse } from '../../../types/EventosType';
+import { CompositeNavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { CasinoTabParamList, MainCasinoStackParamList } from '../../navigation/DeportesNavigation';
+import { MaterialTopTabNavigationProp } from '@react-navigation/material-top-tabs';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
 
 // Habilitar LayoutAnimation en Android
 if (Platform.OS === 'android') {
@@ -24,7 +29,7 @@ if (Platform.OS === 'android') {
 
 interface LigaScreenProps {
     liga?: string;
-    deporte?: string;
+    deporteId?: string;
     region?: string;
 }
 
@@ -35,17 +40,26 @@ interface DateGroup {
     isExpanded: boolean;
 }
 
-const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporte, region }) => {
+type SportManagerNavigationProp = CompositeNavigationProp<
+    MaterialTopTabNavigationProp<CasinoTabParamList>,
+    NativeStackNavigationProp<MainCasinoStackParamList>
+>;
+
+
+type SportManagerRouteProp = RouteProp<MainCasinoStackParamList, 'SportManager'>;
+
+const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporteId, region }) => {
+    const navigation = useNavigation<SportManagerNavigationProp>();
     const colorScheme = useColorScheme();
     const isDark = colorScheme === 'dark';
     const [isLoading, setIsLoading] = useState(true);
     const [dateGroups, setDateGroups] = useState<DateGroup[]>([]);
     const [error, setError] = useState<string | null>(null);
 
-    const { 
+    const {
         eventosFuturosManager,
         isLoadingEventosFuturos,
-        loadEventosFuturosError 
+        loadEventosFuturosError
     } = useEventos();
 
     const formatDisplayDate = (dateString: string): string => {
@@ -84,7 +98,7 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporte, region }) => {
             .map(date => ({
                 date,
                 displayDate: formatDisplayDate(date),
-                events: grouped[date].sort((a, b) => 
+                events: grouped[date].sort((a, b) =>
                     new Date(a.fechaEvento).getTime() - new Date(b.fechaEvento).getTime()
                 ),
                 isExpanded: false
@@ -101,10 +115,10 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporte, region }) => {
             try {
                 // Cargar eventos futuros
                 await eventosFuturosManager.cargarEventosFuturos(liga);
-                
+
                 // Filtrar por liga
                 const eventosFiltrados = eventosFuturosManager.filtrarPorLiga(liga);
-                
+
                 // Agrupar por fecha
                 const grupos = groupEventsByDate(eventosFiltrados);
                 setDateGroups(grupos);
@@ -117,7 +131,7 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporte, region }) => {
         };
 
         cargarEventos();
-    }, [liga, deporte, region]);
+    }, [liga, deporteId, region]);
 
     const toggleDateGroup = (index: number) => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -138,16 +152,20 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporte, region }) => {
 
     const getEventStatus = (evento: EventoDeportivoResponse): { text: string; color: string } => {
         const estado = evento.estado?.toLowerCase() || '';
-        
+
         if (estado.includes('vivo') || estado.includes('live')) {
             return { text: 'EN VIVO', color: '#ff4444' };
         }
-        
+
         if (estado.includes('finalizado') || estado.includes('finished')) {
             return { text: 'FINALIZADO', color: '#888' };
         }
-        
+
         return { text: 'PROGRAMADO', color: '#4CAF50' };
+    };
+
+    const onClickEvento = (eventoName: string) => {
+        navigation.navigate('SportManager', { deporte: deporteId || '', region: region || '', liga: liga || '', evento: eventoName });
     };
 
     const renderEvent = (evento: EventoDeportivoResponse) => {
@@ -156,7 +174,7 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporte, region }) => {
         const equipoVisitante = evento.strEquipoVisitante || 'Equipo Visitante';
 
         return (
-            <View key={evento.id} style={[styles.eventCard, { backgroundColor: isDark ? '#2a2a2a' : 'white' }]}>
+            <TouchableOpacity key={evento.id} style={[styles.eventCard, { backgroundColor: isDark ? '#2a2a2a' : 'white' }]} onPress={() => onClickEvento(evento.nombre)}>
                 <View style={styles.eventHeader}>
                     <View style={styles.teamsContainer}>
                         <Text style={[styles.homeTeam, { color: isDark ? 'white' : '#333' }]}>
@@ -190,7 +208,7 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporte, region }) => {
                         </Text>
                     </View>
                 )}
-            </View>
+            </TouchableOpacity>
         );
     };
 
@@ -250,7 +268,7 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporte, region }) => {
                         style={styles.retryButton}
                         onPress={() => {
                             setError(null);
-                            eventosFuturosManager.cargarEventosFuturos(liga||"");
+                            eventosFuturosManager.cargarEventosFuturos(liga || "");
                         }}
                     >
                         <Text style={styles.retryButtonText}>Reintentar</Text>
@@ -265,7 +283,7 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporte, region }) => {
             <View style={[styles.header, { backgroundColor: isDark ? '#1e1e1e' : 'white' }]}>
                 <Text style={[styles.ligaTitle, { color: isDark ? '#fff' : '#333' }]}>{liga}</Text>
                 <Text style={[styles.ligaSubtitle, { color: isDark ? '#bbb' : '#666' }]}>
-                    {deporte} • {region}
+                    {deporteId} • {region}
                 </Text>
             </View>
 

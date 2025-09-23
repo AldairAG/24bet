@@ -33,6 +33,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -158,7 +159,7 @@ public class TheSportsDbV2Service {
             //obtenerLigasConDatosFaltantes().join();
             Thread.sleep(1000);
 
-            //obtenerEquiposPorLigas();
+            obtenerEquiposPorLigas();
 
             log.info("Sincronización de datos maestros completada");
         } catch (Exception e) {
@@ -816,12 +817,15 @@ public class TheSportsDbV2Service {
                 nombrePais = liga.getPaisNombre();
             }
 
+            LocalDateTime fechaLocalEvento = eventoDto.getEventDateTime().atZone(ZoneId.of("America/Mexico_City"))
+                    .withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
+            
             EventoDeportivo evento = EventoDeportivo.builder()
                     .sportsDbId(eventoDto.getIdEvent())
                     .nombre(nombreEvento)
                     .liga(liga)
                     .pais(nombrePais)
-                    .fechaEvento(eventoDto.getEventDateTime())
+                    .fechaEvento(fechaLocalEvento)
                     .resultadoLocal(eventoDto.getHomeScoreAsInt())
                     .resultadoVisitante(eventoDto.getAwayScoreAsInt())
                     .estado(eventoDto.getStrStatus())

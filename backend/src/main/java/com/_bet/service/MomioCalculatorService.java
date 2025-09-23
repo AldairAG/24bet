@@ -91,7 +91,7 @@ public class MomioCalculatorService {
      */
     private void actualizarEstadisticasEquipos(EventoDeportivo evento) {
         try {
-            // TODO: Implementar obtención de estadísticas específicas desde TheSportsDB
+            // TODO: Implementar obtención dee stadísticas específicas desde TheSportsDB
             // Para la implementación inicial, usamos el servicio existente
             log.debug("Estadísticas de equipos para evento {}: datos base", evento.getId());
         } catch (Exception e) {

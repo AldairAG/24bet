@@ -35,7 +35,7 @@ public class TheSportsDbScheduledTasks {
 
         try {
             // Usar la versión optimizada que solo sincroniza eventos próximos
-            theSportsDbV2Service.sincronizarEventosProximosDias().join();
+            //theSportsDbV2Service.sincronizarEventosProximosDias().join();
             log.info("✅ Sincronización automática OPTIMIZADA completada exitosamente");
         } catch (Exception e) {
             log.error("❌ Error en la sincronización automática optimizada: {}", e.getMessage(), e);

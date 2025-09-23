@@ -1,4 +1,4 @@
-package com._bet.service.scheduled;
+package com._bet.scheduler.tasks;
 
 import com._bet.service.MomioCalculatorService;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ public class BettingScheduledService {
     /**
      * Calcula momios para eventos sin momios cada 30 minutos
      */
-    @Scheduled(fixedRate = 1800000) // 30 minutos
+    //@Scheduled(fixedRate = 1800000) // 30 minutos
     public void calcularMomiosEventosSinMomios() {
         log.info("Iniciando tarea programada: cálculo de momios para eventos sin momios");
         
@@ -36,7 +36,7 @@ public class BettingScheduledService {
     /**
      * Actualiza momios para eventos próximos cada 15 minutos
      */
-    @Scheduled(fixedRate = 900000) // 15 minutos
+    //@Scheduled(fixedRate = 900000) // 15 minutos
     public void actualizarMomiosEventosProximos() {
         log.info("Iniciando tarea programada: actualización de momios para eventos próximos");
         
@@ -51,7 +51,7 @@ public class BettingScheduledService {
     /**
      * Limpieza de momios inactivos cada día a las 2:00 AM
      */
-    @Scheduled(cron = "0 0 2 * * *")
+    //@Scheduled(cron = "0 0 2 * * *")
     public void limpiezaMomiosInactivos() {
         log.info("Iniciando tarea programada: limpieza de momios inactivos");
         
@@ -66,7 +66,7 @@ public class BettingScheduledService {
     /**
      * Reporte diario de estadísticas cada día a las 6:00 AM
      */
-    @Scheduled(cron = "0 0 6 * * *")
+    //@Scheduled(cron = "0 0 6 * * *")
     public void reporteEstadisticasDiario() {
         log.info("Iniciando tarea programada: reporte de estadísticas diario");
         

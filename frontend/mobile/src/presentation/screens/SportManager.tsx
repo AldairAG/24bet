@@ -7,6 +7,7 @@ import LigaScreen from './sportManager/LigaScreen';
 import { useEventos } from '../../hooks/useEventos';
 import { MaterialTopTabNavigationProp } from '@react-navigation/material-top-tabs';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import EventoDetailScreen from './sportManager/EventoDetailScreen';
 
 // Tipo para los parámetros de ruta de SportManager
 type SportManagerRouteProp = RouteProp<MainCasinoStackParamList, 'SportManager'>;
@@ -58,19 +59,19 @@ const SportManager: React.FC = () => {
     // Función para renderizar el breadcrumb con separadores visuales
     const renderBreadcrumb = () => {
         const items = [];
-        
+
         if (deporteId) {
             items.push({ text: deporteId, type: 'deporte' });
         }
-        
+
         if (region) {
             items.push({ text: region, type: 'region' });
         }
-        
+
         if (liga) {
             items.push({ text: liga, type: 'liga' });
         }
-        
+
         if (evento) {
             items.push({ text: evento, type: 'evento' });
         }
@@ -78,11 +79,11 @@ const SportManager: React.FC = () => {
         return (
             <View style={[styles.breadcrumb, { backgroundColor: isDark ? '#1e1e1e' : '#f8f9fa' }]}>
                 <View style={styles.breadcrumbContainer}>
-                    <Ionicons 
-                        name="location-outline" 
-                        size={16} 
-                        color={isDark ? '#bbb' : '#666'} 
-                        style={styles.breadcrumbIcon} 
+                    <Ionicons
+                        name="location-outline"
+                        size={16}
+                        color={isDark ? '#bbb' : '#666'}
+                        style={styles.breadcrumbIcon}
                     />
                     {items.map((item, index) => (
                         <View key={index} style={styles.breadcrumbItem}>
@@ -94,11 +95,11 @@ const SportManager: React.FC = () => {
                                 {item.text}
                             </Text>
                             {index < items.length - 1 && (
-                                <Ionicons 
-                                    name="chevron-forward" 
-                                    size={12} 
-                                    color={isDark ? '#888' : '#999'} 
-                                    style={styles.breadcrumbSeparator} 
+                                <Ionicons
+                                    name="chevron-forward"
+                                    size={12}
+                                    color={isDark ? '#888' : '#999'}
+                                    style={styles.breadcrumbSeparator}
                                 />
                             )}
                         </View>
@@ -115,7 +116,7 @@ const SportManager: React.FC = () => {
             <View style={styles.content}>
                 {evento ? (<ComponenteEvento evento={evento} />)
                     : liga ? (<ComponenteLiga liga={liga} deporteId={deporteId} region={region} />)
-                            : deporteId && (<ComponenteDeporte deporteId={deporteId} />)}
+                        : deporteId && (<ComponenteDeporte deporteId={deporteId} />)}
             </View>
         </View>
     );
@@ -201,10 +202,10 @@ const ComponenteDeporte: React.FC<ComponenteDeporteProps> = ({ deporteId }) => {
     // Función para manejar la selección de una liga
     const handleLigaSelection = (liga: LigaInfo, pais: string) => {
         navigation.navigate('SportManager', {
-            deporte: deporteId||'',
+            deporte: deporteId || '',
             region: pais,
             liga: liga.nombre
-        });        
+        });
     };
 
     // Renderizar estado de carga
@@ -404,19 +405,17 @@ export { ComponenteDeporte };
 
 const ComponenteLiga: React.FC<ComponenteDeporteProps> = ({ deporteId, region, liga, evento }) => {
     return (
-        <LigaScreen 
-            liga={liga} 
-            deporte={deporteId} 
-            region={region} 
+        <LigaScreen
+            liga={liga}
+            deporteId={deporteId}
+            region={region}
         />
     );
 };
 
 const ComponenteEvento: React.FC<ComponenteDeporteProps> = ({ deporteId, region, liga, evento }) => {
     return (
-        <View>
-            <Text>Evento: {evento}</Text>
-        </View>
+        <EventoDetailScreen eventoName={evento || ''} />
     );
 };
 
