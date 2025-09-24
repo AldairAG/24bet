@@ -1,4 +1,4 @@
-package com._bet.service;
+package com._bet.service.Transaccion;
 
 import com._bet.entity.*;
 import com._bet.repository.*;

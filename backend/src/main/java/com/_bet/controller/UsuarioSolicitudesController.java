@@ -3,7 +3,7 @@ package com._bet.controller;
 import com._bet.entity.SolicitudDeposito;
 import com._bet.entity.SolicitudRetiro;
 import com._bet.entity.Usuario;
-import com._bet.service.SolicitudTransaccionService;
+import com._bet.service.Transaccion.SolicitudTransaccionService;
 import com._bet.service.user.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

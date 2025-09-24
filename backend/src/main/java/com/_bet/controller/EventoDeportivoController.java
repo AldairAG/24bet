@@ -3,9 +3,8 @@ package com._bet.controller;
 import com._bet.controller.AuthController.ApiResponseWrapper;
 import com._bet.dto.response.EventoDeportivoResponse;
 import com._bet.dto.response.LigaPorDeporteResponse;
-import com._bet.service.EventoDeportivoService;
-
 import com._bet.helpers.EventoDeportivoMapper;
+import com._bet.service.eventoDeportivo.EventoDeportivoService;
 import com._bet.entity.EventoDeportivo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

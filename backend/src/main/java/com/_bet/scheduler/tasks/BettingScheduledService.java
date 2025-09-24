@@ -1,11 +1,12 @@
 package com._bet.scheduler.tasks;
 
-import com._bet.service.MomioCalculatorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+
+import com._bet.service.apuesta.MomioCalculatorService;
 
 /**
  * Servicio para tareas programadas relacionadas con el sistema de apuestas

@@ -5,8 +5,8 @@ import com._bet.dto.CryptoWalletDto;
 import com._bet.entity.CryptoWallet;
 import com._bet.entity.SolicitudDeposito;
 import com._bet.entity.SolicitudRetiro;
+import com._bet.service.Transaccion.SolicitudTransaccionService;
 import com._bet.service.cryptoWallet.CryptoWalletService;
-import com._bet.service.SolicitudTransaccionService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
