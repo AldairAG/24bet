@@ -4,7 +4,8 @@ import com._bet.dto.request.RevisionDocumentoRequest;
 import com._bet.dto.request.SubirDocumentoRequest;
 import com._bet.dto.response.DocumentoKycResponse;
 import com._bet.dto.response.EstadoKycResponse;
-import com._bet.entity.DocumentoKyc;
+import com._bet.entity.user.DocumentoKyc;
+
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -1,8 +1,9 @@
 package com._bet.repository;
 
-import com._bet.entity.Liga;
-import com._bet.entity.Deporte;
-import com._bet.entity.Country;
+import com._bet.entity.datosMaestros.Country;
+import com._bet.entity.datosMaestros.Deporte;
+import com._bet.entity.datosMaestros.Liga;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -84,4 +85,9 @@ public interface LigaRepository extends JpaRepository<Liga, Long> {
      */
     @Query("SELECT l FROM Liga l WHERE UPPER(l.deporte.nombre) = UPPER(:deporte) AND l.activa = true")
     List<Liga> findByDeporteNombreIgnoreCaseAndActivaTrue(@Param("deporte") String deporte);
+
+    /**
+     * Busca una liga por su ID en ApiSports
+     */
+    Optional<Liga> findByApiSportsId(int apiSportsId);
 }

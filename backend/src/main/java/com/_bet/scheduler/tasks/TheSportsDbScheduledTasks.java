@@ -8,8 +8,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com._bet.service.theSportsDb.TheSportsDbService;
-import com._bet.service.TheSportsDbV2Service;
 
 /**
  * Tareas programadas para sincronización con TheSportsDB
@@ -19,8 +17,6 @@ import com._bet.service.TheSportsDbV2Service;
 @Slf4j
 public class TheSportsDbScheduledTasks {
 
-    private final TheSportsDbService theSportsDbService;
-    private final TheSportsDbV2Service theSportsDbV2Service;
 
     /**
      * Sincronización automática cada 6 horas (OPTIMIZADA)

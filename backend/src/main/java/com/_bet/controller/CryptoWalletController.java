@@ -2,9 +2,9 @@ package com._bet.controller;
 
 import com._bet.controller.AuthController.ApiResponseWrapper;
 import com._bet.dto.CryptoWalletDto;
-import com._bet.entity.CryptoWallet;
-import com._bet.entity.SolicitudDeposito;
-import com._bet.entity.SolicitudRetiro;
+import com._bet.entity.transacciones.SolicitudDeposito;
+import com._bet.entity.transacciones.SolicitudRetiro;
+import com._bet.entity.user.CryptoWallet;
 import com._bet.service.Transaccion.SolicitudTransaccionService;
 import com._bet.service.cryptoWallet.CryptoWalletService;
 

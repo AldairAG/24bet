@@ -1,9 +1,10 @@
 package com._bet.dto.request;
 
-import com._bet.entity.DocumentoKyc;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
+
+import com._bet.entity.user.DocumentoKyc;
 
 @Data
 public class SubirDocumentoRequest {

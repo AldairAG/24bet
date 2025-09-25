@@ -1,10 +1,11 @@
 package com._bet.dto.request;
 
-import com._bet.entity.InformacionPersonal;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.time.LocalDate;
+
+import com._bet.entity.user.InformacionPersonal;
 
 @Data
 public class InformacionPersonalRequest {

@@ -1,8 +1,8 @@
 package com._bet.service.cryptoWallet;
 
 import com._bet.dto.CryptoWalletDto;
-import com._bet.entity.CryptoWallet;
-import com._bet.entity.Usuario;
+import com._bet.entity.user.CryptoWallet;
+import com._bet.entity.user.Usuario;
 import com._bet.repository.CryptoWalletRepository;
 import com._bet.repository.UsuarioRepository;
 

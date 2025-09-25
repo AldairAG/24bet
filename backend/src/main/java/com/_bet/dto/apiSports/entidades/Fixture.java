@@ -16,6 +16,7 @@ public class Fixture {
     private Teams teams;
     private Score score;
     private Goals goals;
+    private League league;
 
     @Data
     public static class Periods {

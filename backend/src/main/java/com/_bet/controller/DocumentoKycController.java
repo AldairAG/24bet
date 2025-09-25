@@ -4,7 +4,7 @@ import com._bet.dto.request.RevisionDocumentoRequest;
 import com._bet.dto.request.SubirDocumentoRequest;
 import com._bet.dto.response.DocumentoKycResponse;
 import com._bet.dto.response.EstadoKycResponse;
-import com._bet.entity.DocumentoKyc;
+import com._bet.entity.user.DocumentoKyc;
 import com._bet.service.kyc.DocumentoKycService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

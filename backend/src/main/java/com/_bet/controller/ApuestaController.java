@@ -1,9 +1,9 @@
 package com._bet.controller;
 
-import com._bet.entity.Apuesta;
-import com._bet.entity.Parlay;
-import com._bet.entity.Usuario;
-import com._bet.entity.Momio;
+import com._bet.entity.apuestas.Apuesta;
+import com._bet.entity.apuestas.Parlay;
+import com._bet.entity.eventoEntity.Momio;
+import com._bet.entity.user.Usuario;
 import com._bet.repository.ApuestaRepository;
 import com._bet.repository.ParlayRepository;
 import com._bet.repository.UsuarioRepository;

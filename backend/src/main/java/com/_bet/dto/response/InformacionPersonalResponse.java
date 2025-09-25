@@ -1,10 +1,11 @@
 package com._bet.dto.response;
 
-import com._bet.entity.InformacionPersonal;
 import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+
+import com._bet.entity.user.InformacionPersonal;
 
 @Data
 public class InformacionPersonalResponse {

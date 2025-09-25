@@ -1,7 +1,8 @@
 package com._bet.repository;
 
-import com._bet.entity.Parlay;
-import com._bet.entity.Usuario;
+import com._bet.entity.apuestas.Parlay;
+import com._bet.entity.user.Usuario;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

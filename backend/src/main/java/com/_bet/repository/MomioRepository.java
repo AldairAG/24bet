@@ -1,7 +1,8 @@
 package com._bet.repository;
 
-import com._bet.entity.Momio;
-import com._bet.entity.EventoDeportivo;
+import com._bet.entity.eventoEntity.EventoDeportivo;
+import com._bet.entity.eventoEntity.Momio;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

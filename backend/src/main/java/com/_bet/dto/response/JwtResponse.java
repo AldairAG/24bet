@@ -1,6 +1,6 @@
 package com._bet.dto.response;
 
-import com._bet.entity.Usuario;
+import com._bet.entity.user.Usuario;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

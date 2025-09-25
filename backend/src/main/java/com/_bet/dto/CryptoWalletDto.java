@@ -1,6 +1,5 @@
 package com._bet.dto;
 
-import com._bet.entity.CryptoWallet;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,6 +11,8 @@ import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
+import com._bet.entity.user.CryptoWallet;
 
 @Data
 @NoArgsConstructor

@@ -1,7 +1,8 @@
 package com._bet.repository;
 
-import com._bet.entity.Equipo;
-import com._bet.entity.Liga;
+import com._bet.entity.datosMaestros.Equipo;
+import com._bet.entity.datosMaestros.Liga;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -62,4 +63,9 @@ public interface EquipoRepository extends JpaRepository<Equipo, Long> {
      * Busca equipos por ciudad
      */
     List<Equipo> findByCiudad(String ciudad);
+
+    /**
+     * Busca un equipo por su ID en ApiSports
+     */
+    Optional<Equipo> findByApiSportsId(int apiSportsId);
 }

@@ -1,8 +1,9 @@
 package com._bet.repository;
 
-import com._bet.entity.EventoDeportivo;
-import com._bet.entity.Liga;
-import com._bet.entity.Equipo;
+import com._bet.entity.datosMaestros.Equipo;
+import com._bet.entity.datosMaestros.Liga;
+import com._bet.entity.eventoEntity.EventoDeportivo;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -138,5 +139,11 @@ public interface EventoDeportivoRepository extends JpaRepository<EventoDeportivo
      */
     @Query("SELECT e FROM EventoDeportivo e WHERE e.liga.nombre = :ligaNombre AND e.fechaEvento BETWEEN :ahora AND :fechaLimite AND e.activo = true ORDER BY e.fechaEvento ASC")
     List<EventoDeportivo> findEventosProximosByLigaNombre(@Param("ligaNombre") String ligaNombre, @Param("ahora") LocalDateTime ahora, @Param("fechaLimite") LocalDateTime fechaLimite);
+
+    /**
+     * Buscar evento por su ID en API Sports
+     */
+    @Query("SELECT e FROM EventoDeportivo e WHERE e.apiSportsId = :apiSportsId")
+    EventoDeportivo findByApiSportsId(@Param("apiSportsId") int apiSportsId);
 
 }

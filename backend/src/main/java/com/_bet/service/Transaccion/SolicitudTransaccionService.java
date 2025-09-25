@@ -1,6 +1,9 @@
 package com._bet.service.Transaccion;
 
 import com._bet.entity.*;
+import com._bet.entity.transacciones.SolicitudDeposito;
+import com._bet.entity.transacciones.SolicitudRetiro;
+import com._bet.entity.user.Usuario;
 import com._bet.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
