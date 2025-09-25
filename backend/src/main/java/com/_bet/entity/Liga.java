@@ -46,6 +46,18 @@ public class Liga {
     private String sportsDbId;
 
     /**
+     * ID de la liga en ApiSports
+     */
+    @Column(name = "api_sports_id", unique = true)
+    private Integer apiSportsId;
+
+    /**
+     * Temporada de la liga (ej: "2023", "2023-2024")
+     */
+    @Column(name = "temporada")
+    private int temporada;
+
+    /**
      * Nombre de la liga
      */
     @NotBlank(message = "El nombre de la liga es obligatorio")
@@ -68,7 +80,7 @@ public class Liga {
     /**
      * Relación muchos a uno con País
      */
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "pais_id")
     private Country pais;
 

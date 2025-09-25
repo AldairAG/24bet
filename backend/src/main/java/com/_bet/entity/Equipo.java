@@ -45,6 +45,18 @@ public class Equipo {
     private String sportsDbId;
 
     /**
+     * Code del equipo
+     */
+    @Column(name = "code", length = 10)
+    private String code;
+
+    /**
+     * ID del equipo en ApiSports API
+     */
+    @Column(name = "api_sports_id", unique = true)
+    private int apiSportsId;
+
+    /**
      * Nombre del equipo
      */
     @NotBlank(message = "El nombre del equipo es obligatorio")
