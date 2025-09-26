@@ -54,6 +54,13 @@ public class EventoDeportivo {
     private String nombre;
 
     /**
+     * Nombre corto del evento
+     */
+    @Size(max = 100, message = "El nombre corto no puede exceder 100 caracteres")
+    @Column(name = "nombre_corto")
+    private String nombreCorto;
+
+    /**
      * Fecha y hora del evento
      */
     @Column(name = "fecha_evento")

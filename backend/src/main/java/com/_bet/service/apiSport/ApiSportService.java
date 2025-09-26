@@ -194,8 +194,8 @@ public class ApiSportService {
     }
 
     public void sincronizarDatosMaestros() {
-        //getLeaguesBySeason();
-        //getTeamsByLeague();
+        // getLeaguesBySeason();
+        // getTeamsByLeague();
     }
 
     /**
@@ -212,8 +212,8 @@ public class ApiSportService {
 
             String url = "https://v3.football.api-sports.io/fixtures?league=" + leagueId + "&season=" + season
                     + "&next=15";
-            Response<Fixture> response = getFromSportApi(url,
-                    new ParameterizedTypeReference<Response<Fixture>>() {
+            Response<EventsByLeagueResponse> response = getFromSportApi(url,
+                    new ParameterizedTypeReference<Response<EventsByLeagueResponse>>() {
                     });
 
             saveEvents(response); // Implementa este método para guardar los eventos
@@ -221,32 +221,46 @@ public class ApiSportService {
         }
     }
 
-    private void saveEvents(Response<Fixture> response) {
-        response.getResponse().forEach(fixture -> {
-            OffsetDateTime odt = OffsetDateTime.parse(fixture.getDate());
+    private void saveEvents(Response<EventsByLeagueResponse> response) {
+        response.getResponse().forEach(eventByLeague -> {
+            OffsetDateTime odt = OffsetDateTime.parse(eventByLeague.getFixture().getDate());
             LocalDateTime fechaLocal = odt.atZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
 
-                EventoDeportivo newEvent = EventoDeportivo.builder()
-                        .apiSportsId(fixture.getId())
-                        .fechaEvento(fechaLocal)
-                        .build();
+            EventoDeportivo newEvent = EventoDeportivo.builder()
+                    .apiSportsId(eventByLeague.getFixture().getId())
+                    .fechaEvento(fechaLocal)
+                    .build();
 
-                // Verificar y asignar liga
-                Liga liga = ligaRepository.findByApiSportsId(fixture.getLeague().getId()).orElse(null);
-                newEvent.setLiga(liga);
+            // Verificar que existe la liga, si no existe continuar con el siguiente
+            Liga liga = ligaRepository.findByApiSportsId(eventByLeague.getLeague().getId()).orElse(null);
+            if (liga == null) {
+                return; // Continuar con el siguiente evento
+            }
+            newEvent.setLiga(liga);
 
-                // Verificar y asignar equipo local
-                Equipo equipoLocal = equipoRepository.findByApiSportsId(fixture.getTeams().getHome().getId())
-                        .orElse(null);
-                newEvent.setEquipoLocal(equipoLocal);
+            // Verificar que existe el equipo local, si no existe continuar con el siguiente
+            Equipo equipoLocal = equipoRepository.findByApiSportsId(eventByLeague.getTeams().getHome().getId())
+                    .orElse(null);
+            if (equipoLocal == null) {
+                return; // Continuar con el siguiente evento
+            }
+            newEvent.setEquipoLocal(equipoLocal);
 
-                // Verificar y asignar equipo visitante
-                Equipo equipoVisitante = equipoRepository.findByApiSportsId(fixture.getTeams().getAway().getId())
-                        .orElse(null);
-                newEvent.setEquipoVisitante(equipoVisitante);
+            // Verificar que existe el equipo visitante, si no existe continuar con el siguiente
+            Equipo equipoVisitante = equipoRepository.findByApiSportsId(eventByLeague.getTeams().getAway().getId())
+                    .orElse(null);
+            if (equipoVisitante == null) {
+                return; // Continuar con el siguiente evento
+            }
+            newEvent.setEquipoVisitante(equipoVisitante);
 
-                eventoDeportivoRepository.save(newEvent);
-            });
+            newEvent.setNombre(equipoLocal.getNombre() + " vs " + equipoVisitante.getNombre());
+
+            newEvent.setNombreCorto(equipoVisitante.getCode() + " vs "
+                    + equipoLocal.getCode());
+
+            eventoDeportivoRepository.save(newEvent);
+        });
     }
 
     /**
@@ -273,16 +287,14 @@ public class ApiSportService {
 
     private void updateOdds(Response<EventsByLeagueResponse> response) {
         response.getResponse().forEach(eventByLeague -> {
-            eventByLeague.getFixtures().forEach(fixture -> {
-                EventoDeportivo existingEvent = eventoDeportivoRepository
-                        .findByApiSportsId(fixture.getId());
+            EventoDeportivo existingEvent = eventoDeportivoRepository
+                    .findByApiSportsId(eventByLeague.getFixture().getId());
 
-                if (existingEvent != null) {
-                    // Actualiza las odds del evento existente
-                    // existingEvent.setOdds(fixture.getOdds());
-                    eventoDeportivoRepository.save(existingEvent);
-                }
-            });
+            if (existingEvent != null) {
+                // Actualiza las odds del evento existente
+                // existingEvent.setOdds(eventByLeague.getOdds());
+                eventoDeportivoRepository.save(existingEvent);
+            }
         });
     }
 }
