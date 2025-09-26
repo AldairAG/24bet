@@ -2,7 +2,6 @@ package com._bet.entity.datosMaestros;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -39,14 +38,13 @@ public class Country {
      * Nombre del país en inglés
      */
     @NotBlank(message = "El nombre del país es obligatorio")
-    @Size(max = 100, message = "El nombre no puede exceder 100 caracteres")
     @Column(name = "name", nullable = false)
     private String name;
     
     /**
      * Código del país (ISO 3166-1 alpha-2)
      */
-    @Column(name = "country_code", length = 2)
+    @Column(name = "country_code")
     private String countryCode;
     
     

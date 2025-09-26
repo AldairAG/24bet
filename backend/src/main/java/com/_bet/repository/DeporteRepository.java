@@ -15,6 +15,8 @@ import java.util.Optional;
  */
 @Repository
 public interface DeporteRepository extends JpaRepository<Deporte, Long> {
+
+    Optional<Deporte> findByNombre(String nombre);
     
     /**
      * Busca un deporte por su ID en TheSportsDB

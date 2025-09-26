@@ -52,4 +52,9 @@ public interface EquipoRepository extends JpaRepository<Equipo, Long> {
      * Busca un equipo por su ID en ApiSports
      */
     Optional<Equipo> findByApiSportsId(int apiSportsId);
+
+    /**
+     * Comprobar si existe un equipo por su ID en ApiSports
+     */
+    boolean existsByApiSportsId(int apiSportsId);
 }

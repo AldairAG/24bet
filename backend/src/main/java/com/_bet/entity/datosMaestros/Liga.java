@@ -64,7 +64,7 @@ public class Liga {
     /**
      * Relación muchos a uno con País
      */
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinColumn(name = "pais_id")
     private Country pais;
 

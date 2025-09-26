@@ -34,8 +34,7 @@ public class ApiSportsScheduledTasks {
         log.info("🔄 Iniciando sincronización automática OPTIMIZADA de eventos próximos 7 días");
 
         try {
-            // Usar la versión optimizada que solo sincroniza eventos próximos
-            //theSportsDbV2Service.sincronizarEventosProximosDias().join();
+            apiSportService.getEventsBySeason();
             log.info("✅ Sincronización automática OPTIMIZADA completada exitosamente");
         } catch (Exception e) {
             log.error("❌ Error en la sincronización automática optimizada: {}", e.getMessage(), e);

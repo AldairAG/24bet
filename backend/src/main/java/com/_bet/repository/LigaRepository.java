@@ -74,4 +74,9 @@ public interface LigaRepository extends JpaRepository<Liga, Long> {
      * Busca una liga por su ID en ApiSports
      */
     Optional<Liga> findByApiSportsId(int apiSportsId);
+
+    /**
+     * Comprobar si existe una liga por su ID en ApiSports
+     */
+    boolean existsByApiSportsId(int apiSportsId);
 }
