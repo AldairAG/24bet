@@ -44,7 +44,7 @@ public class Score {
     /*
      * Evento asociado a este marcador
      */
-    @OneToOne(mappedBy = "score")
+    @OneToOne(mappedBy = "puntuaciones")
     private EventoDeportivo evento;
     
 }

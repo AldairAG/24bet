@@ -79,6 +79,7 @@ public class ApiSportService {
         Response<LeagueBySeasonResponse> response = getFromSportApi(url);
 
         Response<LeagueBySeasonResponse> filteredResponse = new Response<>();
+
         filteredResponse.setResponse(
                 response.getResponse().stream()
                         .filter(leagueBySeason -> {
@@ -152,6 +153,12 @@ public class ApiSportService {
         });
     }
 
+
+    public void sincronizarDatosMaestros() {
+        getLeaguesBySeason();
+        getTeamsByLeague();
+    }
+
     /**
      * Metodo para obtener eventos por temporada
      */
@@ -182,7 +189,6 @@ public class ApiSportService {
                 EventoDeportivo newEvent = EventoDeportivo.builder()
                         .apiSportsId(fixture.getId())
                         .fechaEvento(fechaLocal)
-                        .estado(fixture.getStatus().getLongStatus())
                         .build();
 
                 // Verificar y asignar liga

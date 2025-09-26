@@ -19,11 +19,6 @@ import java.util.Optional;
 public interface LigaRepository extends JpaRepository<Liga, Long> {
 
     /**
-     * Busca una liga por su ID en TheSportsDB
-     */
-    Optional<Liga> findBySportsDbId(String sportsDbId);
-
-    /**
      * Busca ligas por deporte
      */
     List<Liga> findByDeporte(Deporte deporte);
@@ -68,17 +63,6 @@ public interface LigaRepository extends JpaRepository<Liga, Long> {
      * Busca ligas activas
      */
     List<Liga> findByActivaTrue();
-
-    /**
-     * Verifica si existe una liga con el ID de TheSportsDB
-     */
-    boolean existsBySportsDbId(String sportsDbId);
-
-    /**
-     * Busca ligas por ID de deporte en TheSportsDB
-     */
-    @Query("SELECT l FROM Liga l WHERE l.deporte.sportsDbId = :deporteSportsDbId")
-    List<Liga> findByDeporteSportsDbId(@Param("deporteSportsDbId") String deporteSportsDbId);
 
     /**
      * Busca ligas activas por nombre de deporte (case insensitive)

@@ -8,6 +8,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import com._bet.service.apiSport.ApiSportService;
+
 
 /**
  * Tareas programadas para sincronización con TheSportsDB
@@ -15,7 +17,9 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class TheSportsDbScheduledTasks {
+public class ApiSportsScheduledTasks {
+
+    private final ApiSportService apiSportService;
 
 
     /**
@@ -48,7 +52,7 @@ public class TheSportsDbScheduledTasks {
         log.info("🔄 Iniciando sincronización diaria de datos maestros (deportes, ligas, equipos)");
 
         try {
-            //theSportsDbV2Service.sincronizacionDatosMaestros();
+            apiSportService.sincronizarDatosMaestros();
             log.info("✅ Sincronización de datos maestros completada exitosamente");
         } catch (Exception e) {
             log.error("❌ Error en la sincronización de datos maestros: {}", e.getMessage(), e);

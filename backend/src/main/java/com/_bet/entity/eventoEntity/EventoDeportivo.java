@@ -104,21 +104,21 @@ public class EventoDeportivo {
     /**
      * Estado del evento
      */
-    @OneToOne(mappedBy = "evento", cascade = CascadeType.PERSIST)
+    @OneToOne( cascade = CascadeType.PERSIST)
     @JoinColumn(name = "estado_id")
     private Estado estado;
 
     /**
      * Goles del evento
      */
-    @OneToOne(mappedBy = "evento", cascade = CascadeType.PERSIST)
+    @OneToOne( cascade = CascadeType.PERSIST)
     @JoinColumn(name = "goles_id")
     private Goles goles;
 
     /*
      * Puntuaciones del evento
      */
-    @OneToOne(mappedBy = "evento", cascade = CascadeType.PERSIST)
+    @OneToOne( cascade = CascadeType.PERSIST)
     @JoinColumn(name = "puntuaciones_id")
     private Score puntuaciones;
 

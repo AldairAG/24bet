@@ -39,18 +39,6 @@ public interface ParlayRepository extends JpaRepository<Parlay, Long> {
     List<Parlay> findByUsuarioAndEstadoAndActivoTrue(Usuario usuario, Parlay.EstadoParlay estado);
     
     /**
-     * Busca parlays pendientes de liquidación
-     */
-    @Query("SELECT DISTINCT p FROM Parlay p JOIN p.apuestas a WHERE a.eventoDeportivo.estado IN ('Match Finished', 'FINALIZADO') AND p.estado = 'ACTIVO'")
-    List<Parlay> findParlaysPendientesLiquidacion();
-    
-    /**
-     * Calcula ganancias totales en parlays de un usuario
-     */
-    @Query("SELECT COALESCE(SUM(p.gananciaReal), 0) FROM Parlay p WHERE p.usuario = :usuario AND p.resultadoFinal = 'GANADO'")
-    BigDecimal findGananciasTotalesParlaysByUsuario(@Param("usuario") Usuario usuario);
-    
-    /**
      * Cuenta parlays ganados de un usuario
      */
     @Query("SELECT COUNT(p) FROM Parlay p WHERE p.usuario = :usuario AND p.resultadoFinal = 'GANADO'")

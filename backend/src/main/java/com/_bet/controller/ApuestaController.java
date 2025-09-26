@@ -110,10 +110,7 @@ public class ApuestaController {
             apuesta.setEventoDeportivo(momio.getEventoDeportivo());
             apuesta.setTipoApuesta(dto.getTipoApuesta());
             apuesta.setMonto(dto.getMonto());
-            apuesta.setMomio(momio.getValor());
-            apuesta.setGananciaPotencial(dto.getMonto().multiply(momio.getValor()));
             apuesta.setEstado(Apuesta.EstadoApuesta.ACTIVA);
-            apuesta.setObservaciones(momio.getResultado().toString());
 
             // Descontar saldo del usuario
             usuario.setSaldoUsd(usuario.getSaldoUsd().subtract(dto.getMonto()));
