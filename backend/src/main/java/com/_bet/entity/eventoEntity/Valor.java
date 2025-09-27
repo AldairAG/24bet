@@ -1,6 +1,5 @@
 package com._bet.entity.eventoEntity;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Entity;
@@ -21,7 +20,7 @@ public class Valor {
     private Long id;
 
     private String valor;
-    private BigDecimal odd;
+    private Double odd;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "momio_id", nullable = false)

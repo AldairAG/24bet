@@ -2,7 +2,6 @@ package com._bet.entity.eventoEntity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.DecimalMin;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -49,7 +48,7 @@ public class Momio {
      * Valores disponibles para este momio (por ejemplo, "1", "X", "2" para
      * resultados)
      */
-    @OneToMany(mappedBy = "momio", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "momio", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     private List<Valor> valores;
 
     /**
@@ -97,7 +96,6 @@ public class Momio {
      * Relación con EventoDeportivo
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "evento_deportivo_id", nullable = false)
-    @NotNull(message = "El evento deportivo es obligatorio")
+    @JoinColumn(name = "evento_deportivo_id")
     private EventoDeportivo eventoDeportivo;
 }

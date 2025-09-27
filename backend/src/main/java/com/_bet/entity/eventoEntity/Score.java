@@ -7,10 +7,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import lombok.NoArgsConstructor;
 
 
 @Entity
 @Table(name = "scores")
+@NoArgsConstructor
 public class Score {
     
     @Id

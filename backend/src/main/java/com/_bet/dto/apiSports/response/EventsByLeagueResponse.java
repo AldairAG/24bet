@@ -16,12 +16,10 @@ public class EventsByLeagueResponse {
     private Periods periods;
     @JsonProperty("venue")
     private Venue venue;
-    @JsonProperty("status")
-    private Status status;
-    @JsonProperty("teams")
-    private Teams teams;
     @JsonProperty("score")
     private Score score;
+    @JsonProperty("teams")
+    private Teams teams;
     @JsonProperty("goals")
     private Goals goals;
     @JsonProperty("league")
@@ -33,18 +31,6 @@ public class EventsByLeagueResponse {
         private int first;
         @JsonProperty("second")
         private int second;
-    }
-
-    @Data
-    public static class Status {
-        @JsonProperty("long")
-        private String longStatus;
-        @JsonProperty("short")
-        private String shortStatus;
-        @JsonProperty("elapsed")
-        private String elapsed;
-        @JsonProperty("extra")
-        private String extra;
     }
 
     @Data

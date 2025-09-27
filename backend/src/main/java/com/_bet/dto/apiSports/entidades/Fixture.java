@@ -16,5 +16,19 @@ public class Fixture {
     private String date;
     @JsonProperty("timestamp")
     private long timestamp;
+    @JsonProperty("status")
+    private Status status;
+
+    @Data
+    public static class Status {
+        @JsonProperty("long")
+        private String longStatus;
+        @JsonProperty("short")
+        private String shortStatus;
+        @JsonProperty("elapsed")
+        private String elapsed;
+        @JsonProperty("extra")
+        private String extra;
+    }
 
 }

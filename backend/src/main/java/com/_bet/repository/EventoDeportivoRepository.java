@@ -45,4 +45,9 @@ public interface EventoDeportivoRepository extends JpaRepository<EventoDeportivo
     @Query("SELECT e FROM EventoDeportivo e WHERE e.apiSportsId = :apiSportsId")
     EventoDeportivo findByApiSportsId(@Param("apiSportsId") int apiSportsId);
 
+    /**
+     * Verifica si un evento existe por su ID en API Sports
+     */
+    boolean existsByApiSportsId(int apiSportsId);
+
 }

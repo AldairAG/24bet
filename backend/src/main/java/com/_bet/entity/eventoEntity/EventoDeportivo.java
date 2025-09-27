@@ -16,6 +16,7 @@ import com._bet.entity.datosMaestros.Equipo;
 import com._bet.entity.datosMaestros.Liga;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Entidad JPA para manejar información de eventos deportivos desde TheSportsDB API
@@ -128,5 +129,12 @@ public class EventoDeportivo {
     @OneToOne( cascade = CascadeType.PERSIST)
     @JoinColumn(name = "puntuaciones_id")
     private Score puntuaciones;
+
+    /**
+     * Odds del evento
+     */
+    @OneToMany( cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "odds_id")
+    private List<Momio> odds;
 
 }

@@ -9,16 +9,23 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
-import com._bet.dto.apiSports.entidades.Fixture;
 import com._bet.dto.apiSports.entidades.Season;
+import com._bet.dto.apiSports.entidades.Odds.Bet;
+import com._bet.dto.apiSports.entidades.Odds.Value;
 import com._bet.dto.apiSports.response.EventsByLeagueResponse;
 import com._bet.dto.apiSports.response.LeagueBySeasonResponse;
+import com._bet.dto.apiSports.response.OddsResponse;
 import com._bet.dto.apiSports.response.Response;
 import com._bet.dto.apiSports.response.TeamByLeagueResponse;
 import com._bet.entity.datosMaestros.Deporte;
 import com._bet.entity.datosMaestros.Equipo;
 import com._bet.entity.datosMaestros.Liga;
+import com._bet.entity.eventoEntity.Estado;
 import com._bet.entity.eventoEntity.EventoDeportivo;
+import com._bet.entity.eventoEntity.Goles;
+import com._bet.entity.eventoEntity.Momio;
+import com._bet.entity.eventoEntity.Score;
+import com._bet.entity.eventoEntity.Valor;
 import com._bet.repository.CountryRepository;
 import com._bet.repository.DeporteRepository;
 import com._bet.repository.EquipoRepository;
@@ -30,9 +37,14 @@ import org.springframework.http.HttpMethod;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.core.ParameterizedTypeReference;
+
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -202,7 +214,6 @@ public class ApiSportService {
      * Metodo para obtener eventos por temporada
      */
     @Async
-    @Transactional
     public void getEventsBySeason() {
         int season = java.time.Year.now().getValue();
         List<Liga> activeLeagues = ligaRepository.findByActivaTrue();
@@ -221,6 +232,7 @@ public class ApiSportService {
         }
     }
 
+    @Transactional
     private void saveEvents(Response<EventsByLeagueResponse> response) {
         response.getResponse().forEach(eventByLeague -> {
             OffsetDateTime odt = OffsetDateTime.parse(eventByLeague.getFixture().getDate());
@@ -246,7 +258,8 @@ public class ApiSportService {
             }
             newEvent.setEquipoLocal(equipoLocal);
 
-            // Verificar que existe el equipo visitante, si no existe continuar con el siguiente
+            // Verificar que existe el equipo visitante, si no existe continuar con el
+            // siguiente
             Equipo equipoVisitante = equipoRepository.findByApiSportsId(eventByLeague.getTeams().getAway().getId())
                     .orElse(null);
             if (equipoVisitante == null) {
@@ -296,5 +309,167 @@ public class ApiSportService {
                 eventoDeportivoRepository.save(existingEvent);
             }
         });
+    }
+
+    /**
+     * Metodo para obtener eventos de hoy que aun no suceden o estan en vivo
+     */
+    @Async
+    public void obtenerEventosHoy(Date date) {
+        String fechaActual = new java.text.SimpleDateFormat("yyyy-MM-dd").format(date);
+
+        String url = "https://v3.football.api-sports.io/fixtures?season=2025&date=" + fechaActual + "&status=NS";
+        Response<EventsByLeagueResponse> response = getFromSportApi(url,
+                new ParameterizedTypeReference<Response<EventsByLeagueResponse>>() {
+                });
+
+        Response<OddsResponse> oddsResponse = null;
+        List<OddsResponse> allOdds = new java.util.ArrayList<>();
+        int page = 1;
+
+        do {
+            String oddsUrl = "https://v3.football.api-sports.io/odds?date=" + fechaActual + "&page=" + page;
+            oddsResponse = getFromSportApi(oddsUrl,
+                    new ParameterizedTypeReference<Response<OddsResponse>>() {
+                    });
+
+            if (oddsResponse != null && oddsResponse.getResponse() != null) {
+                // Filtrar para mantener solo el primer bookmaker de cada OddsResponse
+                List<OddsResponse> filteredOdds = oddsResponse.getResponse().stream()
+                        .map(odds -> {
+                            if (odds.getBookmakers() != null && !odds.getBookmakers().isEmpty()) {
+                                OddsResponse filteredOdds2 = new OddsResponse();
+                                filteredOdds2.setFixture(odds.getFixture());
+                                filteredOdds2.setLeague(odds.getLeague());
+                                filteredOdds2.setBookmakers(java.util.Arrays.asList(odds.getBookmakers().get(0)));
+                                return filteredOdds2;
+                            }
+                            return odds;
+                        })
+                        .collect(Collectors.toList());
+
+                allOdds.addAll(filteredOdds);
+                page++;
+            }
+        } while (oddsResponse != null && oddsResponse.getResponse() != null && !oddsResponse.getResponse().isEmpty());
+
+        // Crear nueva response con todos los odds recopilados
+        Response<OddsResponse> finalOddsResponse = new Response<>();
+        finalOddsResponse.setResponse(allOdds);
+
+        procesarEventoOdds(finalOddsResponse, response);
+
+    }
+
+    @Transactional
+    private void procesarEventoOdds(Response<OddsResponse> oddsResponse,
+            Response<EventsByLeagueResponse> eventsResponse) {
+        // Crear un Set con los IDs de fixtures que tienen odds
+        Set<Integer> fixturesWithOdds = oddsResponse.getResponse().stream()
+                .map(odds -> odds.getFixture().getId())
+                .collect(Collectors.toSet());
+
+        // Filtrar los eventos que tienen odds disponibles
+        List<EventsByLeagueResponse> filteredEvents = eventsResponse.getResponse().stream()
+                .filter(event -> fixturesWithOdds.contains(event.getFixture().getId()))
+                .collect(Collectors.toList());
+
+        // Procesar solo los eventos filtrados
+        filteredEvents.forEach(eventByLeague -> {
+            if (eventoDeportivoRepository.existsByApiSportsId(eventByLeague.getFixture().getId())) {
+                return; // Continuar con el siguiente evento
+            }
+
+            if (!ligaRepository.existsByApiSportsId(eventByLeague.getLeague().getId())) {
+                return; // Continuar con el siguiente evento
+            }
+
+            if (!equipoRepository.existsByApiSportsId(eventByLeague.getTeams().getHome().getId())) {
+                return; // Continuar con el siguiente evento
+            }
+
+            if (!equipoRepository.existsByApiSportsId(eventByLeague.getTeams().getAway().getId())) {
+                return; // Continuar con el siguiente evento
+            }
+
+            if (eventByLeague != null) {
+                // Encontrar las odds correspondientes al evento actual
+                OddsResponse matchingOdds = oddsResponse.getResponse().stream()
+                        .filter(odds -> odds.getFixture().getId() == eventByLeague.getFixture().getId())
+                        .findFirst()
+                        .orElse(null);
+
+                EventoDeportivo newEvent = ConvertirAEventoDeportivo(eventByLeague, matchingOdds);
+
+                eventoDeportivoRepository.save(newEvent);
+            }
+        });
+    }
+
+    private EventoDeportivo ConvertirAEventoDeportivo(EventsByLeagueResponse eventByLeague, OddsResponse matchingOdds) {
+        OffsetDateTime odt = OffsetDateTime.parse(eventByLeague.getFixture().getDate());
+        LocalDateTime fechaLocal = odt.atZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
+
+        EventoDeportivo newEvent = EventoDeportivo.builder()
+                .apiSportsId(eventByLeague.getFixture().getId())
+                .fechaEvento(fechaLocal)
+                .build();
+
+        // Verificar que existe la liga, si no existe continuar con el siguiente
+        Liga liga = ligaRepository.findByApiSportsId(eventByLeague.getLeague().getId()).orElse(null);
+
+        newEvent.setLiga(liga);
+
+        // Verificar que existe el equipo local, si no existe continuar con el siguiente
+        Equipo equipoLocal = equipoRepository.findByApiSportsId(eventByLeague.getTeams().getHome().getId())
+                .orElse(null);
+        newEvent.setEquipoLocal(equipoLocal);
+
+        Equipo equipoVisitante = equipoRepository.findByApiSportsId(eventByLeague.getTeams().getAway().getId())
+                .orElse(null);
+        newEvent.setEquipoVisitante(equipoVisitante);
+
+        newEvent.setNombre(equipoLocal.getNombre() + " vs " + equipoVisitante.getNombre());
+
+        newEvent.setNombreCorto(equipoVisitante.getCode() + " vs "
+                + equipoLocal.getCode());
+
+        if (matchingOdds != null && matchingOdds.getBookmakers() != null && !matchingOdds.getBookmakers().isEmpty()) {
+            List<Momio> momios = convertirOddsAMomios(matchingOdds.getBookmakers().get(0).getBets());
+            newEvent.setOdds(momios); // Asignar el primer momio como ejemplo
+        }
+
+        newEvent.setGoles(new Goles());
+        newEvent.setPuntuaciones(new Score());
+
+        Estado estado = Estado.builder()
+                .largo(eventByLeague.getFixture().getStatus().getLongStatus())
+                .corto(eventByLeague.getFixture().getStatus().getShortStatus())
+                .build();
+
+        newEvent.setEstado(estado);
+
+        return newEvent;
+    }
+
+    private List<Momio> convertirOddsAMomios(List<Bet> bets) {
+        List<Momio> momios = new ArrayList<>();
+
+        for (Bet bet : bets) {
+            Momio momio = new Momio();
+            momio.setTipoApuesta(bet.getName());
+
+            List<Valor> valores = new ArrayList<>();
+            for (Value odd : bet.getValues()) {
+                Valor valor = new Valor();
+                valor.setValor(odd.getValue());
+                valor.setOdd(odd.getOdd());
+                valores.add(valor);
+            }
+            momio.setValores(valores);
+            momios.add(momio);
+        }
+
+        return momios;
     }
 }
