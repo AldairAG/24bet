@@ -134,7 +134,7 @@ public class EventoDeportivo {
      * Odds del evento
      */
     @OneToMany( cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "odds_id")
+    @JoinColumn(name = "momio_id")
     private List<Momio> odds;
 
 }

@@ -31,6 +31,8 @@ import com._bet.repository.DeporteRepository;
 import com._bet.repository.EquipoRepository;
 import com._bet.repository.EventoDeportivoRepository;
 import com._bet.repository.LigaRepository;
+import com._bet.repository.MomioRepository;
+
 
 import org.springframework.http.HttpMethod;
 
@@ -55,10 +57,11 @@ public class ApiSportService {
     private final String currentDate = java.time.LocalDate.now().toString();
     private final RestTemplate restTemplate;
     private final CountryRepository countryRepository;
-    private final LigaRepository ligaRepository;
-    private final EquipoRepository equipoRepository;
     private final EventoDeportivoRepository eventoDeportivoRepository;
     private final DeporteRepository deporteRepository;
+    private final LigaRepository ligaRepository;
+    private final EquipoRepository equipoRepository;
+    private final MomioRepository momioRepository;
 
     /**
      * Metodo get base para consumir la API de ApiSport
@@ -328,6 +331,8 @@ public class ApiSportService {
         int page = 1;
 
         do {
+            if (page == 5)
+                break; // Limitar a 2 páginas para evitar demasiadas solicitudes
             String oddsUrl = "https://v3.football.api-sports.io/odds?date=" + fechaActual + "&page=" + page;
             oddsResponse = getFromSportApi(oddsUrl,
                     new ParameterizedTypeReference<Response<OddsResponse>>() {
@@ -376,9 +381,9 @@ public class ApiSportService {
 
         // Procesar solo los eventos filtrados
         filteredEvents.forEach(eventByLeague -> {
-            if (eventoDeportivoRepository.existsByApiSportsId(eventByLeague.getFixture().getId())) {
-                return; // Continuar con el siguiente evento
-            }
+            //if (eventoDeportivoRepository.existsByApiSportsId(eventByLeague.getFixture().getId())) {
+            //    return; // Continuar con el siguiente evento
+            //}
 
             if (!ligaRepository.existsByApiSportsId(eventByLeague.getLeague().getId())) {
                 return; // Continuar con el siguiente evento
@@ -399,9 +404,7 @@ public class ApiSportService {
                         .findFirst()
                         .orElse(null);
 
-                EventoDeportivo newEvent = ConvertirAEventoDeportivo(eventByLeague, matchingOdds);
-
-                eventoDeportivoRepository.save(newEvent);
+                ConvertirAEventoDeportivo(eventByLeague, matchingOdds);
             }
         });
     }
@@ -434,11 +437,6 @@ public class ApiSportService {
         newEvent.setNombreCorto(equipoVisitante.getCode() + " vs "
                 + equipoLocal.getCode());
 
-        if (matchingOdds != null && matchingOdds.getBookmakers() != null && !matchingOdds.getBookmakers().isEmpty()) {
-            List<Momio> momios = convertirOddsAMomios(matchingOdds.getBookmakers().get(0).getBets());
-            newEvent.setOdds(momios); // Asignar el primer momio como ejemplo
-        }
-
         newEvent.setGoles(new Goles());
         newEvent.setPuntuaciones(new Score());
 
@@ -448,6 +446,15 @@ public class ApiSportService {
                 .build();
 
         newEvent.setEstado(estado);
+        eventoDeportivoRepository.save(newEvent);
+
+        if (matchingOdds != null && matchingOdds.getBookmakers() != null && !matchingOdds.getBookmakers().isEmpty()) {
+            List<Momio> momios = convertirOddsAMomios(matchingOdds.getBookmakers().get(0).getBets());
+            momios.forEach(momio -> {
+                momio.setEventoDeportivo(newEvent);
+                momioRepository.save(momio);
+            });
+        }
 
         return newEvent;
     }
@@ -464,6 +471,7 @@ public class ApiSportService {
                 Valor valor = new Valor();
                 valor.setValor(odd.getValue());
                 valor.setOdd(odd.getOdd());
+                valor.setMomio(momio);
                 valores.add(valor);
             }
             momio.setValores(valores);

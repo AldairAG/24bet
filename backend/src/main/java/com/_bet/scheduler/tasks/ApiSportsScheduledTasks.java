@@ -70,7 +70,7 @@ public class ApiSportsScheduledTasks {
         log.debug("🔴 Verificando eventos en vivo con API v2...");
 
         try {
-            // theSportsDbV2Service.sincronizarEventosEnVivo();
+            //theSportsDbV2Service.sincronizarEventosEnVivo();
         } catch (Exception e) {
             log.error("❌ Error en la sincronización de eventos en vivo V2: {}", e.getMessage(), e);
         }
