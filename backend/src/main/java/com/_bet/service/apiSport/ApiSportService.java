@@ -211,6 +211,13 @@ public class ApiSportService {
     public void sincronizarDatosMaestros() {
         // getLeaguesBySeason();
         // getTeamsByLeague();
+        // Obtener eventos de los próximos 7 días a partir de mañana
+        LocalDateTime tomorrow = LocalDateTime.now().plusDays(1);
+        for (int i = 0; i < 7; i++) {
+            LocalDateTime targetDate = tomorrow.plusDays(i);
+            Date date = Date.from(targetDate.atZone(ZoneId.systemDefault()).toInstant());
+            //obtenerEventosByDate(date);
+        }
     }
 
     /**
@@ -318,7 +325,7 @@ public class ApiSportService {
      * Metodo para obtener eventos de hoy que aun no suceden o estan en vivo
      */
     @Async
-    public void obtenerEventosHoy(Date date) {
+    public void obtenerEventosByDate(Date date) {
         String fechaActual = new java.text.SimpleDateFormat("yyyy-MM-dd").format(date);
 
         String url = "https://v3.football.api-sports.io/fixtures?season=2025&date=" + fechaActual + "&status=NS";
@@ -331,8 +338,7 @@ public class ApiSportService {
         int page = 1;
 
         do {
-            if (page == 5)
-                break; // Limitar a 2 páginas para evitar demasiadas solicitudes
+            //if (page == 5) break; // Limitar a 2 páginas para evitar demasiadas solicitudes
             String oddsUrl = "https://v3.football.api-sports.io/odds?date=" + fechaActual + "&page=" + page;
             oddsResponse = getFromSportApi(oddsUrl,
                     new ParameterizedTypeReference<Response<OddsResponse>>() {
@@ -364,6 +370,8 @@ public class ApiSportService {
 
         procesarEventoOdds(finalOddsResponse, response);
 
+        System.out.println("Eventos procesados para la fecha: " + fechaActual);
+
     }
 
     @Transactional
@@ -381,9 +389,9 @@ public class ApiSportService {
 
         // Procesar solo los eventos filtrados
         filteredEvents.forEach(eventByLeague -> {
-            //if (eventoDeportivoRepository.existsByApiSportsId(eventByLeague.getFixture().getId())) {
-            //    return; // Continuar con el siguiente evento
-            //}
+            if (eventoDeportivoRepository.existsByApiSportsId(eventByLeague.getFixture().getId())) {
+                return; // Continuar con el siguiente evento
+            }
 
             if (!ligaRepository.existsByApiSportsId(eventByLeague.getLeague().getId())) {
                 return; // Continuar con el siguiente evento

@@ -50,4 +50,10 @@ public interface EventoDeportivoRepository extends JpaRepository<EventoDeportivo
      */
     boolean existsByApiSportsId(int apiSportsId);
 
+    /**
+     * Busca eventos por nombre del evento (case insensitive, búsqueda parcial)
+     */
+    @Query("SELECT e FROM EventoDeportivo e WHERE UPPER(e.nombre) LIKE UPPER(CONCAT('%', :nombre, '%'))")
+    List<EventoDeportivo> findByNombreEventoContainingIgnoreCase(@Param("nombre") String nombre);
+
 }

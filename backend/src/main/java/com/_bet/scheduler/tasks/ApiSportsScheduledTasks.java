@@ -21,17 +21,19 @@ public class ApiSportsScheduledTasks {
     /**
      * Sincroniza los eventos diarios se ejecuta una vez al dia a las 6:00 PM
      */
-    @Scheduled(fixedRate = 21600000, zone = "America/Mexico_City")
-    //@Scheduled(cron = "0 0 18 * * *", zone = "America/Mexico_City")
+    //@Scheduled(fixedRate = 21600000, zone = "America/Mexico_City")
+    @Scheduled(cron = "0 0 18 * * *", zone = "America/Mexico_City")
     @Async("theSportsDbTaskExecutor")
     public void sincronizacionEventosAutomatica() {
         log.info("🔄 Sincronización automática de eventos diarios");
 
         try {
-            apiSportService.obtenerEventosHoy(new java.util.Date());
+            java.util.Calendar calendar = java.util.Calendar.getInstance();
+            calendar.add(java.util.Calendar.DAY_OF_YEAR, 7);
+            apiSportService.obtenerEventosByDate(calendar.getTime());
             log.info("✅ Sincronización automática completada exitosamente");
         } catch (Exception e) {
-            log.error("❌ Error en la sincronización automáticaq: {}", e.getMessage(), e);
+            log.error("❌ Error en la sincronización automática: {}", e.getMessage(), e);
         }
     }
 

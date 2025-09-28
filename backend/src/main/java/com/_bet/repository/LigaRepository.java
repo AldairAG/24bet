@@ -60,6 +60,11 @@ public interface LigaRepository extends JpaRepository<Liga, Long> {
     List<Liga> findByNombreContainingIgnoreCase(@Param("nombre") String nombre);
 
     /**
+     * Busca una liga por nombre exacto (case insensitive)
+     */
+    Optional<Liga> findByNombreIgnoreCase(String nombre);
+
+    /**
      * Busca ligas activas
      */
     List<Liga> findByActivaTrue();
