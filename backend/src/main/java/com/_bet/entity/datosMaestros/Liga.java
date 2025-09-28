@@ -14,6 +14,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com._bet.entity.eventoEntity.EventoDeportivo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -125,11 +126,13 @@ public class Liga {
      * Relación uno a muchos con Equipo
      */
     @OneToMany(mappedBy = "liga", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Equipo> equipos;
 
     /**
      * Relación uno a muchos con EventoDeportivo
      */
     @OneToMany(mappedBy = "liga", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<EventoDeportivo> eventos;
 }
