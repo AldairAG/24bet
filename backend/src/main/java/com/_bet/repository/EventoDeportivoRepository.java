@@ -56,4 +56,17 @@ public interface EventoDeportivoRepository extends JpaRepository<EventoDeportivo
     @Query("SELECT e FROM EventoDeportivo e WHERE UPPER(e.nombre) LIKE UPPER(CONCAT('%', :nombre, '%'))")
     List<EventoDeportivo> findByNombreEventoContainingIgnoreCase(@Param("nombre") String nombre);
 
+    /**
+     * Buscar eventos activos por nombre de liga
+     * 
+     * @param nombreLiga Nombre de la liga
+     * @return Lista de eventos deportivos
+     */
+    List<EventoDeportivo> findByLigaNombreAndLigaActivaTrue(String nombreLiga);
+
+    /**
+     * Buscar evento por nombre
+     */
+    EventoDeportivo findByNombre(String nombre);
+
 }

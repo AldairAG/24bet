@@ -1,10 +1,13 @@
 package com._bet.controller;
 
+import com._bet.controller.AuthController.ApiResponseWrapper;
+import com._bet.dto.response.EventoDeportivoResponse;
 import com._bet.entity.datosMaestros.Deporte;
 import com._bet.entity.datosMaestros.Liga;
 import com._bet.entity.eventoEntity.EventoDeportivo;
 import com._bet.repository.DeporteRepository;
 import com._bet.repository.LigaRepository;
+import com._bet.service.evento.EventoService;
 import com._bet.repository.EventoDeportivoRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +34,10 @@ public class EventosController {
     
     @Autowired
     private EventoDeportivoRepository eventoDeportivoRepository;
-    
+
+    @Autowired    
+    private EventoService eventoService;
+
     /**
      * Obtiene todas las ligas de un deporte por nombre
      * @param nombreDeporte Nombre del deporte
@@ -71,30 +77,17 @@ public class EventosController {
      * @return Lista de eventos de la liga
      */
     @GetMapping("/eventos-por-liga/{nombreLiga}")
-    public ResponseEntity<?> getEventosPorLiga(@PathVariable String nombreLiga) {
+    public ResponseEntity<ApiResponseWrapper<List<EventoDeportivoResponse>>> getEventosPorLiga(@PathVariable String nombreLiga) {
         try {
             // Buscar la liga por nombre (ignorando mayúsculas/minúsculas)
-            Optional<Liga> ligaOpt = ligaRepository.findByNombreIgnoreCase(nombreLiga);
-            
-            if (ligaOpt.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Liga '" + nombreLiga + "' no encontrada");
-            }
-            
-            Liga liga = ligaOpt.get();
-            
-            // Obtener todos los eventos de la liga
-            List<EventoDeportivo> eventos = eventoDeportivoRepository.findByLiga(liga);
-            
-            if (eventos.isEmpty()) {
-                return ResponseEntity.ok("No se encontraron eventos para la liga: " + nombreLiga);
-            }
-            
-            return ResponseEntity.ok(eventos);
-            
+            List<EventoDeportivoResponse> eventoResponses = eventoService.obtenerEventosPorLiga(nombreLiga);
+
+            ApiResponseWrapper<List<EventoDeportivoResponse>> responseWrapper = new ApiResponseWrapper<>(true, "Eventos obtenidos exitosamente", eventoResponses);
+
+            return ResponseEntity.ok(responseWrapper);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Error interno del servidor: " + e.getMessage());
+                .body(new ApiResponseWrapper<>(false, "Error interno del servidor: " + e.getMessage(), null));
         }
     }
     
@@ -104,27 +97,20 @@ public class EventosController {
      * @return Evento encontrado
      */
     @GetMapping("/evento-por-nombre/{nombreEvento}")
-    public ResponseEntity<?> getEventoPorNombre(@PathVariable String nombreEvento) {
+    public ResponseEntity<ApiResponseWrapper<EventoDeportivoResponse>> getEventoPorNombre(@PathVariable String nombreEvento) {
         try {
-            // Buscar eventos que contengan el nombre proporcionado (búsqueda parcial)
-            List<EventoDeportivo> eventos = eventoDeportivoRepository.findByNombreEventoContainingIgnoreCase(nombreEvento);
+            EventoDeportivoResponse evento = eventoService.findEventoByNombre(nombreEvento);
             
-            if (eventos.isEmpty()) {
+            if (evento == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("No se encontraron eventos que contengan: '" + nombreEvento + "'");
+                    .body(new ApiResponseWrapper<>(false, "Evento: '" + nombreEvento + "' no encontrado", null));
             }
-            
-            // Si solo hay un resultado, devolver el evento directamente
-            if (eventos.size() == 1) {
-                return ResponseEntity.ok(eventos.get(0));
-            }
-            
-            // Si hay múltiples resultados, devolver todos
-            return ResponseEntity.ok(eventos);
-            
+
+            return ResponseEntity.ok(new ApiResponseWrapper<>(true, "Evento encontrado exitosamente", evento));
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Error interno del servidor: " + e.getMessage());
+                .body(new ApiResponseWrapper<>(false, "Error interno del servidor: " + e.getMessage(), null));
         }
     }
 
