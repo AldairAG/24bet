@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { EventoDeportivoResponse, EventosEnVivoResponse, LigaPorDeporteDetalleResponse, LigaPorDeporteResponse } from '../../types/EventosType';
+import { EventoDeportivoResponse, EventosEnVivoResponse, EventosPorLigaResponse, LigaPorDeporteDetalleResponse } from '../../types/EventosType';
 import { eventosService } from '../../service/EventosService';
 import type { RootState } from '../index';
 
@@ -14,7 +14,7 @@ export interface EventosState {
 
     // Datos
     eventosEnVivo: EventosEnVivoResponse;
-    eventosFuturos: EventosEnVivoResponse;
+    eventosFuturos: EventosPorLigaResponse[];
     ligasPorDeporte: LigaPorDeporteDetalleResponse[];
     eventoDetail: EventoDeportivoResponse | null;
     eventos: EventoDeportivoResponse[];
@@ -25,20 +25,6 @@ export interface EventosState {
     loadLigasPorDeporteError: string | null;
     loadEventoDetailError: string | null;
     loadEventosError: string | null;
-
-    // Estados de filtrado y búsqueda
-    filtros: {
-        deporte?: string;
-        pais?: string;
-        terminoBusqueda?: string;
-    };
-
-    // Configuración de ordenamiento
-    ordenamiento: {
-        campo: 'fecha' | 'nombre';
-        direccion: 'asc' | 'desc';
-    };
-
     // Última actualización
     ultimaActualizacion: string | null;
 
@@ -51,7 +37,6 @@ const initialState: EventosState = {
     isLoadingEventosFuturos: false,
     isLoadingLigasPorDeporte: false,
     isLoadingEventoDetail: false,
-
 
     // Datos
     eventosEnVivo: [],
@@ -67,12 +52,6 @@ const initialState: EventosState = {
     loadEventoDetailError: null,
     loadEventosError: null,
 
-    // Estados de filtrado y búsqueda
-    filtros: {},
-    ordenamiento: {
-        campo: 'fecha',
-        direccion: 'asc',
-    },
     ultimaActualizacion: null,
 };
 
@@ -103,14 +82,14 @@ export const getLigasPorDeporte = createAsyncThunk<
  * Thunk para cargar eventos futuros
  */
 export const getEventosFuturos = createAsyncThunk<
-    EventosEnVivoResponse, // Tipo de datos de retorno
+    EventosPorLigaResponse[], // Tipo de datos de retorno
     string, // Tipo de parámetro de entrada
     { rejectValue: string } // Tipo de error
 >(
     'eventos/getEventosFuturos',
     async (ligaNombre, { rejectWithValue }) => {
         try {
-            return await eventosService.getEventosFuturos(ligaNombre);
+            return await eventosService.getEventosFuturosByLiga(ligaNombre);
         } catch (error) {
             return rejectWithValue(error instanceof Error ? error.message : 'Error desconocido');
         }
@@ -193,92 +172,10 @@ const eventosSlice = createSlice({
         clearEventosData: (state) => {
             state.eventosEnVivo = [];
             state.loadEventosEnVivoError = null;
-            state.filtros = {};
             state.ultimaActualizacion = null;
         },
 
-        // ========== ACCIONES DE FILTRADO ==========
 
-        /**
-         * Establece filtro por deporte
-         */
-        setFiltroDeporte: (state, action: PayloadAction<string | undefined>) => {
-            state.filtros.deporte = action.payload;
-        },
-
-        /**
-         * Establece filtro por país
-         */
-        setFiltroPais: (state, action: PayloadAction<string | undefined>) => {
-            state.filtros.pais = action.payload;
-        },
-
-        /**
-         * Establece término de búsqueda
-         */
-        setTerminoBusqueda: (state, action: PayloadAction<string | undefined>) => {
-            state.filtros.terminoBusqueda = action.payload;
-        },
-
-        /**
-         * Limpia todos los filtros
-         */
-        clearFiltros: (state) => {
-            state.filtros = {};
-        },
-
-        // ========== ACCIONES DE ORDENAMIENTO ==========
-
-        /**
-         * Establece el ordenamiento
-         */
-        setOrdenamiento: (state, action: PayloadAction<{ campo: 'fecha' | 'nombre'; direccion: 'asc' | 'desc' }>) => {
-            state.ordenamiento = action.payload;
-        },
-
-        /**
-         * Cambia la dirección del ordenamiento actual
-         */
-        toggleDireccionOrdenamiento: (state) => {
-            state.ordenamiento.direccion = state.ordenamiento.direccion === 'asc' ? 'desc' : 'asc';
-        },
-
-        // ========== ACCIONES DE ACTUALIZACIÓN LOCAL ==========
-
-        /**
-         * Actualiza un evento específico en el estado local
-         */
-        updateEventoEnVivo: (state, action: PayloadAction<EventoDeportivoResponse>) => {
-            const eventoActualizado = action.payload;
-            const index = state.eventosEnVivo.findIndex(evento => evento.id === eventoActualizado.id);
-
-            if (index !== -1) {
-                state.eventosEnVivo[index] = eventoActualizado;
-                state.ultimaActualizacion = new Date().toISOString();
-            }
-        },
-
-        /**
-         * Actualiza el resultado de un evento
-         */
-        updateResultadoEvento: (state, action: PayloadAction<{
-            eventoId: number;
-            resultadoLocal: number;
-            resultadoVisitante: number;
-            tiempoPartido?: string;
-        }>) => {
-            const { eventoId, resultadoLocal, resultadoVisitante, tiempoPartido } = action.payload;
-            const evento = state.eventosEnVivo.find(e => e.id === eventoId);
-
-            if (evento) {
-                evento.resultadoLocal = resultadoLocal;
-                evento.resultadoVisitante = resultadoVisitante;
-                if (tiempoPartido) {
-                    evento.tiempoPartido = tiempoPartido;
-                }
-                state.ultimaActualizacion = new Date().toISOString();
-            }
-        },
     },
     extraReducers: (builder) => {
         // ========== GET EVENTOS EN VIVO ==========
@@ -346,14 +243,6 @@ export const {
     clearLoadEventosFuturosError,
     clearEventosEnVivo,
     clearEventosData,
-    setFiltroDeporte,
-    setFiltroPais,
-    setTerminoBusqueda,
-    clearFiltros,
-    setOrdenamiento,
-    toggleDireccionOrdenamiento,
-    updateEventoEnVivo,
-    updateResultadoEvento,
     clearLoadLigasPorDeporteError,
     clearLoadEventoDetailError,
     clearLoadEventosError
@@ -367,129 +256,10 @@ export const selectLoadEventosEnVivoError = (state: RootState) => state.eventos?
 export const selectIsLoadingEventosFuturos = (state: RootState) => state.eventos?.isLoadingEventosFuturos ?? false;
 export const selectEventosFuturos = (state: RootState) => state.eventos?.eventosFuturos ?? [];
 export const selectLoadEventosFuturosError = (state: RootState) => state.eventos?.loadEventosFuturosError ?? null;
-export const selectFiltros = (state: RootState) => state.eventos?.filtros ?? {};
-export const selectOrdenamiento = (state: RootState) => state.eventos?.ordenamiento ?? { campo: 'fecha' as const, direccion: 'asc' as const };
 export const selectUltimaActualizacion = (state: RootState) => state.eventos?.ultimaActualizacion ?? null;
 export const selectLigasPorDeporte = (state: RootState) => state.eventos?.ligasPorDeporte ?? [];
 export const selectIsLoadingLigasPorDeporte = (state: RootState) => state.eventos?.isLoadingLigasPorDeporte ?? false;
 export const selectLoadLigasPorDeporteError = (state: RootState) => state.eventos?.loadLigasPorDeporteError ?? null;
-
-// ========== SELECTORS COMBINADOS ==========
-
-/**
- * Selector para obtener eventos filtrados y ordenados
- */
-export const selectEventosEnVivoFiltrados = (state: RootState): EventosEnVivoResponse => {
-    const { eventosEnVivo, filtros, ordenamiento } = state.eventos;
-
-    // Verificación de seguridad: asegurarse de que eventosEnVivo sea un array
-    if (!Array.isArray(eventosEnVivo)) {
-        console.log('🚨 eventosEnVivo no es un array:', eventosEnVivo);
-        return [];
-    }
-
-    console.log('🔍 Selector - eventosEnVivo original:', eventosEnVivo);
-    console.log('🔍 Selector - cantidad de eventos:', eventosEnVivo.length);
-
-    // Debug: Analizar el primer evento para ver su estructura
-    if (eventosEnVivo.length > 0) {
-        const primerEvento = eventosEnVivo[0];
-        console.log('🔍 Selector - Primer evento estructura:', {
-            id: primerEvento.id,
-            nombre: primerEvento.nombre,
-            enVivo: primerEvento.enVivo,
-            activo: primerEvento.activo,
-            estado: primerEvento.estado,
-            fechaEvento: primerEvento.fechaEvento
-        });
-    }
-
-    let eventosFiltrados = [...eventosEnVivo];
-
-    // Aplicar filtros
-    if (filtros.deporte) {
-        eventosFiltrados = eventosService.filterEventosByDeporte(eventosFiltrados, filtros.deporte);
-    }
-
-    if (filtros.pais) {
-        eventosFiltrados = eventosService.filterEventosByPais(eventosFiltrados, filtros.pais);
-    }
-
-    if (filtros.terminoBusqueda) {
-        eventosFiltrados = eventosService.searchEventos(eventosFiltrados, filtros.terminoBusqueda);
-    }
-
-    // Aplicar ordenamiento
-    if (ordenamiento.campo === 'fecha') {
-        eventosFiltrados = eventosService.sortEventosByFecha(eventosFiltrados, ordenamiento.direccion);
-    } else if (ordenamiento.campo === 'nombre') {
-        eventosFiltrados = eventosFiltrados.sort((a, b) => {
-            const nombreA = a.nombre.toLowerCase();
-            const nombreB = b.nombre.toLowerCase();
-
-            if (ordenamiento.direccion === 'asc') {
-                return nombreA.localeCompare(nombreB);
-            } else {
-                return nombreB.localeCompare(nombreA);
-            }
-        });
-    }
-
-    console.log('🔍 Selector - eventosFiltrados finales:', eventosFiltrados);
-    console.log('🔍 Selector - cantidad final:', eventosFiltrados.length);
-
-    return eventosFiltrados;
-};
-
-/**
- * Selector para obtener eventos agrupados por liga
- */
-export const selectEventosEnVivoPorLiga = (state: RootState): Map<string, EventosEnVivoResponse> => {
-    const eventosFiltrados = selectEventosEnVivoFiltrados(state);
-    if (!Array.isArray(eventosFiltrados)) {
-        return new Map();
-    }
-    return eventosService.groupEventosByLiga(eventosFiltrados);
-};
-
-/**
- * Selector para obtener estadísticas de eventos en vivo
- */
-export const selectEventosEnVivoStats = (state: RootState) => {
-    const eventos = state.eventos.eventosEnVivo;
-
-    // Verificación de seguridad
-    if (!Array.isArray(eventos)) {
-        return {
-            totalEventos: 0,
-            eventosPorDeporte: {},
-            eventosPorPais: {},
-            eventosPorLiga: {},
-            eventosEnVivo: 0,
-            eventosProximos: 0,
-            eventosFinalizados: 0
-        };
-    }
-
-    const totalEventos = eventos.length;
-    const eventosPorDeporte = eventos.reduce((acc, evento) => {
-        const deporte = evento.liga.deporte;
-        acc[deporte] = (acc[deporte] || 0) + 1;
-        return acc;
-    }, {} as Record<string, number>);
-
-    const eventosPorPais = eventos.reduce((acc, evento) => {
-        const pais = evento.pais || evento.liga.pais || 'Sin país';
-        acc[pais] = (acc[pais] || 0) + 1;
-        return acc;
-    }, {} as Record<string, number>);
-
-    return {
-        totalEventos,
-        eventosPorDeporte,
-        eventosPorPais,
-    };
-};
 
 /**
  * Selector para verificar si hay errores activos
@@ -507,31 +277,6 @@ export const selectEventosLoading = (state: RootState) => ({
     isLoading: state.eventos?.isLoadingEventosEnVivo ?? false,
 });
 
-// ========== FUNCIONES AUXILIARES ==========
-
-/**
- * Obtiene el nombre formateado de un evento
- */
-export const getEventoNombreFormateado = (evento: EventoDeportivoResponse): string => {
-    if (evento.equipoLocal && evento.equipoVisitante) {
-        return `${evento.equipoLocal.nombre} vs ${evento.equipoVisitante.nombre}`;
-    }
-    return evento.nombre; // Usar el nombre del evento si no hay equipos
-};
-
-/**
- * Obtiene el resultado formateado de un evento
- */
-export const getEventoResultadoFormateado = (evento: EventoDeportivoResponse): string => {
-    return eventosService.formatResultado(evento);
-};
-
-/**
- * Obtiene el tiempo formateado de un evento
- */
-export const getEventoTiempoFormateado = (evento: EventoDeportivoResponse): string => {
-    return eventosService.formatTiempoPartido(evento.tiempoPartido);
-};
 
 // ========== EXPORT DEFAULT ==========
 export default eventosSlice.reducer;

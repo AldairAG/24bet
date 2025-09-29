@@ -1,12 +1,13 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { useRoute, RouteProp } from '@react-navigation/native';
-
+import MatchWidget from '../../components/widgets/WidgetGameStats';
+import WidgetGameStats from '../../components/widgets/WidgetGameStats.web';
 const EventoDetailScreen = ({ eventoName }: { eventoName: string }) => {
 
   return (
     <View>
-        <Text>Detalles del Evento: {eventoName}</Text>
+        {/* <MatchWidget /> */}
+        <WidgetGameStats />
     </View>
   );
 };

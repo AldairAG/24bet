@@ -1,5 +1,5 @@
 import { apiBase } from './apiBase';
-import { EventoDeportivoResponse, EventosEnVivoResponse, LigaPorDeporteDetalleResponse, LigaPorDeporteResponse } from '../types/EventosType';
+import { EventoDeportivoResponse, EventosEnVivoResponse, EventosPorLigaResponse, LigaPorDeporteDetalleResponse, LigaPorDeporteResponse } from '../types/EventosType';
 import { ApiResponseWrapper } from '../types/authTypes';
 
 /**
@@ -47,9 +47,9 @@ class EventosService {
      * GET /24bet/eventos/futuros
      * @returns Promise con la lista de eventos futuros
      */
-    async getEventosFuturos(ligaNombre: string): Promise<EventosEnVivoResponse> {
+    async getEventosFuturosByLiga(ligaNombre: string): Promise<EventosPorLigaResponse[]> {
         try {
-            const response = await apiBase.get<EventosEnVivoResponse>(
+            const response = await apiBase.get<EventosPorLigaResponse[]>(
                 `${this.baseUrl}/eventos-por-liga/${ligaNombre}`
             );
 

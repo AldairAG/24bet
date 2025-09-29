@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useEventos } from '../../../hooks/useEventos';
-import { EventoDeportivoResponse } from '../../../types/EventosType';
+import { EventoDeportivoResponse, EventosPorLigaResponse } from '../../../types/EventosType';
 import { CompositeNavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { CasinoTabParamList, MainCasinoStackParamList } from '../../navigation/DeportesNavigation';
 import { MaterialTopTabNavigationProp } from '@react-navigation/material-top-tabs';
@@ -36,7 +36,7 @@ interface LigaScreenProps {
 interface DateGroup {
     date: string;
     displayDate: string;
-    events: EventoDeportivoResponse[];
+    events: EventosPorLigaResponse[];
     isExpanded: boolean;
 }
 
@@ -82,11 +82,11 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporteId, region }) => {
         });
     };
 
-    const groupEventsByDate = (events: EventoDeportivoResponse[]): DateGroup[] => {
-        const grouped: { [key: string]: EventoDeportivoResponse[] } = {};
+    const groupEventsByDate = (events: EventosPorLigaResponse[]): DateGroup[] => {
+        const grouped: { [key: string]: EventosPorLigaResponse[] } = {};
 
         events.forEach(evento => {
-            const fechaEvento = new Date(evento.fechaEvento).toDateString();
+            const fechaEvento = new Date(evento.fixture.date).toDateString();
             if (!grouped[fechaEvento]) {
                 grouped[fechaEvento] = [];
             }
@@ -99,7 +99,7 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporteId, region }) => {
                 date,
                 displayDate: formatDisplayDate(date),
                 events: grouped[date].sort((a, b) =>
-                    new Date(a.fechaEvento).getTime() - new Date(b.fechaEvento).getTime()
+                    new Date(a.fixture.date).getTime() - new Date(b.fixture.date).getTime()
                 ),
                 isExpanded: false
             }));
@@ -150,8 +150,8 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporteId, region }) => {
         });
     };
 
-    const getEventStatus = (evento: EventoDeportivoResponse): { text: string; color: string } => {
-        const estado = evento.estado?.toLowerCase() || '';
+    const getEventStatus = (evento: EventosPorLigaResponse): { text: string; color: string } => {
+        const estado = evento.fixture.status.short?.toLowerCase() || '';
 
         if (estado.includes('vivo') || estado.includes('live')) {
             return { text: 'EN VIVO', color: '#ff4444' };
@@ -161,33 +161,27 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporteId, region }) => {
             return { text: 'FINALIZADO', color: '#888' };
         }
 
-        return { text: 'PROGRAMADO', color: '#4CAF50' };
+        return { text: 'NS', color: '#4CAF50' };
     };
 
     const onClickEvento = (eventoName: string) => {
         navigation.navigate('SportManager', { deporte: deporteId || '', region: region || '', liga: liga || '', evento: eventoName });
     };
 
-    const renderEvent = (evento: EventoDeportivoResponse) => {
+    const renderEvent = (evento: EventosPorLigaResponse) => {
         const status = getEventStatus(evento);
-        const equipoLocal = evento.strEquipoLocal || 'Equipo Local';
-        const equipoVisitante = evento.strEquipoVisitante || 'Equipo Visitante';
 
         return (
-            <TouchableOpacity key={evento.id} style={[styles.eventCard, { backgroundColor: isDark ? '#2a2a2a' : 'white' }]} onPress={() => onClickEvento(evento.nombre)}>
+            <TouchableOpacity key={evento.fixture.id} style={[styles.eventCard, { backgroundColor: isDark ? '#2a2a2a' : 'white' }]} onPress={() => onClickEvento(evento.nombreEvento)}>
                 <View style={styles.eventHeader}>
                     <View style={styles.teamsContainer}>
                         <Text style={[styles.homeTeam, { color: isDark ? 'white' : '#333' }]}>
-                            {equipoLocal}
-                        </Text>
-                        <Text style={[styles.vs, { color: isDark ? '#bbb' : '#666' }]}>vs</Text>
-                        <Text style={[styles.awayTeam, { color: isDark ? 'white' : '#333' }]}>
-                            {equipoVisitante}
+                            {evento.nombreEvento}
                         </Text>
                     </View>
                     <View style={styles.eventMeta}>
                         <Text style={[styles.eventTime, { color: isDark ? '#bbb' : '#666' }]}>
-                            {formatEventTime(evento.fechaEvento)}
+                            {formatEventTime(evento.fixture.date)}
                         </Text>
                         <View style={[styles.statusBadge, { backgroundColor: status.color }]}>
                             <Text style={styles.statusText}>{status.text}</Text>
@@ -195,19 +189,6 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporteId, region }) => {
                     </View>
                 </View>
 
-                {evento.ubicacion && (
-                    <Text style={[styles.venue, { color: isDark ? '#888' : '#999' }]}>
-                        📍 {evento.ubicacion}
-                    </Text>
-                )}
-
-                {(evento.resultadoLocal !== null && evento.resultadoVisitante !== null) && (
-                    <View style={styles.scoreContainer}>
-                        <Text style={[styles.score, { color: isDark ? '#fff' : '#d32f2f' }]}>
-                            {evento.resultadoLocal} - {evento.resultadoVisitante}
-                        </Text>
-                    </View>
-                )}
             </TouchableOpacity>
         );
     };
