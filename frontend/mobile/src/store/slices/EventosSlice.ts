@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { EventoDeportivoResponse, EventosEnVivoResponse, LigaPorDeporteResponse } from '../../types/EventosType';
+import { EventoDeportivoResponse, EventosEnVivoResponse, LigaPorDeporteDetalleResponse, LigaPorDeporteResponse } from '../../types/EventosType';
 import { eventosService } from '../../service/EventosService';
 import type { RootState } from '../index';
 
@@ -15,7 +15,7 @@ export interface EventosState {
     // Datos
     eventosEnVivo: EventosEnVivoResponse;
     eventosFuturos: EventosEnVivoResponse;
-    ligasPorDeporte: LigaPorDeporteResponse[];
+    ligasPorDeporte: LigaPorDeporteDetalleResponse[];
     eventoDetail: EventoDeportivoResponse | null;
     eventos: EventoDeportivoResponse[];
 
@@ -82,7 +82,7 @@ const initialState: EventosState = {
  * Thunk para cargar ligas por deporte
  */
 export const getLigasPorDeporte = createAsyncThunk<
-    LigaPorDeporteResponse[], // Tipo de retorno
+    LigaPorDeporteDetalleResponse[], // Tipo de retorno
     string, // Parámetro: deporte
     { rejectValue: string } // Tipo del error
 >(
@@ -90,7 +90,7 @@ export const getLigasPorDeporte = createAsyncThunk<
     async (deporte, { rejectWithValue }) => {
         try {
             const ligas = await eventosService.getLigasPorDeporte(deporte);
-            return ligas;
+            return ligas.data;
         } catch (error) {
             console.error('❌ Error en thunk:', error);
             const errorMessage = error instanceof Error ? error.message : 'Error al cargar ligas por deporte';

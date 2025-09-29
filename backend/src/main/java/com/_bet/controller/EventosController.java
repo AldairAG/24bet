@@ -4,11 +4,9 @@ import com._bet.controller.AuthController.ApiResponseWrapper;
 import com._bet.dto.response.EventoDeportivoResponse;
 import com._bet.entity.datosMaestros.Deporte;
 import com._bet.entity.datosMaestros.Liga;
-import com._bet.entity.eventoEntity.EventoDeportivo;
 import com._bet.repository.DeporteRepository;
 import com._bet.repository.LigaRepository;
 import com._bet.service.evento.EventoService;
-import com._bet.repository.EventoDeportivoRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,9 +30,6 @@ public class EventosController {
     @Autowired
     private LigaRepository ligaRepository;
     
-    @Autowired
-    private EventoDeportivoRepository eventoDeportivoRepository;
-
     @Autowired    
     private EventoService eventoService;
 
@@ -44,14 +39,15 @@ public class EventosController {
      * @return Lista de ligas del deporte
      */
     @GetMapping("/ligas-por-deporte/{nombreDeporte}")
-    public ResponseEntity<?> getLigasPorDeporte(@PathVariable String nombreDeporte) {
+    public ResponseEntity<ApiResponseWrapper<List<Liga>>> getLigasPorDeporte(@PathVariable String nombreDeporte) {
         try {
             // Buscar el deporte por nombre (ignorando mayúsculas/minúsculas)
             Optional<Deporte> deporteOpt = deporteRepository.findByNombre(nombreDeporte);
             
             if (deporteOpt.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Deporte '" + nombreDeporte + "' no encontrado");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    new ApiResponseWrapper<>(false, "Deporte '" + nombreDeporte + "' no encontrado", null)
+                );
             }
             
             Deporte deporte = deporteOpt.get();
@@ -60,14 +56,14 @@ public class EventosController {
             List<Liga> ligas = ligaRepository.findByDeporteAndActivaTrue(deporte);
             
             if (ligas.isEmpty()) {
-                return ResponseEntity.ok("No se encontraron ligas activas para el deporte: " + nombreDeporte);
+                return ResponseEntity.ok(new ApiResponseWrapper<>(true, "No se encontraron ligas activas para el deporte: " + nombreDeporte, null));
             }
-            
-            return ResponseEntity.ok(ligas);
-            
+
+            return ResponseEntity.ok(new ApiResponseWrapper<>(true, "Ligas obtenidas exitosamente", ligas));
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Error interno del servidor: " + e.getMessage());
+                .body(new ApiResponseWrapper<>(false, "Error interno del servidor: " + e.getMessage(), null));
         }
     }
     

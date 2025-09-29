@@ -137,7 +137,7 @@ export const useEventos = () => {
         buscarLigasPorNombre: (nombre: string) => {
             if (!Array.isArray(ligasPorDeporte)) return [];
             return ligasPorDeporte.filter(liga => 
-                liga.nombreLiga.toLowerCase().includes(nombre.toLowerCase())
+                liga.nombre.toLowerCase().includes(nombre.toLowerCase())
             );
         },
 
@@ -147,7 +147,7 @@ export const useEventos = () => {
         filtrarLigasPorPais: (pais: string) => {
             if (!Array.isArray(ligasPorDeporte)) return [];
             return ligasPorDeporte.filter(liga => 
-                liga.pais.toLowerCase().includes(pais.toLowerCase())
+                liga.pais.name.toLowerCase().includes(pais.toLowerCase())
             );
         },
 
@@ -156,7 +156,7 @@ export const useEventos = () => {
          */
         obtenerPaisesDisponibles: () => {
             if (!Array.isArray(ligasPorDeporte)) return [];
-            const paises = new Set(ligasPorDeporte.map(liga => liga.pais));
+            const paises = new Set(ligasPorDeporte.map(liga => liga.pais.name));
             return Array.from(paises).sort();
         },
 
@@ -172,7 +172,7 @@ export const useEventos = () => {
             };
 
             const activas = ligasPorDeporte.filter(liga => liga.activa).length;
-            const paises = new Set(ligasPorDeporte.map(liga => liga.pais)).size;
+            const paises = new Set(ligasPorDeporte.map(liga => liga.pais.name)).size;
 
             return {
                 total: ligasPorDeporte.length,
@@ -207,7 +207,7 @@ export const useEventos = () => {
             bandera: liga.banderaPais,
             deporte: liga.deporte,
             activa: liga.activa,
-            displayName: `${liga.nombreLiga} (${liga.pais})`
+            displayName: `${liga.nombreLiga} (${liga.pais.name})`
         }),
 
         /**
@@ -219,9 +219,9 @@ export const useEventos = () => {
             return [...ligasPorDeporte].sort((a, b) => {
                 switch (criterio) {
                     case 'nombre':
-                        return a.nombreLiga.localeCompare(b.nombreLiga);
+                        return a.nombre.localeCompare(b.nombre);
                     case 'pais':
-                        return a.pais.localeCompare(b.pais);
+                        return a.pais.name.localeCompare(b.pais.name);
                     case 'id':
                         return a.id - b.id;
                     default:
@@ -243,7 +243,7 @@ export const useEventos = () => {
          */
         obtenerTodosLosPaises: () => {
             if (!Array.isArray(ligasPorDeporte)) return [];
-            const paises = new Set(ligasPorDeporte.map(liga => liga.pais));
+            const paises = new Set(ligasPorDeporte.map(liga => liga.pais.name));
             return Array.from(paises).sort();
         },
 
@@ -253,7 +253,7 @@ export const useEventos = () => {
         filtrarLigasPorPais: (pais: string) => {
             if (!Array.isArray(ligasPorDeporte)) return [];
             return ligasPorDeporte.filter(liga => 
-                liga.pais.toLowerCase().includes(pais.toLowerCase())
+                liga.pais.name.toLowerCase().includes(pais.toLowerCase())
             );
         },
 
@@ -264,7 +264,7 @@ export const useEventos = () => {
             if (!Array.isArray(ligasPorDeporte)) return [];
             const paisesLower = paises.map(p => p.toLowerCase());
             return ligasPorDeporte.filter(liga => 
-                paisesLower.some(pais => liga.pais.toLowerCase().includes(pais))
+                paisesLower.some(pais => liga.pais.name.toLowerCase().includes(pais))
             );
         },
 
@@ -287,14 +287,14 @@ export const useEventos = () => {
             const estadisticas: { [pais: string]: { total: number; activas: number; inactivas: number } } = {};
             
             ligasPorDeporte.forEach(liga => {
-                if (!estadisticas[liga.pais]) {
-                    estadisticas[liga.pais] = { total: 0, activas: 0, inactivas: 0 };
+                if (!estadisticas[liga.pais.name]) {
+                    estadisticas[liga.pais.name] = { total: 0, activas: 0, inactivas: 0 };
                 }
-                estadisticas[liga.pais].total++;
+                estadisticas[liga.pais.name].total++;
                 if (liga.activa) {
-                    estadisticas[liga.pais].activas++;
+                    estadisticas[liga.pais.name].activas++;
                 } else {
-                    estadisticas[liga.pais].inactivas++;
+                    estadisticas[liga.pais.name].inactivas++;
                 }
             });
             
@@ -324,7 +324,7 @@ export const useEventos = () => {
             const paisesActivos = new Set(
                 ligasPorDeporte
                     .filter(liga => liga.activa)
-                    .map(liga => liga.pais)
+                    .map(liga => liga.pais.name)
             );
             return Array.from(paisesActivos).sort();
         },
@@ -335,7 +335,7 @@ export const useEventos = () => {
         paisTieneLigas: (pais: string) => {
             if (!Array.isArray(ligasPorDeporte)) return false;
             return ligasPorDeporte.some(liga => 
-                liga.pais.toLowerCase() === pais.toLowerCase()
+                liga.pais.name.toLowerCase() === pais.toLowerCase()
             );
         },
 
@@ -345,7 +345,7 @@ export const useEventos = () => {
         contarLigasPorPais: (pais: string) => {
             if (!Array.isArray(ligasPorDeporte)) return 0;
             return ligasPorDeporte.filter(liga => 
-                liga.pais.toLowerCase() === pais.toLowerCase()
+                liga.pais.name.toLowerCase() === pais.toLowerCase()
             ).length;
         },
 
@@ -355,7 +355,7 @@ export const useEventos = () => {
         obtenerLigasActivasPorPais: (pais: string) => {
             if (!Array.isArray(ligasPorDeporte)) return [];
             return ligasPorDeporte.filter(liga => 
-                liga.pais.toLowerCase() === pais.toLowerCase() && liga.activa
+                liga.pais.name.toLowerCase() === pais.toLowerCase() && liga.activa
             );
         },
 
@@ -366,7 +366,7 @@ export const useEventos = () => {
             if (!Array.isArray(ligasPorDeporte)) return {};
             
             return ligasPorDeporte.reduce((grupos, liga) => {
-                const pais = liga.pais;
+                const pais = liga.pais.name;
                 if (!grupos[pais]) {
                     grupos[pais] = [];
                 }
@@ -388,7 +388,7 @@ export const useEventos = () => {
                 ligasActivas: ligasActivas.length,
                 ligasInactivas: ligasPais.length - ligasActivas.length,
                 ligas: ligasPais,
-                banderaUrl: ligasPais.length > 0 ? ligasPais[0].banderaPais : '',
+                banderaUrl: ligasPais.length > 0 ? ligasPais[0].pais.flagUrl : '',
                 displayName: `${pais} (${ligasPais.length} ligas)`
             };
         },

@@ -8,6 +8,7 @@ import { useEventos } from '../../hooks/useEventos';
 import { MaterialTopTabNavigationProp } from '@react-navigation/material-top-tabs';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import EventoDetailScreen from './sportManager/EventoDetailScreen';
+import { LigaPorDeporteDetalleResponse, PaisResponse } from '../../types/EventosType';
 
 // Tipo para los parámetros de ruta de SportManager
 type SportManagerRouteProp = RouteProp<MainCasinoStackParamList, 'SportManager'>;
@@ -20,21 +21,30 @@ interface ComponenteDeporteProps {
     evento?: string;
 }
 
-// Estructura para la información de liga
+// Estructura para la información de liga basada en LigaPorDeporteDetalleResponse
 interface LigaInfo {
     id: number;
+    apiSportsId: number;
     nombre: string;
-    bandera: string;
+    logoUrl: string;
     activa: boolean;
+    pais: PaisResponse;
+    paisNombre: string;
+    temporada: number;
+    fechaCreacion: string;
+    fechaActualizacion: string;
 }
 
 // Estructura para país con sus ligas
 interface PaisPorLigas {
+    id: number;
     nombre: string;
     bandera: string;
+    countryCode: string;
     ligas: LigaInfo[];
     totalLigas: number;
     ligasActivas: number;
+    activo: boolean;
 }
 
 // Estructura del acordeón de países
@@ -144,19 +154,31 @@ const ComponenteDeporte: React.FC<ComponenteDeporteProps> = ({ deporteId }) => {
         Object.entries(ligasAgrupadas).forEach(([paisNombre, ligas]) => {
             const ligasActivas = ligas.filter(liga => liga.activa);
             const primerLiga = ligas[0];
+            const paisInfo = primerLiga?.pais;
 
-            estructuraPaises[paisNombre] = {
-                nombre: paisNombre,
-                bandera: primerLiga?.banderaPais || '',
-                ligas: ligas.map(liga => ({
-                    id: liga.id,
-                    nombre: liga.nombreLiga,
-                    bandera: liga.banderaPais,
-                    activa: liga.activa
-                })),
-                totalLigas: ligas.length,
-                ligasActivas: ligasActivas.length
-            };
+            if (paisInfo) {
+                estructuraPaises[paisNombre] = {
+                    id: paisInfo.id,
+                    nombre: paisInfo.name,
+                    bandera: paisInfo.flagUrl || '',
+                    countryCode: paisInfo.countryCode || '',
+                    activo: paisInfo.activo,
+                    ligas: ligas.map(liga => ({
+                        id: liga.id,
+                        apiSportsId: liga.apiSportsId,
+                        nombre: liga.nombre,
+                        logoUrl: liga.logoUrl || '',
+                        activa: liga.activa,
+                        pais: liga.pais,
+                        paisNombre: liga.paisNombre,
+                        temporada: liga.temporada,
+                        fechaCreacion: liga.fechaCreacion,
+                        fechaActualizacion: liga.fechaActualizacion
+                    })),
+                    totalLigas: ligas.length,
+                    ligasActivas: ligasActivas.length
+                };
+            }
         });
 
         return estructuraPaises;
@@ -310,7 +332,11 @@ const ComponenteDeporte: React.FC<ComponenteDeporteProps> = ({ deporteId }) => {
                         >
                             <View style={styles.paisLeft}>
                                 <View style={styles.paisFlagContainer}>
-                                    <Text style={styles.paisFlag}>🏳️</Text>
+                                    {paisInfo.bandera ? (
+                                        <Text style={styles.paisFlag}>{paisInfo.countryCode}</Text>
+                                    ) : (
+                                        <Text style={styles.paisFlag}>🏳️</Text>
+                                    )}
                                 </View>
                                 <View style={styles.paisInfo}>
                                     <Text style={[styles.paisNombre, { color: isDark ? '#fff' : '#333' }]}>
@@ -353,14 +379,26 @@ const ComponenteDeporte: React.FC<ComponenteDeporteProps> = ({ deporteId }) => {
                                     >
                                         <View style={styles.ligaLeft}>
                                             <View style={styles.ligaFlagContainer}>
-                                                <Text style={styles.ligaFlag}>🏆</Text>
+                                                {liga.logoUrl ? (
+                                                    <Text style={styles.ligaFlag}>🏆</Text>
+                                                ) : (
+                                                    <Text style={styles.ligaFlag}>🏆</Text>
+                                                )}
                                             </View>
-                                            <Text style={[
-                                                styles.ligaNombre,
-                                                { color: isDark ? '#fff' : '#333' }
-                                            ]}>
-                                                {liga.nombre}
-                                            </Text>
+                                            <View style={styles.ligaInfo}>
+                                                <Text style={[
+                                                    styles.ligaNombre,
+                                                    { color: isDark ? '#fff' : '#333' }
+                                                ]}>
+                                                    {liga.nombre}
+                                                </Text>
+                                                <Text style={[
+                                                    styles.ligaTemporada,
+                                                    { color: isDark ? '#bbb' : '#666' }
+                                                ]}>
+                                                    Temporada {liga.temporada}
+                                                </Text>
+                                            </View>
                                         </View>
                                         <View style={styles.ligaRight}>
                                             {liga.activa ? (
@@ -629,9 +667,17 @@ const styles = StyleSheet.create({
     ligaFlag: {
         fontSize: 12,
     },
+    ligaInfo: {
+        flex: 1,
+    },
     ligaNombre: {
         fontSize: 14,
         fontWeight: '500',
+        marginBottom: 2,
+    },
+    ligaTemporada: {
+        fontSize: 12,
+        color: '#666',
     },
     ligaRight: {
         flexDirection: 'row',

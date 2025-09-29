@@ -3,6 +3,8 @@
  * Basado en EventoDeportivoResponse del backend
  */
 
+import { string } from "yup";
+
 /**
  * DTO básico para liga
  */
@@ -20,6 +22,7 @@ export interface LigaBasica {
 
 /**
  * DTO para respuesta de ligas por deporte
+ * @deprecated
  */
 export interface LigaPorDeporteResponse {
     id: number;
@@ -28,6 +31,55 @@ export interface LigaPorDeporteResponse {
     banderaPais: string;
     deporte: string;
     activa: boolean;
+}
+
+/**
+ * DTO para respuesta detallada de liga por deporte
+ */
+export interface LigaPorDeporteDetalleResponse {
+    id: number,
+    apiSportsId: number,
+    temporada: number,
+    nombre: string,
+    pais: PaisResponse,
+    paisNombre: string,
+    logoUrl: string,
+    activa: boolean,
+    fechaCreacion: string,
+    fechaActualizacion: string,
+}
+
+/**
+ * DTO para respuesta de eventos por liga
+ */
+export interface FixtureStatus {
+    long: string;
+    short: string;
+}
+
+export interface Fixture {
+    id: number;
+    date: string;
+    timestamp: number;
+    status: FixtureStatus;
+}
+
+export interface EventosPorLigaResponse {
+    fixture: Fixture;
+    nombreEvento: string;
+}
+
+/**
+ * DTO para respuesta de pais
+ */
+export interface PaisResponse {
+    id: number;
+    name: string;
+    countryCode: string;
+    flagUrl: string;
+    activo: boolean;
+    fechaCreacion: string;
+    fechaActualizacion: string;
 }
 
 /**
@@ -84,10 +136,10 @@ export interface EventoDeportivoResponse {
 
     strEquipoLocal?: string; // Opcional
     strEquipoVisitante?: string; // Opcional
-    
+
     // Información de la liga
     liga: LigaBasica;
-    
+
     // Información de los equipos - Opcional ya que pueden no venir del backend
     equipoLocal?: EquipoBasico;
     equipoVisitante?: EquipoBasico;
