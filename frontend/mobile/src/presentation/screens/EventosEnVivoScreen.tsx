@@ -10,15 +10,71 @@ import {
 } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import EventoItem from '../components/items/EventoItem';
+import { useApuesta } from '../../hooks/useApuesta';
+import { ApuestaEnBoleto } from '../../types/apuestasTypes';
 
 export default function EventosEnVivoScreen() {
     const [selectedSport, setSelectedSport] = useState('all');
     const colorScheme = useColorScheme();
     const isDark = colorScheme === 'dark';
+    const { agregarApuestaAlBoleto, existeApuestaEnBoleto, boleto } = useApuesta();
+
+    // Estado para rastrear las apuestas seleccionadas para mostrarlas en rojo
+    const getSelectedBets = () => {
+        const selectedBets = new Map();
+        boleto.forEach(apuesta => {
+            const key = `${apuesta.eventoId}-${apuesta.tipoApuesta}`;
+            selectedBets.set(key, true);
+        });
+        return selectedBets;
+    };
+
+    const selectedBets = getSelectedBets();
 
     const handleBetPress = (event: any, betType: 'home' | 'draw' | 'away', odds: number) => {
-        // Aquí puedes agregar la lógica para manejar la apuesta
-        console.log(`Apuesta seleccionada: ${betType} en ${event.title} con cuota ${odds}`);
+        const eventoId = parseInt(event.id);
+        
+        // Verificar si ya existe esta apuesta exacta (mismo evento y tipo)
+        const existeApuestaExacta = boleto.some(
+            apuesta => apuesta.eventoId === eventoId && apuesta.tipoApuesta === betType
+        );
+        
+        if (existeApuestaExacta) {
+            console.log('Esta apuesta ya está en el boleto');
+            return;
+        }
+
+        // Generar ID único para la apuesta
+        const apuestaId = Date.now() + Math.random();
+
+        // Determinar descripción según el tipo de apuesta
+        let descripcion = '';
+        switch (betType) {
+            case 'home':
+                descripcion = `Ganador: ${event.homeTeam}`;
+                break;
+            case 'draw':
+                descripcion = 'Empate';
+                break;
+            case 'away':
+                descripcion = `Ganador: ${event.awayTeam}`;
+                break;
+        }
+
+        // Crear la apuesta
+        const nuevaApuesta: ApuestaEnBoleto = {
+            id: apuestaId,
+            eventoId: eventoId,
+            monto: 10, // Monto por defecto
+            odd: odds,
+            tipoApuesta: betType,
+            eventoName: event.title,
+            descripcion: descripcion,
+        };
+
+        // Agregar al boleto
+        agregarApuestaAlBoleto(nuevaApuesta);
+        console.log(`Apuesta agregada: ${descripcion} en ${event.title} con cuota ${odds}`);
     };
 
     const liveEvents = [

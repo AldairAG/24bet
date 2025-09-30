@@ -10,6 +10,7 @@ import DeportesScreen from '../screens/DeportesScreen';
 import SportEventsScreen from '../screens/SportEventsScreen';
 import EventDetailScreen from '../screens/EventDetailScreen';
 import SportManager from '../screens/SportManager';
+import BoletoApuestas from '../components/items/BoletoApuestas';
 
 // Componente del icono del header
 const HeaderIcon = React.memo(() => (
@@ -79,62 +80,67 @@ function CasinoTabNavigator() {
     const isDark = colorScheme === 'dark';
     
     return (
-        <CasinoTab.Navigator
-            screenOptions={{
-                tabBarActiveTintColor: '#d32f2f',
-                tabBarInactiveTintColor: isDark ? '#888' : '#666',
-                tabBarStyle: {
-                    backgroundColor: isDark ? '#1e1e1e' : 'white',
-                    borderBottomWidth: 1,
-                    borderBottomColor: isDark ? '#333' : '#e0e0e0',
-                    elevation: 4,
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 4,
-                },
-                tabBarLabelStyle: {
-                    fontSize: 14,
-                    fontWeight: '600',
-                    textTransform: 'none',
-                },
-                tabBarIndicatorStyle: {
-                    backgroundColor: '#d32f2f',
-                    height: 3,
-                    borderRadius: 1.5,
-                },
-                tabBarPressColor: isDark ? '#333' : '#f0f0f0',
-                tabBarScrollEnabled: false,
-            }}
-        >
-                <CasinoTab.Screen 
-                    name="Inicio" 
-                    component={HomeScreen}
-                    options={{ 
-                        tabBarLabel: 'Inicio',
-                    }}
-                />
-                <CasinoTab.Screen 
-                    name="EnVivo" 
-                    component={EventosEnVivoScreen}
-                    options={{ 
-                        tabBarLabel: 'En Vivo',
-                    }}
-                />
-                <CasinoTab.Screen 
-                    name="MisApuestas" 
-                    component={MisApuestasScreen}
-                    options={{ 
-                        tabBarLabel: 'Mis Apuestas',
-                    }}
-                />
-                <CasinoTab.Screen 
-                    name="Deportes" 
-                    component={DeportesScreen}
-                    options={{ 
-                        tabBarLabel: 'Deportes',
-                    }}
-                />
-            </CasinoTab.Navigator>
+        <View style={{ flex: 1 }}>
+            <CasinoTab.Navigator
+                screenOptions={{
+                    tabBarActiveTintColor: '#d32f2f',
+                    tabBarInactiveTintColor: isDark ? '#888' : '#666',
+                    tabBarStyle: {
+                        backgroundColor: isDark ? '#1e1e1e' : 'white',
+                        borderBottomWidth: 1,
+                        borderBottomColor: isDark ? '#333' : '#e0e0e0',
+                        elevation: 4,
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.1,
+                        shadowRadius: 4,
+                    },
+                    tabBarLabelStyle: {
+                        fontSize: 14,
+                        fontWeight: '600',
+                        textTransform: 'none',
+                    },
+                    tabBarIndicatorStyle: {
+                        backgroundColor: '#d32f2f',
+                        height: 3,
+                        borderRadius: 1.5,
+                    },
+                    tabBarPressColor: isDark ? '#333' : '#f0f0f0',
+                    tabBarScrollEnabled: false,
+                }}
+            >
+                    <CasinoTab.Screen 
+                        name="Inicio" 
+                        component={HomeScreen}
+                        options={{ 
+                            tabBarLabel: 'Inicio',
+                        }}
+                    />
+                    <CasinoTab.Screen 
+                        name="EnVivo" 
+                        component={EventosEnVivoScreen}
+                        options={{ 
+                            tabBarLabel: 'En Vivo',
+                        }}
+                    />
+                    <CasinoTab.Screen 
+                        name="MisApuestas" 
+                        component={MisApuestasScreen}
+                        options={{ 
+                            tabBarLabel: 'Mis Apuestas',
+                        }}
+                    />
+                    <CasinoTab.Screen 
+                        name="Deportes" 
+                        component={DeportesScreen}
+                        options={{ 
+                            tabBarLabel: 'Deportes',
+                        }}
+                    />
+                </CasinoTab.Navigator>
+            
+            {/* BoletoApuestas global para todas las pestañas del casino */}
+            <BoletoApuestas />
+        </View>
     );
 }
 
