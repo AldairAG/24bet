@@ -57,6 +57,22 @@ export interface FixtureStatus {
     short: string;
 }
 
+export interface Evento {
+    fixture: Fixture;
+    bets: Bet[]; // Ajustar el tipo según la estructura real de las apuestas
+}
+
+export interface Bet {
+    id: number;
+    name: string;
+    values: Value[];
+}
+
+export interface Value {
+    value: string;
+    odd: number;
+}
+
 export interface Fixture {
     id: number;
     date: string;
@@ -67,6 +83,13 @@ export interface Fixture {
 export interface EventosPorLigaResponse {
     fixture: Fixture;
     nombreEvento: string;
+}
+
+export interface DateGroup {
+    date: string;
+    displayDate: string;
+    events: EventosPorLigaResponse[];
+    isExpanded: boolean;
 }
 
 /**

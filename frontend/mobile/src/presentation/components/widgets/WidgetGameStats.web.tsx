@@ -1,22 +1,13 @@
 import React, { useRef, useState, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
 
-const WidgetGameStats = () => {
+const WidgetGameStats = ({ fixtureId }: { fixtureId: number | undefined }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [iframeHeight, setIframeHeight] = useState(300); // altura inicial
 
   useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
       // Verificar que el mensaje viene del iframe correcto
-      if (event.source === iframeRef.current?.contentWindow) {
-        if (event.data.type === 'resize') {
-          setIframeHeight(event.data.height);
-        }
-      }
-    };
+      console.log("Mensaje recibido del iframe:", fixtureId);
 
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
   }, []);
 
   const widgetHtml = `
@@ -30,7 +21,6 @@ const WidgetGameStats = () => {
           margin: 0; 
           padding: 10px; 
           font-family: Arial, sans-serif;
-          overflow: hidden;
         }
         * {
           box-sizing: border-box;
@@ -38,8 +28,8 @@ const WidgetGameStats = () => {
       </style>
     </head>
     <body>
-      <api-sports-widget data-type="game" data-game-id="1379579"></api-sports-widget>
-      
+      <api-sports-widget data-type="game" data-game-id="${fixtureId}"></api-sports-widget>
+
       <div id="team-container"></div>
 
       <api-sports-widget
@@ -106,12 +96,11 @@ const WidgetGameStats = () => {
         title="API Football Widget"
         srcDoc={widgetHtml}
         style={{ 
+          flex: 1,
           width: '100%', 
-          height: `${iframeHeight}px`,
           border: 'none',
-          overflow: 'hidden'
         }}
-        scrolling="no"
+        scrolling="yes"
         onLoad={() => {
           // Enviar mensaje inicial después de que se cargue el iframe
           setTimeout(() => {
@@ -127,7 +116,6 @@ const WidgetGameStats = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     width: '100%',
   },
 });

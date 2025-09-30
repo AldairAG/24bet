@@ -1,5 +1,5 @@
-import { apiBase } from './apiBase';
-import { EventoDeportivoResponse, EventosEnVivoResponse, EventosPorLigaResponse, LigaPorDeporteDetalleResponse, LigaPorDeporteResponse } from '../types/EventosType';
+import { apiBase, ApiResponse } from './apiBase';
+import { Evento, EventoDeportivoResponse, EventosEnVivoResponse, EventosPorLigaResponse, LigaPorDeporteDetalleResponse, LigaPorDeporteResponse } from '../types/EventosType';
 import { ApiResponseWrapper } from '../types/authTypes';
 
 /**
@@ -23,6 +23,24 @@ class EventosService {
             return response.data;
         } catch (error) {
             console.error('Error fetching live events:', error);
+            throw this.handleError(error);
+        }
+    }
+
+    /**
+     * Obtiene un evento por su nombre
+     * GET /24bet/eventos/nombre/{nombre}
+     * @param nombre Nombre del evento
+     */
+    async getEventoPorNombre(nombre: string): Promise<ApiResponseWrapper<Evento>> {
+        try {
+            const response = await apiBase.get<Evento>(
+                `${this.baseUrl}/evento-por-nombre/${nombre}`
+            );
+
+            return response;
+        } catch (error) {
+            console.error('Error fetching event by name:', error);
             throw this.handleError(error);
         }
     }

@@ -13,11 +13,12 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useEventos } from '../../../hooks/useEventos';
-import { EventoDeportivoResponse, EventosPorLigaResponse } from '../../../types/EventosType';
+import { DateGroup, EventoDeportivoResponse, EventosPorLigaResponse } from '../../../types/EventosType';
 import { CompositeNavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { CasinoTabParamList, MainCasinoStackParamList } from '../../navigation/DeportesNavigation';
 import { MaterialTopTabNavigationProp } from '@react-navigation/material-top-tabs';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { set } from 'react-hook-form';
 
 
 // Habilitar LayoutAnimation en Android
@@ -33,77 +34,25 @@ interface LigaScreenProps {
     region?: string;
 }
 
-interface DateGroup {
-    date: string;
-    displayDate: string;
-    events: EventosPorLigaResponse[];
-    isExpanded: boolean;
-}
-
 type SportManagerNavigationProp = CompositeNavigationProp<
     MaterialTopTabNavigationProp<CasinoTabParamList>,
     NativeStackNavigationProp<MainCasinoStackParamList>
 >;
-
-
-type SportManagerRouteProp = RouteProp<MainCasinoStackParamList, 'SportManager'>;
 
 const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporteId, region }) => {
     const navigation = useNavigation<SportManagerNavigationProp>();
     const colorScheme = useColorScheme();
     const isDark = colorScheme === 'dark';
     const [isLoading, setIsLoading] = useState(true);
-    const [dateGroups, setDateGroups] = useState<DateGroup[]>([]);
     const [error, setError] = useState<string | null>(null);
 
     const {
         eventosFuturosManager,
         isLoadingEventosFuturos,
-        loadEventosFuturosError
+        loadEventosFuturosError,
+        eventosPorFecha,
+        setEventosPorFecha
     } = useEventos();
-
-    const formatDisplayDate = (dateString: string): string => {
-        const date = new Date(dateString);
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
-
-        const isToday = date.toDateString() === today.toDateString();
-        const isTomorrow = date.toDateString() === tomorrow.toDateString();
-
-        if (isToday) return 'Hoy';
-        if (isTomorrow) return 'Mañana';
-
-        return date.toLocaleDateString('es-ES', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-    };
-
-    const groupEventsByDate = (events: EventosPorLigaResponse[]): DateGroup[] => {
-        const grouped: { [key: string]: EventosPorLigaResponse[] } = {};
-
-        events.forEach(evento => {
-            const fechaEvento = new Date(evento.fixture.date).toDateString();
-            if (!grouped[fechaEvento]) {
-                grouped[fechaEvento] = [];
-            }
-            grouped[fechaEvento].push(evento);
-        });
-
-        return Object.keys(grouped)
-            .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
-            .map(date => ({
-                date,
-                displayDate: formatDisplayDate(date),
-                events: grouped[date].sort((a, b) =>
-                    new Date(a.fixture.date).getTime() - new Date(b.fixture.date).getTime()
-                ),
-                isExpanded: false
-            }));
-    };
 
     useEffect(() => {
         const cargarEventos = async () => {
@@ -115,13 +64,6 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporteId, region }) => {
             try {
                 // Cargar eventos futuros
                 await eventosFuturosManager.cargarEventosFuturos(liga);
-
-                // Filtrar por liga
-                const eventosFiltrados = eventosFuturosManager.filtrarPorLiga(liga);
-
-                // Agrupar por fecha
-                const grupos = groupEventsByDate(eventosFiltrados);
-                setDateGroups(grupos);
             } catch (err) {
                 console.error('Error cargando eventos de liga:', err);
                 setError('Error al cargar los eventos de la liga');
@@ -135,11 +77,10 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporteId, region }) => {
 
     const toggleDateGroup = (index: number) => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setDateGroups(prevGroups =>
-            prevGroups.map((group, i) =>
-                i === index ? { ...group, isExpanded: !group.isExpanded } : group
-            )
+        const setExpanded = eventosPorFecha.map((group, i) =>
+            i === index ? { ...group, isExpanded: !group.isExpanded } : group
         );
+        setEventosPorFecha(setExpanded);
     };
 
     const formatEventTime = (fechaEvento: string): string => {
@@ -269,13 +210,13 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporteId, region }) => {
             </View>
 
             <ScrollView style={styles.content}>
-                {dateGroups.length > 0 ? (
+                {eventosPorFecha.length > 0 ? (
                     <>
                         <Text style={[styles.sectionTitle, { color: isDark ? '#fff' : '#333' }]}>
                             Próximos Eventos
                         </Text>
                         <View style={styles.dateGroupsList}>
-                            {dateGroups.map(renderDateGroup)}
+                            {eventosPorFecha.map(renderDateGroup)}
                         </View>
                     </>
                 ) : (

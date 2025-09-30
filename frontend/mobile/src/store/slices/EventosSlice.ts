@@ -1,7 +1,8 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { EventoDeportivoResponse, EventosEnVivoResponse, EventosPorLigaResponse, LigaPorDeporteDetalleResponse } from '../../types/EventosType';
+import { EventoDeportivoResponse, EventosEnVivoResponse, EventosPorLigaResponse, LigaPorDeporteDetalleResponse, DateGroup, Evento } from '../../types/EventosType';
 import { eventosService } from '../../service/EventosService';
 import type { RootState } from '../index';
+import { groupEventsByDate } from '../../utils/EventoUtils';
 
 // ========== ESTADO INICIAL ==========
 export interface EventosState {
@@ -16,8 +17,9 @@ export interface EventosState {
     eventosEnVivo: EventosEnVivoResponse;
     eventosFuturos: EventosPorLigaResponse[];
     ligasPorDeporte: LigaPorDeporteDetalleResponse[];
-    eventoDetail: EventoDeportivoResponse | null;
+    eventoDetail: Evento | null;
     eventos: EventoDeportivoResponse[];
+    eventosPorFecha: DateGroup[];
 
     // Errores
     loadEventosEnVivoError: string | null;
@@ -44,6 +46,7 @@ const initialState: EventosState = {
     ligasPorDeporte: [],
     eventoDetail: null,
     eventos: [],
+    eventosPorFecha: [],
 
     // Errores
     loadEventosEnVivoError: null,
@@ -117,11 +120,37 @@ export const getEventosEnVivo = createAsyncThunk<
     }
 );
 
+/**
+ * Thunk para cargar detalles de un evento por su nombre
+ */
+export const getEventoDetail = createAsyncThunk<
+    Evento, // Tipo de retorno
+    string, // Parámetro: nombre del evento
+    { rejectValue: string } // Tipo del error
+>(
+    'eventos/getEventoDetail',
+    async (eventoName, { rejectWithValue }) => {
+        try {
+            const eventoResponse = await eventosService.getEventoPorNombre(eventoName);
+            return eventoResponse.data;
+        } catch (error) {
+            console.error('❌ Error en thunk:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Error al cargar detalles del evento';
+            return rejectWithValue(errorMessage);
+        }
+    }
+);
+
 // ========== SLICE ==========
 const eventosSlice = createSlice({
     name: 'eventos',
     initialState,
     reducers: {
+        // ========== ACCIONES ESTADO ==========
+        setDateGroups: (state, action: PayloadAction<DateGroup[]>) => {
+            state.eventosPorFecha = action.payload;
+        },
+
         // ========== ACCIONES DE LIMPIEZA ==========
 
         /**
@@ -167,6 +196,13 @@ const eventosSlice = createSlice({
         },
 
         /**
+         * Limpia el error de carga de detalles de evento
+         */
+        clearLoadEventoDetail: (state) => {
+            state.eventoDetail = null;
+        },
+
+        /**
          * Limpia todos los datos de eventos
          */
         clearEventosData: (state) => {
@@ -199,7 +235,7 @@ const eventosSlice = createSlice({
                 state.loadEventosEnVivoError = action.payload || 'Error al cargar eventos en vivo';
                 state.eventosEnVivo = [];
             });
-        
+
         // ========== GET EVENTOS FUTUROS ==========
         builder
             .addCase(getEventosFuturos.pending, (state) => {
@@ -207,17 +243,19 @@ const eventosSlice = createSlice({
                 state.loadEventosFuturosError = null;
             })
             .addCase(getEventosFuturos.fulfilled, (state, action) => {
-                state.isLoadingEventosFuturos = false;
                 state.eventosFuturos = action.payload;
+                state.eventosPorFecha = groupEventsByDate(action.payload);
                 state.loadEventosFuturosError = null;
                 state.ultimaActualizacion = new Date().toISOString();
+                state.isLoadingEventosFuturos = false;
+
             })
             .addCase(getEventosFuturos.rejected, (state, action) => {
                 state.isLoadingEventosFuturos = false;
                 state.loadEventosFuturosError = action.payload || 'Error al cargar eventos futuros';
                 state.eventosFuturos = [];
             });
-        
+
         // ========== GET LIGAS POR DEPORTE ==========
         builder
             .addCase(getLigasPorDeporte.pending, (state) => {
@@ -234,6 +272,22 @@ const eventosSlice = createSlice({
                 state.loadLigasPorDeporteError = action.payload || 'Error al cargar ligas por deporte';
                 state.ligasPorDeporte = [];
             });
+        // ========== GET DETALLES DE EVENTO ==========
+        builder
+            .addCase(getEventoDetail.pending, (state) => {
+                state.isLoadingEventoDetail = true;
+                state.loadEventoDetailError = null;
+            })
+            .addCase(getEventoDetail.fulfilled, (state, action) => {
+                state.isLoadingEventoDetail = false;
+                state.eventoDetail = action.payload;
+                state.loadEventoDetailError = null;
+            })
+            .addCase(getEventoDetail.rejected, (state, action) => {
+                state.isLoadingEventoDetail = false;
+                state.loadEventoDetailError = action.payload || 'Error al cargar detalles del evento';
+                state.eventoDetail = null;
+            });
     },
 });
 
@@ -245,7 +299,8 @@ export const {
     clearEventosData,
     clearLoadLigasPorDeporteError,
     clearLoadEventoDetailError,
-    clearLoadEventosError
+    clearLoadEventosError,
+    setDateGroups,
 } = eventosSlice.actions;
 
 // ========== SELECTORS ==========
@@ -260,6 +315,10 @@ export const selectUltimaActualizacion = (state: RootState) => state.eventos?.ul
 export const selectLigasPorDeporte = (state: RootState) => state.eventos?.ligasPorDeporte ?? [];
 export const selectIsLoadingLigasPorDeporte = (state: RootState) => state.eventos?.isLoadingLigasPorDeporte ?? false;
 export const selectLoadLigasPorDeporteError = (state: RootState) => state.eventos?.loadLigasPorDeporteError ?? null;
+export const selectEventosPorFecha = (state: RootState) => state.eventos?.eventosPorFecha ?? [];
+export const selectEventoDetail = (state: RootState) => state.eventos?.eventoDetail ?? null;
+export const selectIsLoadingEventoDetail = (state: RootState) => state.eventos?.isLoadingEventoDetail ?? false;
+export const selectLoadEventoDetailError = (state: RootState) => state.eventos?.loadEventoDetailError ?? null;
 
 /**
  * Selector para verificar si hay errores activos

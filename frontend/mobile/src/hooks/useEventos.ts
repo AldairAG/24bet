@@ -26,6 +26,12 @@ import {
     selectLoadLigasPorDeporteError,
     // Types
     getLigasPorDeporte,
+    selectEventosPorFecha,
+    setDateGroups,
+    selectIsLoadingEventoDetail,
+    selectEventoDetail,
+    selectLoadEventoDetailError,
+    getEventoDetail,
 } from '../store/slices/EventosSlice';
 import { eventosService } from '../service/EventosService';
 
@@ -50,8 +56,20 @@ export const useEventos = () => {
     const ligasPorDeporte = useSelector(selectLigasPorDeporte);
     const isLoadingLigasPorDeporte = useSelector(selectIsLoadingLigasPorDeporte);
     const loadLigasPorDeporteError = useSelector(selectLoadLigasPorDeporteError);
+    const eventosPorFecha = useSelector(selectEventosPorFecha);
+    const eventoDetail = useSelector(selectEventoDetail);
+    const isLoadingEventoDetail = useSelector(selectIsLoadingEventoDetail);
+    const loadEventoDetailError = useSelector(selectLoadEventoDetailError);
 
     // ========== ACCIONES PRINCIPALES ==========
+
+    /**
+     * Cargar evento por nombre desde el servidor
+     */
+    const loadEventoPorNombre = useCallback(async (nombre: string) => {
+        const result = await dispatch(getEventoDetail(nombre) as any);
+        return result;
+    }, [dispatch]);
 
     /**
      * Carga ligas por deporte desde el servidor
@@ -67,6 +85,10 @@ export const useEventos = () => {
     const loadEventosFuturos = useCallback(async (ligaNombre: string) => {
         const result = await dispatch(getEventosFuturos(ligaNombre) as any);
         return result;
+    }, [dispatch]);
+
+    const setEventosPorFecha = useCallback((dateGroups: any) => {
+        dispatch(setDateGroups(dateGroups));
     }, [dispatch]);
 
     // ========== OBJETO PARA MANEJO DE LIGAS POR DEPORTE ==========
@@ -640,22 +662,28 @@ export const useEventos = () => {
         // Objeto especializado para eventos futuros
         eventosFuturosManager,
 
+        // Eventos por fecha
+        eventosPorFecha,
+
         // Estados de carga
         isLoadingEventosEnVivo,
         isLoadingEventosFuturos,
         isLoading: eventosLoading.isLoading,
         loading: eventosLoading,
         isLoadingLigasPorDeporte,
+        isLoadingEventoDetail,
 
         // Datos principales
         eventosEnVivo,
         eventosFuturos,
         ultimaActualizacion,
+        eventoDetail,
 
         // Errores
         loadEventosEnVivoError,
         loadEventosFuturosError,
         loadLigasPorDeporteError,
+        loadEventoDetailError,
         errors: eventosErrors,
         hasErrors: hasErrors(),
         allErrors: getAllErrors(),
@@ -665,6 +693,8 @@ export const useEventos = () => {
         loadEventosFuturos,
         loadLigasPorDeporte,
         reloadEventosEnVivo,
+        setEventosPorFecha,
+        loadEventoPorNombre,
 
         // Acciones de limpieza
         clearLoadError,
