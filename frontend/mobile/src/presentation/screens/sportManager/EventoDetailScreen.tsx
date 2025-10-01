@@ -59,7 +59,7 @@ const EventoDetailScreen = ({ eventoName }: { eventoName: string }) => {
         <WidgetGameStats fixtureId={eventoDetail?.fixture.id} />
       </View>
       {/* Interfaz de apuestas */}
-{/*       <EventBetsUI
+       <EventBetsUI
         evento={eventoDetail }
         onBetClick={handleBetClick}
       />
@@ -68,7 +68,7 @@ const EventoDetailScreen = ({ eventoName }: { eventoName: string }) => {
         <Text style={styles.infoText}>
           💡 Selecciona una apuesta para agregarla a tu cupón
         </Text>
-      </View> */}
+      </View> 
     </ScrollView>   
   );
 };
