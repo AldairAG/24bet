@@ -1,212 +1,221 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Vibration } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Vibration, Animated } from 'react-native';
 import { Bet, Value } from '../../../types/EventosType';
+import useApuesta from '../../../hooks/useApuesta';
+import { ApuestaEnBoleto } from '../../../types/apuestasTypes';
 
 interface BetMarketCardProps {
   bet: Bet;
-  onBetClick: (value: string, odd: number) => void;
   marketIndex: number;
 }
 
-const BetMarketCard: React.FC<BetMarketCardProps> = ({ bet, onBetClick, marketIndex }) => {
-  const [selectedBet, setSelectedBet] = useState<string | null>(null);
+const BetMarketCard: React.FC<BetMarketCardProps> = ({ bet, marketIndex }) => {
+  const [selectedBet, setSelectedBet] = useState<number | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [animation] = useState(new Animated.Value(0));
+  const { agregarApuestaAlBoleto } = useApuesta();
 
-  const handleBetPress = (value: Value) => {
-    // Feedback háptico
+  const handleBetPress = (betValue: Value, index: number) => {
     Vibration.vibrate(50);
-    
-    setSelectedBet(value.value);
-    onBetClick(value.value, value.odd);
-    
-    // Deseleccionar después de un tiempo para mostrar feedback visual
+    setSelectedBet(index);
+
+    const newApuesta = {
+      tipoApuesta: bet.name,
+      value: betValue.value,
+      odd: betValue.odd,
+    };
+
+    agregarApuestaAlBoleto(newApuesta as unknown as ApuestaEnBoleto);
+
     setTimeout(() => {
       setSelectedBet(null);
-    }, 1500);
+    }, 200);
   };
 
-  const getBetButtonStyle = (value: Value) => {
-    const isSelected = selectedBet === value.value;
+  const toggleAccordion = () => {
+    const toValue = isExpanded ? 0 : 1;
     
-    if (isSelected) {
-      return [styles.betButton, styles.betButtonSelected];
-    }
+    Animated.timing(animation, {
+      toValue,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
     
-    // Colores según el tipo de apuesta común
-    const valueText = value.value.toLowerCase();
-    
-    if (valueText.includes('local') || valueText === '1') {
-      return [styles.betButton, styles.betButtonHome];
-    } else if (valueText.includes('empate') || valueText === 'x') {
-      return [styles.betButton, styles.betButtonDraw];
-    } else if (valueText.includes('visitante') || valueText === '2') {
-      return [styles.betButton, styles.betButtonAway];
-    } else if (valueText.includes('sí') || valueText.includes('más')) {
-      return [styles.betButton, styles.betButtonPositive];
-    } else if (valueText.includes('no') || valueText.includes('menos')) {
-      return [styles.betButton, styles.betButtonNegative];
-    }
-    
-    return styles.betButton;
+    setIsExpanded(!isExpanded);
   };
 
-  const renderBetValue = (value: Value, index: number) => (
-    <TouchableOpacity
-      key={index}
-      style={getBetButtonStyle(value)}
-      onPress={() => handleBetPress(value)}
-      activeOpacity={0.8}
-    >
-      <Text style={styles.betValue} numberOfLines={2}>
-        {value.value}
-      </Text>
-      <View style={styles.oddContainer}>
-        <Text style={styles.betOdd}>{value.odd.toFixed(2)}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-
-  const getMarketIcon = (marketName: string) => {
-    const name = marketName.toLowerCase();
-    if (name.includes('1x2') || name.includes('ganador')) return '⚽';
-    if (name.includes('gol') && name.includes('total')) return '🎯';
-    if (name.includes('ambos')) return '⚡';
-    if (name.includes('exacto')) return '🎪';
-    if (name.includes('corner')) return '📐';
-    if (name.includes('tarjeta')) return '🟨';
-    return '🎲';
+  const formatOdd = (odd: number) => {
+    return odd.toFixed(2);
   };
+
+  const getBetButtonStyle = (betValue: Value, index: number) => {
+    const isSelected = selectedBet === index;
+
+    return [
+      styles.betButton,
+      isSelected && styles.betButtonSelected,
+    ];
+  };
+
+  const animatedHeight = animation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 100], // Altura aproximada del contenido de apuestas
+  });
+
+  const rotateArrow = animation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '180deg'],
+  });
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.marketIcon}>{getMarketIcon(bet.name)}</Text>
-        <Text style={styles.betName}>{bet.name}</Text>
-        <View style={styles.optionsCount}>
-          <Text style={styles.optionsCountText}>{bet.values.length}</Text>
+      {/* Header del acordeón */}
+      <TouchableOpacity 
+        style={styles.accordionHeader}
+        onPress={toggleAccordion}
+        activeOpacity={0.7}
+      >
+        <View style={styles.headerContent}>
+          <Text style={styles.marketName} numberOfLines={1}>
+            {bet.name}
+          </Text>
+          <View style={styles.headerRight}>
+            <Text style={styles.betCount}>
+              {bet.values.length}
+            </Text>
+            <Animated.Text 
+              style={[styles.arrow, { transform: [{ rotate: rotateArrow }] }]}
+            >
+              ▼
+            </Animated.Text>
+          </View>
         </View>
-      </View>
-      
-      <View style={styles.valuesContainer}>
-        {bet.values.map((value, index) => renderBetValue(value, index))}
-      </View>
+      </TouchableOpacity>
+
+      {/* Contenido expandible */}
+      <Animated.View 
+        style={[
+          styles.accordionContent,
+          {
+            height: animatedHeight,
+            opacity: animation,
+          }
+        ]}
+      >
+        <View style={styles.betsContainer}>
+          {bet.values.map((betValue, index) => (
+            <TouchableOpacity
+              key={index}
+              style={getBetButtonStyle(betValue, index)}
+              onPress={() => handleBetPress(betValue,index)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.betValue} numberOfLines={1}>
+                {betValue.value}
+              </Text>
+              <Text style={styles.betOdd}>
+                {formatOdd(betValue.odd)}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </Animated.View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#1e1e1e',
+    backgroundColor: '#1a1a1a',
     marginHorizontal: 16,
-    marginTop: 16,
-    borderRadius: 8,
-    overflow: 'hidden',
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
+    marginVertical: 2,
+    borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#444',
+    borderColor: '#2a2a2a',
+    overflow: 'hidden',
   },
-  header: {
-    backgroundColor: '#2a2a2a',
+  accordionHeader: {
     paddingHorizontal: 16,
     paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
+    backgroundColor: '#222',
     borderBottomWidth: 1,
-    borderBottomColor: '#444',
+    borderBottomColor: '#2a2a2a',
   },
-  marketIcon: {
-    fontSize: 20,
-    marginRight: 12,
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  betName: {
-    fontSize: 16,
-    fontWeight: '600',
+  marketName: {
+    fontSize: 14,
+    fontWeight: '500',
     color: '#fff',
     flex: 1,
+    letterSpacing: 0.2,
   },
-  optionsCount: {
-    backgroundColor: '#d32f2f',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    minWidth: 24,
-    alignItems: 'center',
-  },
-  optionsCountText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  valuesContainer: {
+  headerRight: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    padding: 16,
+    alignItems: 'center',
     gap: 8,
   },
+  betCount: {
+    fontSize: 12,
+    color: '#d32f2f',
+    fontWeight: '500',
+    backgroundColor: 'rgba(211, 47, 47, 0.1)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 3,
+    minWidth: 20,
+    textAlign: 'center',
+  },
+  arrow: {
+    fontSize: 12,
+    color: '#999',
+    fontWeight: 'bold',
+  },
+  accordionContent: {
+    overflow: 'hidden',
+    backgroundColor: '#1a1a1a',
+  },
+  betsContainer: {
+    flexDirection: 'row',
+    gap: 6,
+    padding: 12,
+    flexWrap: 'wrap',
+  },
   betButton: {
-    backgroundColor: '#444',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    minWidth: 90,
+    flex: 1,
+    minWidth: '30%',
+    backgroundColor: '#2a2a2a',
+    borderRadius: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
     alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
     borderWidth: 1,
-    borderColor: '#666',
+    borderColor: '#333',
+    minHeight: 48,
+    justifyContent: 'center',
   },
   betButtonSelected: {
     backgroundColor: '#d32f2f',
-    transform: [{ scale: 0.98 }],
-    elevation: 4,
     borderColor: '#ff6b6b',
-  },
-  betButtonHome: {
-    backgroundColor: '#555',
-    borderColor: '#777',
-  },
-  betButtonDraw: {
-    backgroundColor: '#666',
-    borderColor: '#888',
-  },
-  betButtonAway: {
-    backgroundColor: '#555',
-    borderColor: '#777',
-  },
-  betButtonPositive: {
-    backgroundColor: '#444',
-    borderColor: '#666',
-  },
-  betButtonNegative: {
-    backgroundColor: '#333',
-    borderColor: '#555',
+    transform: [{ scale: 0.98 }],
   },
   betValue: {
+    fontSize: 11,
+    fontWeight: '500',
     color: '#fff',
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 4,
     textAlign: 'center',
-  },
-  oddContainer: {
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    borderRadius: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    minWidth: 50,
-    alignItems: 'center',
+    marginBottom: 3,
+    lineHeight: 13,
   },
   betOdd: {
+    fontSize: 13,
+    fontWeight: '700',
     color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
     textAlign: 'center',
+    lineHeight: 15,
   },
 });
 

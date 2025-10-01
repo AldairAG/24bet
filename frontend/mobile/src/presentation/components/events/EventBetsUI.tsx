@@ -5,16 +5,15 @@ import BetMarketCard from './BetMarketCard';
 
 interface EventBetsUIProps {
   evento: Evento;
-  onBetClick: (betId: number, value: string, odd: number) => void;
 }
 
-const EventBetsUI: React.FC<EventBetsUIProps> = ({ evento, onBetClick }) => {
+const EventBetsUI: React.FC<EventBetsUIProps> = ({ evento }) => {
   if (!evento.bets || evento.bets.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyTitle}>🎯 Sin apuestas disponibles</Text>
+        <Text style={styles.emptyTitle}>Sin apuestas disponibles</Text>
         <Text style={styles.emptyText}>
-          Este evento no tiene mercados de apuestas disponibles en este momento.
+          No hay mercados disponibles para este evento.
         </Text>
       </View>
     );
@@ -24,7 +23,6 @@ const EventBetsUI: React.FC<EventBetsUIProps> = ({ evento, onBetClick }) => {
     <BetMarketCard
       key={bet.id}
       bet={bet}
-      onBetClick={(value: string, odd: number) => onBetClick(bet.id, value, odd)}
       marketIndex={index}
     />
   );
@@ -32,10 +30,8 @@ const EventBetsUI: React.FC<EventBetsUIProps> = ({ evento, onBetClick }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>🎲 Mercados de Apuestas</Text>
-        <View style={styles.marketCount}>
-          <Text style={styles.marketCountText}>{evento.bets.length}</Text>
-        </View>
+        <Text style={styles.headerTitle}>Mercados</Text>
+        <Text style={styles.marketCount}>{evento.bets.length}</Text>
       </View>
       
       <FlatList
@@ -52,78 +48,72 @@ const EventBetsUI: React.FC<EventBetsUIProps> = ({ evento, onBetClick }) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#1e1e1e',
-    margin: 16,
-    borderRadius: 12,
+    backgroundColor: '#1a1a1a',
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 8,
     overflow: 'hidden',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: '#2a2a2a',
   },
   header: {
-    backgroundColor: '#d32f2f',
-    padding: 16,
+    backgroundColor: '#222',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#2a2a2a',
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '600',
     color: '#fff',
-    flex: 1,
+    letterSpacing: 0.5,
   },
   marketCount: {
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    borderRadius: 16,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    minWidth: 32,
-    alignItems: 'center',
-  },
-  marketCountText: {
-    color: '#fff',
     fontSize: 14,
-    fontWeight: 'bold',
+    color: '#d32f2f',
+    fontWeight: '500',
+    backgroundColor: 'rgba(211, 47, 47, 0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+    minWidth: 24,
+    textAlign: 'center',
   },
   listContent: {
-    paddingBottom: 16,
+    paddingVertical: 8,
   },
   separator: {
     height: 1,
-    backgroundColor: '#333',
+    backgroundColor: '#2a2a2a',
     marginHorizontal: 16,
+    opacity: 0.5,
   },
   emptyContainer: {
-    backgroundColor: '#1e1e1e',
-    margin: 16,
-    padding: 32,
-    borderRadius: 12,
+    backgroundColor: '#1a1a1a',
+    marginHorizontal: 16,
+    marginBottom: 16,
+    padding: 24,
+    borderRadius: 8,
     alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: '#2a2a2a',
   },
   emptyTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '600',
     color: '#fff',
-    marginBottom: 12,
+    marginBottom: 8,
     textAlign: 'center',
   },
   emptyText: {
-    fontSize: 16,
-    color: '#ccc',
+    fontSize: 14,
+    color: '#999',
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 20,
   },
 });
 

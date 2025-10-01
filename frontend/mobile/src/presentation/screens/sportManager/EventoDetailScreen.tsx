@@ -15,10 +15,7 @@ const EventoDetailScreen = ({ eventoName }: { eventoName: string }) => {
     }
   }, [eventoName, loadEventoPorNombre]);
 
-  const handleBetClick = (betId: number, value: string, odd: number) => {
-    console.log('Apuesta seleccionada:', { betId, value, odd, eventoName });
-    // TODO: Implementar lógica para agregar apuesta al carrito
-  };
+
 
   if (isLoadingEventoDetail) {
     return (
@@ -61,7 +58,6 @@ const EventoDetailScreen = ({ eventoName }: { eventoName: string }) => {
       {/* Interfaz de apuestas */}
        <EventBetsUI
         evento={eventoDetail }
-        onBetClick={handleBetClick}
       />
 
       <View style={styles.infoContainer}>

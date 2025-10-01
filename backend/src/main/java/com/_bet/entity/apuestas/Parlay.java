@@ -44,8 +44,8 @@ public class Parlay {
      */
     @NotNull(message = "El monto es obligatorio")
     @DecimalMin(value = "0.01", message = "El monto debe ser mayor a 0")
-    @Column(name = "monto_total", nullable = false, precision = 15, scale = 2)
-    private BigDecimal montoTotal;
+    @Column(name = "monto_total", nullable = false)
+    private Double montoTotal;
 
     /**
      * Momio total del parlay (multiplicación de todos los momios)
@@ -144,7 +144,7 @@ public class Parlay {
     /**
      * Lista de apuestas que componen el parlay
      */
-    @OneToMany(mappedBy = "parlay", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "parlay", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private List<Apuesta> apuestas;
 
     // Enums
@@ -159,6 +159,5 @@ public class Parlay {
         GANADO,
         PERDIDO,
         CANCELADO,
-        PARCIAL // Cuando algunas apuestas se cancelan
     }
 }

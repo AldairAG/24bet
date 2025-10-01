@@ -6,10 +6,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.yaml.snakeyaml.events.Event;
 
 import com._bet.dto.apiSports.entidades.Fixture;
-import com._bet.dto.apiSports.entidades.Odds;
 import com._bet.dto.apiSports.entidades.Fixture.Status;
 import com._bet.dto.apiSports.entidades.Odds.Bet;
 import com._bet.dto.apiSports.entidades.Odds.Value;

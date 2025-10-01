@@ -11,7 +11,6 @@ import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -50,26 +49,6 @@ public class Momio {
      */
     @OneToMany(mappedBy = "momio", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     private List<Valor> valores;
-
-    /**
-     * Límite máximo de apuesta para este momio
-     */
-    @Column(name = "limite_maximo", precision = 15, scale = 2)
-    private BigDecimal limiteMaximo;
-
-    /**
-     * Número de apuestas realizadas con este momio
-     */
-    @Builder.Default
-    @Column(name = "numero_apuestas")
-    private Integer numeroApuestas = 0;
-
-    /**
-     * Monto total apostado con este momio
-     */
-    @Builder.Default
-    @Column(name = "monto_total_apostado", precision = 15, scale = 2)
-    private BigDecimal montoTotalApostado = BigDecimal.ZERO;
 
     /**
      * Indica si el momio está activo para apuestas
