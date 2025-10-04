@@ -3,13 +3,13 @@ package com._bet.repository;
 import com._bet.entity.eventoEntity.EventoDeportivo;
 import com._bet.entity.eventoEntity.Momio;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 /**
  * Repositorio para la entidad Momio

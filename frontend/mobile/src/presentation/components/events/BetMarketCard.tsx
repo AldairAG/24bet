@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, Vibration, Animated } from 'r
 import { Bet, Value } from '../../../types/EventosType';
 import useApuesta from '../../../hooks/useApuesta';
 import { ApuestaEnBoleto } from '../../../types/apuestasTypes';
+import useApiSport from '../../../hooks/useApiSport';
+import useEventos from '../../../hooks/useEventos';
 
 interface BetMarketCardProps {
   bet: Bet;
@@ -14,15 +16,21 @@ const BetMarketCard: React.FC<BetMarketCardProps> = ({ bet, marketIndex }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [animation] = useState(new Animated.Value(0));
   const { agregarApuestaAlBoleto } = useApuesta();
+  const {eventoActual}= useApiSport()
+  const {eventoDetail}=useEventos()
 
   const handleBetPress = (betValue: Value, index: number) => {
     Vibration.vibrate(50);
     setSelectedBet(index);
 
+
     const newApuesta = {
+      id:betValue.id,
       tipoApuesta: bet.name,
       value: betValue.value,
       odd: betValue.odd,
+      monto:10,
+      eventoId:eventoDetail?.fixture.id
     };
 
     agregarApuestaAlBoleto(newApuesta as unknown as ApuestaEnBoleto);
@@ -77,7 +85,7 @@ const BetMarketCard: React.FC<BetMarketCardProps> = ({ bet, marketIndex }) => {
       >
         <View style={styles.headerContent}>
           <Text style={styles.marketName} numberOfLines={1}>
-            {bet.name}
+            {bet.name}                             
           </Text>
           <View style={styles.headerRight}>
             <Text style={styles.betCount}>

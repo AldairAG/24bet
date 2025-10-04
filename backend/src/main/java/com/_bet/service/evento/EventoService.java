@@ -18,87 +18,88 @@ import com._bet.repository.EventoDeportivoRepository;
 @Service
 public class EventoService {
 
-    @Autowired
-    private EventoDeportivoRepository eventoDeportivoRepository;
+        @Autowired
+        private EventoDeportivoRepository eventoDeportivoRepository;
 
-    /**
-     * Obtener eventos por nombre de liga
-     * 
-     * @param nombreLiga Nombre de la liga
-     * @return Lista de eventos deportivos
-     */
-    public List<EventoDeportivoResponse> obtenerEventosPorLiga(String nombreLiga) {
-        List<EventoDeportivo> eventos = eventoDeportivoRepository.findByLigaNombreAndLigaActivaTrue(nombreLiga);
-        List<EventoDeportivoResponse> eventoResponses = new ArrayList<>();
+        /**
+         * Obtener eventos por nombre de liga
+         * 
+         * @param nombreLiga Nombre de la liga
+         * @return Lista de eventos deportivos
+         */
+        public List<EventoDeportivoResponse> obtenerEventosPorLiga(String nombreLiga) {
+                List<EventoDeportivo> eventos = eventoDeportivoRepository.findByLigaNombreAndLigaActivaTrue(nombreLiga);
+                List<EventoDeportivoResponse> eventoResponses = new ArrayList<>();
 
-        for (EventoDeportivo eventoDeportivo : eventos) {
-            Status status = Status.builder()
-                    .longStatus(eventoDeportivo.getEstado().getLargo())
-                    .shortStatus(eventoDeportivo.getEstado().getCorto())
-                    .build();
+                for (EventoDeportivo eventoDeportivo : eventos) {
+                        Status status = Status.builder()
+                                        .longStatus(eventoDeportivo.getEstado().getLargo())
+                                        .shortStatus(eventoDeportivo.getEstado().getCorto())
+                                        .build();
 
-            Fixture fixture = Fixture.builder()
-                    .id(eventoDeportivo.getApiSportsId())
-                    .date(eventoDeportivo.getFechaEvento().toString())
-                    .status(status)
-                    .build();
+                        Fixture fixture = Fixture.builder()
+                                        .id(eventoDeportivo.getApiSportsId())
+                                        .date(eventoDeportivo.getFechaEvento().toString())
+                                        .status(status)
+                                        .build();
 
-            EventoDeportivoResponse eventoResponse = EventoDeportivoResponse.builder()
-                    .fixture(fixture)
-                    .nombreEvento(eventoDeportivo.getNombre())
-                    .build();
+                        EventoDeportivoResponse eventoResponse = EventoDeportivoResponse.builder()
+                                        .fixture(fixture)
+                                        .nombreEvento(eventoDeportivo.getNombre())
+                                        .build();
 
-            eventoResponses.add(eventoResponse);
+                        eventoResponses.add(eventoResponse);
+                }
+
+                return eventoResponses;
+
         }
 
-        return eventoResponses;
+        public EventoDeportivoResponse findEventoByNombre(String nombreEvento) {
+                EventoDeportivo eventoDeportivo = eventoDeportivoRepository.findByNombre(nombreEvento);
 
-    }
+                return convertirEventoAResponse(eventoDeportivo);
+        }
 
-    public EventoDeportivoResponse findEventoByNombre(String nombreEvento) {
-        EventoDeportivo eventoDeportivo = eventoDeportivoRepository.findByNombre(nombreEvento);
+        private EventoDeportivoResponse convertirEventoAResponse(EventoDeportivo evento) {
+                if (evento == null)
+                        return null;
 
-        return convertirEventoAResponse(eventoDeportivo);
-    }
+                Fixture fixture = Fixture.builder()
+                                .id(evento.getApiSportsId())
+                                .date(evento.getFechaEvento().toString())
+                                .status(Fixture.Status.builder()
+                                                .longStatus(evento.getEstado().getLargo())
+                                                .shortStatus(evento.getEstado().getCorto())
+                                                .build())
+                                .build();
 
-    private EventoDeportivoResponse convertirEventoAResponse(EventoDeportivo evento) {
-        if (evento == null)
-            return null;
+                List<Bet> oddsList = evento.getOdds().stream()
+                                .<Bet>map(momio -> {
+                                        List<Value> values = momio.getValores().stream()
+                                                        .map(valor -> Value.builder()
+                                                                        .id(valor.getId())
+                                                                        .value(valor.getValor())
+                                                                        .odd(valor.getOdd())
+                                                                        .build())
+                                                        .collect(Collectors.toList());
 
-        Fixture fixture = Fixture.builder()
-                .id(evento.getApiSportsId())
-                .date(evento.getFechaEvento().toString())
-                .status(Fixture.Status.builder()
-                        .longStatus(evento.getEstado().getLargo())
-                        .shortStatus(evento.getEstado().getCorto())
-                        .build())
-                .build();
+                                        Bet bet = Bet.builder()
+                                                        .id(Integer.parseInt(momio.getId().toString()))
+                                                        .name(momio.getTipoApuesta())
+                                                        .values(values)
+                                                        .build();
 
-        List<Bet> oddsList = evento.getOdds().stream()
-                .<Bet>map(momio -> {
-                    List<Value> values = momio.getValores().stream()
-                            .map(valor -> Value.builder()
-                                    .value(valor.getValor())
-                                    .odd(valor.getOdd())
-                                    .build())
-                            .collect(Collectors.toList());
+                                        return bet;
 
-                    Bet bet = Bet.builder()
-                            .id(Integer.parseInt(momio.getId().toString()))
-                            .name(momio.getTipoApuesta())
-                            .values(values)
-                            .build();
+                                })
+                                .collect(Collectors.toList());
 
-                    return bet;
+                EventoDeportivoResponse response = new EventoDeportivoResponse();
+                response.setNombreEvento(evento.getNombre());
+                response.setFixture(fixture);
+                response.setBets(oddsList);
 
-                })
-                .collect(Collectors.toList());
-
-        EventoDeportivoResponse response = new EventoDeportivoResponse();
-        response.setNombreEvento(evento.getNombre());
-        response.setFixture(fixture);
-        response.setBets(oddsList);
-
-        return response;
-    }
+                return response;
+        }
 }

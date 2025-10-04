@@ -59,7 +59,7 @@ export interface FixtureStatus {
 
 export interface Evento {
     fixture: Fixture;
-    bets: Bet[]; // Ajustar el tipo según la estructura real de las apuestas
+    bets: Bet[];
 }
 
 export interface Bet {
@@ -69,6 +69,7 @@ export interface Bet {
 }
 
 export interface Value {
+    id:number
     value: string;
     odd: number;
 }

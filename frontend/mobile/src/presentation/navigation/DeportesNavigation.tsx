@@ -9,7 +9,7 @@ import MisApuestasScreen from '../screens/MisApuestasScreen';
 import DeportesScreen from '../screens/DeportesScreen';
 import SportEventsScreen from '../screens/SportEventsScreen';
 import EventDetailScreen from '../screens/EventDetailScreen';
-import SportManager from '../screens/SportManager';
+import SportManager, { ComponenteDeporte } from '../screens/SportManager';
 import BoletoApuestas from '../components/items/BoletoApuestas';
 
 // Componente del icono del header
@@ -56,6 +56,10 @@ export type MainCasinoStackParamList = {
         liga: string;
         evento?: string;
     };
+    ligasByDeporte:{
+        deporteId:string
+    }
+
 };
 
 // Tipos para los tabs superiores del casino
@@ -78,7 +82,7 @@ const CasinoTab = createMaterialTopTabNavigator<CasinoTabParamList>();
 function CasinoTabNavigator() {
     const colorScheme = useColorScheme();
     const isDark = colorScheme === 'dark';
-    
+
     return (
         <View style={{ flex: 1 }}>
             <CasinoTab.Navigator
@@ -108,36 +112,36 @@ function CasinoTabNavigator() {
                     tabBarScrollEnabled: false,
                 }}
             >
-                    <CasinoTab.Screen 
-                        name="Inicio" 
-                        component={HomeScreen}
-                        options={{ 
-                            tabBarLabel: 'Inicio',
-                        }}
-                    />
-                    <CasinoTab.Screen 
-                        name="EnVivo" 
-                        component={EventosEnVivoScreen}
-                        options={{ 
-                            tabBarLabel: 'En Vivo',
-                        }}
-                    />
-                    <CasinoTab.Screen 
-                        name="MisApuestas" 
-                        component={MisApuestasScreen}
-                        options={{ 
-                            tabBarLabel: 'Mis Apuestas',
-                        }}
-                    />
-                    <CasinoTab.Screen 
-                        name="Deportes" 
-                        component={DeportesScreen}
-                        options={{ 
-                            tabBarLabel: 'Deportes',
-                        }}
-                    />
-                </CasinoTab.Navigator>
-            
+                <CasinoTab.Screen
+                    name="Inicio"
+                    component={HomeScreen}
+                    options={{
+                        tabBarLabel: 'Inicio',
+                    }}
+                />
+                <CasinoTab.Screen
+                    name="EnVivo"
+                    component={EventosEnVivoScreen}
+                    options={{
+                        tabBarLabel: 'En Vivo',
+                    }}
+                />
+                <CasinoTab.Screen
+                    name="MisApuestas"
+                    component={MisApuestasScreen}
+                    options={{
+                        tabBarLabel: 'Mis Apuestas',
+                    }}
+                />
+                <CasinoTab.Screen
+                    name="Deportes"
+                    component={DeportesScreen}
+                    options={{
+                        tabBarLabel: 'Deportes',
+                    }}
+                />
+            </CasinoTab.Navigator>
+
             {/* BoletoApuestas global para todas las pestañas del casino */}
             <BoletoApuestas />
         </View>
@@ -152,8 +156,8 @@ export default function CasinoNavigation() {
                 headerShown: false,
             }}
         >
-            <MainCasinoStack.Screen 
-                name="CasinoTabs" 
+            <MainCasinoStack.Screen
+                name="CasinoTabs"
                 component={CasinoTabNavigator}
                 options={{
                     headerShown: true,
@@ -162,22 +166,22 @@ export default function CasinoNavigation() {
                     headerTitleAlign: 'center'
                 }}
             />
-            <MainCasinoStack.Screen 
-                name="SportEvents" 
+            <MainCasinoStack.Screen
+                name="SportEvents"
                 component={SportEventsScreen}
                 options={{
                     headerShown: false,
                 }}
             />
-            <MainCasinoStack.Screen 
-                name="EventDetail" 
+            <MainCasinoStack.Screen
+                name="EventDetail"
                 component={EventDetailScreen}
                 options={{
                     headerShown: false,
                 }}
             />
-            <MainCasinoStack.Screen 
-                name="SportManager" 
+            <MainCasinoStack.Screen
+                name="SportManager"
                 component={SportManager}
                 options={{
                     headerShown: true,
@@ -185,6 +189,17 @@ export default function CasinoNavigation() {
                     headerTintColor: '#d32f2f',
                 }}
             />
+
+            <MainCasinoStack.Screen
+                name='ligasByDeporte'
+                component={ComponenteDeporte}
+                options={{
+                    headerShown: true,
+                    title: 'Gestión Deportiva',
+                    headerTintColor: '#d32f2f',
+                }}
+            />
+
         </MainCasinoStack.Navigator>
     );
 }

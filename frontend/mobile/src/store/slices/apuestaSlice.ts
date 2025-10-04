@@ -89,7 +89,7 @@ const apuestaSlice = createSlice({
                 apuesta => apuesta.id === nuevaApuesta.id && apuesta.eventoId === nuevaApuesta.eventoId
             );
             
-            if (!existeApuesta) {
+            if (!existeApuesta?.id ) {
                 state.boleto.push(nuevaApuesta);
                 // Mostrar carrito automáticamente cuando hay al menos 1 apuesta
                 state.carritoVisible = true;

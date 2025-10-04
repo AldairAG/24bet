@@ -31,6 +31,7 @@ public class Odds {
     @Data
     @Builder
     public static class Value {
+        private Long id;
         @JsonProperty("value")
         private String value;
         @JsonProperty("odd")
