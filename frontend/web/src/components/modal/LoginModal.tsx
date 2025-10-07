@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
-import Modal from './Modal';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Modal from '../Modal';
 import LoginForm, { type LoginFormData } from './LoginForm';
+import { useAuth } from '../../hooks/useAuth';
+import { ROUTES } from '../../routes/routes';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -16,17 +19,33 @@ const LoginModal: React.FC<LoginModalProps> = ({
   onOpenRegister
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [shouldRedirect, setShouldRedirect] = useState(false);
+  const { login, user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  // Efecto para manejar la redirección después del login exitoso
+  useEffect(() => {
+    if (shouldRedirect && isAuthenticated && user) {
+      setShouldRedirect(false);
+      
+      if (user.rol === 'ADMIN') {
+        navigate(`${ROUTES.ADMIN_CONTAINER}/${ROUTES.ADMIN_DASHBOARD}`);
+      } else {
+        navigate(`${ROUTES.USER_CONTAINER}/${ROUTES.HOME}`);
+      }
+    }
+  }, [shouldRedirect, isAuthenticated, user, navigate]);
 
   const handleLogin = async (data: LoginFormData) => {
     setIsLoading(true);
     
     try {
-      // Aquí puedes agregar la lógica para enviar los datos al backend
-      console.log('Datos de login:', data);
-      
-      // Simular una llamada a la API
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      // Usar el hook de autenticación
+      await login({
+        username: data.username,
+        password: data.password
+      });
+
       // Si el login es exitoso
       if (onLoginSuccess) {
         onLoginSuccess(data);
@@ -35,12 +54,15 @@ const LoginModal: React.FC<LoginModalProps> = ({
       // Cerrar el modal
       onClose();
       
-      // Mostrar mensaje de éxito (puedes usar una librería de notificaciones)
+      // Mostrar mensaje de éxito
       alert('¡Bienvenido de vuelta!');
+      
+      // Activar la redirección
+      setShouldRedirect(true);
       
     } catch (error) {
       console.error('Error en el login:', error);
-      alert('Credenciales incorrectas. Por favor, verifica tu email y contraseña.');
+      alert('Credenciales incorrectas. Por favor, verifica tu usuario y contraseña.');
     } finally {
       setIsLoading(false);
     }

@@ -1,4 +1,4 @@
-import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
+import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
 import { store } from '../store'; // Importar tu store de Redux
 import { logout } from '../store/slices/authSlice'; // Importar action de logout
 

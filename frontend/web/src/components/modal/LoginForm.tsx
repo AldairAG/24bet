@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 
 export interface LoginFormData {
-  email: string;
+  username: string;
   password: string;
-  rememberMe: boolean;
 }
 
 interface LoginFormProps {
@@ -18,9 +17,8 @@ const LoginForm: React.FC<LoginFormProps> = ({
   isLoading = false 
 }) => {
   const [formData, setFormData] = useState<LoginFormData>({
-    email: '',
-    password: '',
-    rememberMe: false
+    username: '',
+    password: ''
   });
 
   const [errors, setErrors] = useState<Partial<LoginFormData>>({});
@@ -28,11 +26,11 @@ const LoginForm: React.FC<LoginFormProps> = ({
   const validateForm = (): boolean => {
     const newErrors: Partial<LoginFormData> = {};
 
-    // Validar email
-    if (!formData.email) {
-      newErrors.email = 'El email es requerido';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'El email no es válido';
+    // Validar username
+    if (!formData.username) {
+      newErrors.username = 'El nombre de usuario es requerido';
+    } else if (formData.username.length < 3) {
+      newErrors.username = 'El nombre de usuario debe tener al menos 3 caracteres';
     }
 
     // Validar contraseña
@@ -71,32 +69,32 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Email */}
+      {/* Username */}
       <div>
         <label 
-          htmlFor="email" 
+          htmlFor="username" 
           className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
         >
-          Email
+          Nombre de Usuario
         </label>
         <input
-          type="email"
-          id="email"
-          value={formData.email}
-          onChange={(e) => handleInputChange('email', e.target.value)}
+          type="text"
+          id="username"
+          value={formData.username}
+          onChange={(e) => handleInputChange('username', e.target.value)}
           className={`
             w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 
-            ${errors.email 
+            ${errors.username 
               ? 'border-red-500 focus:ring-red-500' 
               : 'border-gray-300 focus:ring-blue-500 dark:border-gray-600'
             }
             dark:bg-gray-700 dark:text-white
           `}
-          placeholder="tu@email.com"
+          placeholder="tu_usuario"
           disabled={isLoading}
         />
-        {errors.email && (
-          <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+        {errors.username && (
+          <p className="text-red-500 text-xs mt-1">{errors.username}</p>
         )}
       </div>
 
@@ -127,34 +125,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
         {errors.password && (
           <p className="text-red-500 text-xs mt-1">{errors.password}</p>
         )}
-      </div>
-
-      {/* Recordarme y Olvidé mi contraseña */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="rememberMe"
-            checked={formData.rememberMe}
-            onChange={(e) => handleInputChange('rememberMe', e.target.checked)}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            disabled={isLoading}
-          />
-          <label 
-            htmlFor="rememberMe" 
-            className="ml-2 block text-sm text-gray-700 dark:text-gray-300"
-          >
-            Recordarme
-          </label>
-        </div>
-        
-        <button
-          type="button"
-          className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-          disabled={isLoading}
-        >
-          ¿Olvidaste tu contraseña?
-        </button>
       </div>
 
       {/* Botones */}

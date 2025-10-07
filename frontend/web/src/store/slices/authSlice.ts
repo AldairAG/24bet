@@ -7,11 +7,12 @@ import type{
 	RegistroRequest,
 	JwtResponse,
 	UsuarioResponse,
+	Usuario,
 	ApiResponseWrapper
 } from '../../types/authTypes';
 
 interface AuthState {
-	user: UsuarioResponse | null;
+	user: Usuario | null;
 	token: string | null;
 	loading: boolean;
 	error: string | null;
@@ -74,7 +75,7 @@ const authSlice = createSlice({
 			state.isAuthenticated = false;
 			state.error = null;
 		},
-		setUser(state, action: PayloadAction<UsuarioResponse>) {
+		setUser(state, action: PayloadAction<Usuario>) {
 			state.user = action.payload;
 			state.isAuthenticated = true;
 		},
@@ -90,7 +91,24 @@ const authSlice = createSlice({
 			})
 			.addCase(registro.fulfilled, (state, action) => {
 				state.loading = false;
-				state.user = action.payload.data;
+				// Para el registro, convertimos UsuarioResponse a Usuario básico
+				const userData = action.payload.data;
+				state.user = {
+					id: userData.id,
+					username: userData.username,
+					email: userData.email,
+					nombre: userData.nombre,
+					apellido: userData.apellido,
+					ladaTelefono: userData.ladaTelefono,
+					numeroTelefono: userData.numeroTelefono,
+					fechaNacimiento: new Date(userData.fechaNacimiento),
+					activo: true, // Asumimos que el usuario registrado está activo
+					fechaCreacion: new Date().toISOString(),
+					fechaActualizacion: new Date().toISOString(),
+					rol: 'USER', // Rol por defecto para usuarios registrados
+					informacionPersonal: {} as any, // Placeholder
+					documentosKyc: [] // Array vacío inicial
+				};
 				state.isAuthenticated = true;
 				state.error = null;
 			})
@@ -105,6 +123,7 @@ const authSlice = createSlice({
 			.addCase(login.fulfilled, (state, action) => {
 				state.loading = false;
 				state.token = action.payload.data.token;
+				state.user = action.payload.data.user;
 				state.isAuthenticated = true;
 				state.error = null;
 			})

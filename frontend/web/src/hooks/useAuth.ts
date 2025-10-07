@@ -10,7 +10,7 @@ import {
 import type{
 	LoginRequest,
 	RegistroRequest,
-	UsuarioResponse
+	Usuario
 } from '../types/authTypes';
 import { type AppDispatch } from '../store';
 
@@ -21,7 +21,7 @@ export const useAuth = () => {
 	const handleRegistro = (data: RegistroRequest) => dispatch(registro(data));
 	const handleLogin = (data: LoginRequest) => dispatch(login(data));
 	const handleLogout = () => dispatch(logout());
-	const handleSetUser = (user: UsuarioResponse) => dispatch(setUser(user));
+	const handleSetUser = (user: Usuario) => dispatch(setUser(user));
 	const handleSetToken = (token: string) => dispatch(setToken(token));
 
 	return {

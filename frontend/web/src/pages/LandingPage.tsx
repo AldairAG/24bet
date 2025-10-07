@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../contexts/ThemeContext';
-import RegisterModal from '../components/RegisterModal';
-import LoginModal from '../components/LoginModal';
+import RegisterModal from '../components/modal/RegisterModal';
+import LoginModal from '../components/modal/LoginModal';
 import {
   SoccerIcon,
   TargetIcon,

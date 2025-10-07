@@ -1,34 +1,14 @@
 import React from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth';
+import { type RegistroRequest } from '../../types/authTypes';
 
-interface RegisterFormData {
-  username: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-  firstName: string;
-  lastName: string;
-  birthDate: string;
-  countryCode: string;
-  phone: string;
-  isAdult: boolean;
-  acceptTerms: boolean;
-}
-
-interface RegisterFormErrors {
-  username?: string;
-  email?: string;
-  password?: string;
-  confirmPassword?: string;
-  firstName?: string;
-  lastName?: string;
-  birthDate?: string;
-  countryCode?: string;
-  phone?: string;
-  isAdult?: string;
-  acceptTerms?: string;
+// Interfaz para el formulario que incluye campos de validación local
+interface RegisterFormData extends RegistroRequest {
+  confirmPassword: string;  // Solo para validación, no se envía al backend
+  isAdult: boolean;        // Solo para validación, no se envía al backend  
+  acceptTerms: boolean;    // Solo para validación, no se envía al backend
 }
 
 interface RegisterFormProps {
@@ -88,23 +68,23 @@ const validationSchema = Yup.object({
     .oneOf([Yup.ref('password')], 'Las contraseñas no coinciden')
     .required('Confirma tu contraseña'),
   
-  firstName: Yup.string()
+  nombre: Yup.string()
     .required('El nombre es obligatorio'),
   
-  lastName: Yup.string()
+  apellido: Yup.string()
     .required('El apellido es obligatorio'),
   
-  birthDate: Yup.date()
+  fechaNacimiento: Yup.date()
     .max(new Date(Date.now() - 18 * 365 * 24 * 60 * 60 * 1000), 'Debes ser mayor de 18 años')
     .required('La fecha de nacimiento es obligatoria'),
   
-  countryCode: Yup.string()
+  ladaTelefono: Yup.string()
     .required('Selecciona un código de país'),
   
-  phone: Yup.string()
+  numeroTelefono: Yup.string()
     .test('phone-validation', function(value) {
-      const { countryCode } = this.parent;
-      if (!validatePhoneByCountry(countryCode, value || '')) {
+      const { ladaTelefono } = this.parent;
+      if (!validatePhoneByCountry(ladaTelefono, value || '')) {
         const countryNames: { [key: string]: string } = {
           '+1': 'Estados Unidos/Canadá',
           '+52': 'México',
@@ -118,7 +98,7 @@ const validationSchema = Yup.object({
           '+598': 'Uruguay',
         };
         return this.createError({
-          message: `Formato de teléfono inválido para ${countryNames[countryCode] || 'el país seleccionado'}`
+          message: `Formato de teléfono inválido para ${countryNames[ladaTelefono] || 'el país seleccionado'}`
         });
       }
       return true;
@@ -138,16 +118,16 @@ const initialValues: RegisterFormData = {
   email: '',
   password: '',
   confirmPassword: '',
-  firstName: '',
-  lastName: '',
-  birthDate: '',
-  countryCode: '+1',
-  phone: '',
+  nombre: '',
+  apellido: '',
+  fechaNacimiento: '',
+  ladaTelefono: '+1',
+  numeroTelefono: '',
   isAdult: false,
   acceptTerms: false
 };
 
-const getPhonePlaceholder = (countryCode: string): string => {
+const getPhonePlaceholder = (ladaTelefono: string): string => {
   const placeholders: { [key: string]: string } = {
     '+1': '2125551234',
     '+52': '5512345678',
@@ -160,7 +140,7 @@ const getPhonePlaceholder = (countryCode: string): string => {
     '+593': '987654321',
     '+598': '91234567'
   };
-  return placeholders[countryCode] || '1234567890';
+  return placeholders[ladaTelefono] || '1234567890';
 };
 
 const RegisterForm: React.FC<RegisterFormProps> = ({ 
@@ -175,30 +155,23 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
     console.log('Valores del formulario:', values);
     
     try {
-      // Mapear los datos del formulario al formato esperado por el backend
-      const registroData = {
+      // Extraer solo los campos necesarios para el registro (sin confirmPassword, isAdult, acceptTerms)
+      const registroData: RegistroRequest = {
         username: values.username,
         email: values.email,
         password: values.password,
-        nombre: values.firstName,
-        apellido: values.lastName,
-        ladaTelefono: values.countryCode,
-        numeroTelefono: values.phone,
-        fechaNacimiento: values.birthDate
+        nombre: values.nombre,
+        apellido: values.apellido,
+        ladaTelefono: values.ladaTelefono,
+        numeroTelefono: values.numeroTelefono,
+        fechaNacimiento: values.fechaNacimiento
       };
 
       console.log('Datos de registro:', registroData);
-
-      // Si se proporciona una función onSubmit personalizada, usarla
-      if (onSubmit) {
-        console.log('Usando onSubmit personalizado');
-        onSubmit(values);
-      } else {
         // Usar el hook de autenticación para registrar
         console.log('Usando hook de autenticación');
         const result = await registro(registroData);
         console.log('Resultado del registro:', result);
-      }
     } catch (error) {
       console.error('Error durante el registro:', error);
     }
@@ -311,16 +284,16 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             {/* Nombre y Apellido */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Nombre
                 </label>
                 <Field
                   type="text"
-                  id="firstName"
-                  name="firstName"
+                  id="nombre"
+                  name="nombre"
                   className={`
                     w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500
-                    ${errors.firstName && touched.firstName
+                    ${errors.nombre && touched.nombre
                       ? 'border-red-500 focus:ring-red-500' 
                       : 'border-gray-300 dark:border-gray-600'
                     }
@@ -328,20 +301,20 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                   `}
                   placeholder="Tu nombre"
                 />
-                <ErrorMessage name="firstName" component="p" className="mt-1 text-xs text-red-500" />
+                <ErrorMessage name="nombre" component="p" className="mt-1 text-xs text-red-500" />
               </div>
 
               <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label htmlFor="apellido" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Apellido
                 </label>
                 <Field
                   type="text"
-                  id="lastName"
-                  name="lastName"
+                  id="apellido"
+                  name="apellido"
                   className={`
                     w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500
-                    ${errors.lastName && touched.lastName
+                    ${errors.apellido && touched.apellido
                       ? 'border-red-500 focus:ring-red-500' 
                       : 'border-gray-300 dark:border-gray-600'
                     }
@@ -349,29 +322,29 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                   `}
                   placeholder="Tu apellido"
                 />
-                <ErrorMessage name="lastName" component="p" className="mt-1 text-xs text-red-500" />
+                <ErrorMessage name="apellido" component="p" className="mt-1 text-xs text-red-500" />
               </div>
             </div>
 
             {/* Fecha de Nacimiento */}
             <div>
-              <label htmlFor="birthDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label htmlFor="fechaNacimiento" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Fecha de Nacimiento
               </label>
               <Field
                 type="date"
-                id="birthDate"
-                name="birthDate"
+                id="fechaNacimiento"
+                name="fechaNacimiento"
                 className={`
                   w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500
-                  ${errors.birthDate && touched.birthDate
+                  ${errors.fechaNacimiento && touched.fechaNacimiento
                     ? 'border-red-500 focus:ring-red-500' 
                     : 'border-gray-300 dark:border-gray-600'
                   }
                   bg-white dark:bg-gray-700 text-gray-900 dark:text-white
                 `}
               />
-              <ErrorMessage name="birthDate" component="p" className="mt-1 text-xs text-red-500" />
+              <ErrorMessage name="fechaNacimiento" component="p" className="mt-1 text-xs text-red-500" />
             </div>
 
             {/* Código de País y Teléfono */}
@@ -383,10 +356,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                 <div>
                   <Field
                     as="select"
-                    name="countryCode"
+                    name="ladaTelefono"
                     className={`
                       w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500
-                      ${errors.countryCode && touched.countryCode
+                      ${errors.ladaTelefono && touched.ladaTelefono
                         ? 'border-red-500 focus:ring-red-500' 
                         : 'border-gray-300 dark:border-gray-600'
                       }
@@ -408,22 +381,22 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                 <div className="col-span-2">
                   <Field
                     type="tel"
-                    id="phone"
-                    name="phone"
+                    id="numeroTelefono"
+                    name="numeroTelefono"
                     className={`
                       w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500
-                      ${errors.phone && touched.phone
+                      ${errors.numeroTelefono && touched.numeroTelefono
                         ? 'border-red-500 focus:ring-red-500' 
                         : 'border-gray-300 dark:border-gray-600'
                       }
                       bg-white dark:bg-gray-700 text-gray-900 dark:text-white
                     `}
-                    placeholder={getPhonePlaceholder(values.countryCode)}
+                    placeholder={getPhonePlaceholder(values.ladaTelefono)}
                   />
                 </div>
               </div>
-              <ErrorMessage name="countryCode" component="p" className="mt-1 text-xs text-red-500" />
-              <ErrorMessage name="phone" component="p" className="mt-1 text-xs text-red-500" />
+              <ErrorMessage name="ladaTelefono" component="p" className="mt-1 text-xs text-red-500" />
+              <ErrorMessage name="numeroTelefono" component="p" className="mt-1 text-xs text-red-500" />
             </div>
 
             {/* Confirmación de Mayoría de Edad */}

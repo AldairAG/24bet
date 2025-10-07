@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
-import Modal from './Modal';
+import Modal from '../Modal';
 import RegisterForm from './RegisterForm';
+import { type RegistroRequest } from '../../types/authTypes';
 
-interface RegisterFormData {
-  email: string;
-  password: string;
-  confirmPassword: string;
-  firstName: string;
-  lastName: string;
-  phone: string;
-  acceptTerms: boolean;
+// Interfaz para el formulario que incluye campos de validación local
+interface RegisterFormData extends RegistroRequest {
+  confirmPassword: string;  // Solo para validación, no se envía al backend
+  isAdult: boolean;        // Solo para validación, no se envía al backend  
+  acceptTerms: boolean;    // Solo para validación, no se envía al backend
 }
 
 interface RegisterModalProps {
