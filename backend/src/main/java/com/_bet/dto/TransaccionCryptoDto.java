@@ -1,7 +1,8 @@
 package com._bet.dto;
 
-import com._bet.entity.TransaccionCrypto;
-import com._bet.entity.CryptoWallet;
+import com._bet.entity.transacciones.TransaccionCrypto;
+import com._bet.entity.user.CryptoWallet;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

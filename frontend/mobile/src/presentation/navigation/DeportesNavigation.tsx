@@ -9,6 +9,7 @@ import MisApuestasScreen from '../screens/MisApuestasScreen';
 import DeportesScreen from '../screens/DeportesScreen';
 import SportEventsScreen from '../screens/SportEventsScreen';
 import EventDetailScreen from '../screens/EventDetailScreen';
+import SportManager from '../screens/SportManager';
 
 // Componente del icono del header
 const HeaderIcon = React.memo(() => (
@@ -24,6 +25,7 @@ const HeaderIcon = React.memo(() => (
 // Tipos de navegación para el stack principal
 export type MainCasinoStackParamList = {
     CasinoTabs: undefined;
+    DeportesScreen: { selectedSportId?: string } | undefined;
     SportEvents: {
         sport: {
             id: string;
@@ -47,6 +49,12 @@ export type MainCasinoStackParamList = {
             venue?: string;
         };
     };
+    SportManager: {
+        deporte: string;
+        region: string;
+        liga: string;
+        evento?: string;
+    };
 };
 
 // Tipos para los tabs superiores del casino
@@ -54,7 +62,12 @@ export type CasinoTabParamList = {
     Inicio: undefined;
     EnVivo: undefined;
     MisApuestas: undefined;
-    Deportes: undefined;
+    Deportes: { selectedSportId?: string } | undefined;
+};
+
+// Tipos adicionales para pantallas específicas
+export type DeportesScreenParams = {
+    selectedSportId?: string;
 };
 
 const MainCasinoStack = createNativeStackNavigator<MainCasinoStackParamList>();
@@ -155,6 +168,15 @@ export default function CasinoNavigation() {
                 component={EventDetailScreen}
                 options={{
                     headerShown: false,
+                }}
+            />
+            <MainCasinoStack.Screen 
+                name="SportManager" 
+                component={SportManager}
+                options={{
+                    headerShown: true,
+                    title: 'Gestión Deportiva',
+                    headerTintColor: '#d32f2f',
                 }}
             />
         </MainCasinoStack.Navigator>

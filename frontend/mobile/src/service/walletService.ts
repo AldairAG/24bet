@@ -1,5 +1,6 @@
 import { apiBase } from './apiBase';
-import { CreateCryptoWalletDto, TipoCrypto, CryptoWalletDto } from '../types/walletTypes';
+import { CreateCryptoWalletDto, TipoCrypto, CryptoWalletDto, SolicitudDepositoResponse, SolicitudDepositoDto, SolicitudRetiroDto, SolicitudRetiroResponse } from '../types/walletTypes';
+import { ApiResponseWrapper } from '../types/authTypes';
 
 /**
  * Servicio para la gestión de wallets de criptomonedas
@@ -28,16 +29,56 @@ class WalletService {
     }
 
     /**
+     * Crea una solicitud de depósito para un usuario
+     * @param usuarioId ID del usuario
+     * @param depositoData Datos de la solicitud de depósito
+     * @returns Promise con la respuesta de la solicitud de depósito
+     */
+    async createSolicitudDeposito(usuarioId: number, depositoData: SolicitudDepositoDto): Promise<SolicitudDepositoResponse> {
+        try {
+            const response = await apiBase.post<SolicitudDepositoResponse>(
+                `${this.baseUrl}/usuario/${usuarioId}/solicitud-deposito`,
+                depositoData
+            );
+
+            return response.data;
+        } catch (error) {
+            console.error('Error creating deposit request:', error);
+            throw this.handleError(error);
+        }
+    }
+
+    /**
+     * Crea una solicitud de retiro
+     * @param usuarioId ID del usuario
+     * @param retiroData Datos de la solicitud de retiro
+     * @returns Promise con la respuesta de la solicitud de retiro  
+     */
+    async createSolicitudRetiro(usuarioId: number, retiroData: SolicitudRetiroDto): Promise<SolicitudRetiroResponse> {
+
+        try {
+            const response = await apiBase.post<SolicitudRetiroResponse>(
+                `${this.baseUrl}/usuario/${usuarioId}/solicitud-retiro`,
+                retiroData
+            );
+
+            return response.data;
+        } catch (error) {
+            console.error('Error creating withdrawal request:', error);
+            throw this.handleError(error);
+        }
+    }
+
+    /**
      * Obtiene todos los wallets de un usuario
      * @param usuarioId ID del usuario
      * @returns Promise con la lista de wallets del usuario
      */
-    async getWalletsByUsuario(usuarioId: number): Promise<CryptoWalletDto[]> {
+    async getWalletsByUsuario(usuarioId: number): Promise<ApiResponseWrapper<CryptoWalletDto[]>> {
         try {
-            const response = await apiBase.get<CryptoWalletDto[]>(
+            const response = await apiBase.get<ApiResponseWrapper<CryptoWalletDto[]>>(
                 `${this.baseUrl}/usuario/${usuarioId}`
             );
-            const prueba = response.data;
             return response.data;
         } catch (error) {
             console.error('Error fetching user wallets:', error);

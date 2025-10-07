@@ -1,7 +1,8 @@
 package com._bet.repository;
 
-import com._bet.entity.SolicitudRetiro;
-import com._bet.entity.Usuario;
+import com._bet.entity.transacciones.SolicitudRetiro;
+import com._bet.entity.user.Usuario;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

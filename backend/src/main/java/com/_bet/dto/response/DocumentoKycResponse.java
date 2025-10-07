@@ -1,9 +1,10 @@
 package com._bet.dto.response;
 
-import com._bet.entity.DocumentoKyc;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+
+import com._bet.entity.user.DocumentoKyc;
 
 @Data
 public class DocumentoKycResponse {

@@ -4,7 +4,7 @@ import com._bet.dto.request.LoginRequest;
 import com._bet.dto.request.RegistroRequest;
 import com._bet.dto.response.JwtResponse;
 import com._bet.dto.response.UsuarioResponse;
-import com._bet.entity.Usuario;
+import com._bet.entity.user.Usuario;
 import com._bet.helpers.JwtHelper;
 import com._bet.service.user.UsuarioService;
 

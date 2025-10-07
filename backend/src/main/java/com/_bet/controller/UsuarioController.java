@@ -5,7 +5,7 @@ import com._bet.dto.request.CambiarPasswordRequest;
 import com._bet.dto.request.EditarPerfilRequest;
 import com._bet.dto.request.EditarUsuarioAdminRequest;
 import com._bet.dto.response.UsuarioResponse;
-import com._bet.entity.Usuario;
+import com._bet.entity.user.Usuario;
 import com._bet.service.user.UsuarioService;
 
 import io.swagger.v3.oas.annotations.Operation;

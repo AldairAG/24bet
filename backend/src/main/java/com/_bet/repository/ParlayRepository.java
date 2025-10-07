@@ -1,7 +1,8 @@
 package com._bet.repository;
 
-import com._bet.entity.Parlay;
-import com._bet.entity.Usuario;
+import com._bet.entity.apuestas.Parlay;
+import com._bet.entity.user.Usuario;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -36,18 +37,6 @@ public interface ParlayRepository extends JpaRepository<Parlay, Long> {
      * Busca parlays de un usuario por estado
      */
     List<Parlay> findByUsuarioAndEstadoAndActivoTrue(Usuario usuario, Parlay.EstadoParlay estado);
-    
-    /**
-     * Busca parlays pendientes de liquidación
-     */
-    @Query("SELECT DISTINCT p FROM Parlay p JOIN p.apuestas a WHERE a.eventoDeportivo.estado IN ('Match Finished', 'FINALIZADO') AND p.estado = 'ACTIVO'")
-    List<Parlay> findParlaysPendientesLiquidacion();
-    
-    /**
-     * Calcula ganancias totales en parlays de un usuario
-     */
-    @Query("SELECT COALESCE(SUM(p.gananciaReal), 0) FROM Parlay p WHERE p.usuario = :usuario AND p.resultadoFinal = 'GANADO'")
-    BigDecimal findGananciasTotalesParlaysByUsuario(@Param("usuario") Usuario usuario);
     
     /**
      * Cuenta parlays ganados de un usuario

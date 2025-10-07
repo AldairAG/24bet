@@ -1,11 +1,12 @@
 package com._bet.controller;
 
+import com._bet.controller.AuthController.ApiResponseWrapper;
 import com._bet.dto.CryptoWalletDto;
-import com._bet.entity.CryptoWallet;
-import com._bet.entity.SolicitudDeposito;
-import com._bet.entity.SolicitudRetiro;
+import com._bet.entity.transacciones.SolicitudDeposito;
+import com._bet.entity.transacciones.SolicitudRetiro;
+import com._bet.entity.user.CryptoWallet;
+import com._bet.service.Transaccion.SolicitudTransaccionService;
 import com._bet.service.cryptoWallet.CryptoWalletService;
-import com._bet.service.SolicitudTransaccionService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -53,9 +54,9 @@ public class CryptoWalletController {
      */
     @GetMapping("/usuario/{usuarioId}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<List<CryptoWalletDto>> getWalletsByUsuario(@PathVariable Long usuarioId) {
+    public ResponseEntity<ApiResponseWrapper<List<CryptoWalletDto>>> getWalletsByUsuario(@PathVariable Long usuarioId) {
         List<CryptoWalletDto> wallets = cryptoWalletService.getWalletsByUsuario(usuarioId);
-        return ResponseEntity.ok(wallets);
+        return ResponseEntity.ok(new ApiResponseWrapper<>(true,"Wallets obtenidas correctamente",wallets));
     }
     
     /**

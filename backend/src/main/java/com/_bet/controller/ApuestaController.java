@@ -1,9 +1,9 @@
 package com._bet.controller;
 
-import com._bet.entity.Apuesta;
-import com._bet.entity.Parlay;
-import com._bet.entity.Usuario;
-import com._bet.entity.Momio;
+import com._bet.entity.apuestas.Apuesta;
+import com._bet.entity.apuestas.Parlay;
+import com._bet.entity.eventoEntity.Momio;
+import com._bet.entity.user.Usuario;
 import com._bet.repository.ApuestaRepository;
 import com._bet.repository.ParlayRepository;
 import com._bet.repository.UsuarioRepository;
@@ -110,10 +110,7 @@ public class ApuestaController {
             apuesta.setEventoDeportivo(momio.getEventoDeportivo());
             apuesta.setTipoApuesta(dto.getTipoApuesta());
             apuesta.setMonto(dto.getMonto());
-            apuesta.setMomio(momio.getValor());
-            apuesta.setGananciaPotencial(dto.getMonto().multiply(momio.getValor()));
             apuesta.setEstado(Apuesta.EstadoApuesta.ACTIVA);
-            apuesta.setObservaciones(momio.getResultado().toString());
 
             // Descontar saldo del usuario
             usuario.setSaldoUsd(usuario.getSaldoUsd().subtract(dto.getMonto()));

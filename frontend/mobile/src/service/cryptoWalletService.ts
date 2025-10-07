@@ -1,3 +1,4 @@
+import { SolicitudDepositoDto, SolicitudDepositoResponse } from '../types/walletTypes';
 import { api } from './apiBase';
 
 // ========== TIPOS Y INTERFACES ==========
@@ -128,6 +129,35 @@ class CryptoWalletService {
     }
   }
 
+  /**Crear solicitud de deposito */
+  async createDepositoRequest(usuarioId: number, depositoDto: SolicitudDepositoDto): Promise<SolicitudDepositoResponse> {
+    try {
+      const response = await api.post<SolicitudDepositoResponse>(
+        `${this.baseUrl}/usuario/${usuarioId}/deposito`,
+        depositoDto
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error al crear solicitud de deposito:', error);
+      throw new Error('No se pudo crear la solicitud de deposito');
+    }
+  }
+
+
+  /**Crear solicitud de retiro */
+  async createRetiroRequest(usuarioId: number, retiroDto: SolicitudDepositoDto): Promise<SolicitudDepositoResponse> {
+    try {
+      const response = await api.post<SolicitudDepositoResponse>(
+        `${this.baseUrl}/usuario/${usuarioId}/retiro`,
+        retiroDto
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error al crear solicitud de retiro:', error);
+      throw new Error('No se pudo crear la solicitud de retiro');
+    }
+  }
+
   /**
    * Obtiene todos los wallets de un usuario
    */
@@ -207,7 +237,7 @@ class CryptoWalletService {
    * Obtiene un wallet por usuario y tipo de crypto
    */
   async getWalletByUsuarioAndTipo(
-    usuarioId: number, 
+    usuarioId: number,
     tipoCrypto: TipoCrypto
   ): Promise<CryptoWalletDto | null> {
     try {
@@ -361,18 +391,18 @@ class CryptoWalletService {
       case TipoCrypto.BITCOIN:
       case TipoCrypto.BITCOIN_CASH:
         return /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^bc1[a-z0-9]{39,59}$/.test(address);
-      
+
       case TipoCrypto.ETHEREUM:
       case TipoCrypto.USDT:
       case TipoCrypto.USDC:
         return /^0x[a-fA-F0-9]{40}$/.test(address);
-      
+
       case TipoCrypto.LITECOIN:
         return /^[LM3][a-km-zA-HJ-NP-Z1-9]{26,33}$|^ltc1[a-z0-9]{39,59}$/.test(address);
-      
+
       case TipoCrypto.RIPPLE:
         return /^r[a-zA-Z0-9]{24,34}$/.test(address);
-      
+
       default:
         // Para otras cryptos, validación genérica
         return address.length >= 20 && address.length <= 100;
@@ -438,12 +468,12 @@ export { CryptoWalletService };
 // Exportar funciones de utilidad directamente
 export const cryptoUtils = {
   getCryptoInfo: (tipoCrypto: TipoCrypto) => CRYPTO_INFO[tipoCrypto],
-  formatBalance: (balance: number, tipoCrypto: TipoCrypto) => 
+  formatBalance: (balance: number, tipoCrypto: TipoCrypto) =>
     cryptoWalletService.formatBalance(balance, tipoCrypto),
-  validateWalletAddress: (address: string, tipoCrypto: TipoCrypto) => 
+  validateWalletAddress: (address: string, tipoCrypto: TipoCrypto) =>
     cryptoWalletService.validateWalletAddress(address, tipoCrypto),
-  calculateTotalBalance: (wallets: CryptoWalletDto[], tipoCrypto?: TipoCrypto) => 
+  calculateTotalBalance: (wallets: CryptoWalletDto[], tipoCrypto?: TipoCrypto) =>
     cryptoWalletService.calculateTotalBalance(wallets, tipoCrypto),
-  groupWalletsByType: (wallets: CryptoWalletDto[]) => 
+  groupWalletsByType: (wallets: CryptoWalletDto[]) =>
     cryptoWalletService.groupWalletsByType(wallets),
 };

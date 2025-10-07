@@ -235,7 +235,7 @@ public class TransaccionCryptoController {
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<TasaConversionResponse> getTasaConversion(@PathVariable String tipoCrypto) {
         try {
-            var tipo = com._bet.entity.CryptoWallet.TipoCrypto.valueOf(tipoCrypto.toUpperCase());
+            var tipo = com._bet.entity.user.CryptoWallet.TipoCrypto.valueOf(tipoCrypto.toUpperCase());
             BigDecimal tasa = conversionService.getTasaConversion(tipo);
             return ResponseEntity.ok(new TasaConversionResponse(tipo, tasa));
         } catch (IllegalArgumentException e) {
@@ -307,35 +307,35 @@ public class TransaccionCryptoController {
     // ========== CLASES AUXILIARES ==========
     
     public static class TasaConversionResponse {
-        private final com._bet.entity.CryptoWallet.TipoCrypto tipoCrypto;
+        private final com._bet.entity.user.CryptoWallet.TipoCrypto tipoCrypto;
         private final BigDecimal tasa;
         
-        public TasaConversionResponse(com._bet.entity.CryptoWallet.TipoCrypto tipoCrypto, BigDecimal tasa) {
+        public TasaConversionResponse(com._bet.entity.user.CryptoWallet.TipoCrypto tipoCrypto, BigDecimal tasa) {
             this.tipoCrypto = tipoCrypto;
             this.tasa = tasa;
         }
         
-        public com._bet.entity.CryptoWallet.TipoCrypto getTipoCrypto() { return tipoCrypto; }
+        public com._bet.entity.user.CryptoWallet.TipoCrypto getTipoCrypto() { return tipoCrypto; }
         public BigDecimal getTasa() { return tasa; }
     }
     
     public static class ConversionRequest {
         private BigDecimal cantidad;
-        private com._bet.entity.CryptoWallet.TipoCrypto tipoCrypto;
+        private com._bet.entity.user.CryptoWallet.TipoCrypto tipoCrypto;
         
         public BigDecimal getCantidad() { return cantidad; }
         public void setCantidad(BigDecimal cantidad) { this.cantidad = cantidad; }
-        public com._bet.entity.CryptoWallet.TipoCrypto getTipoCrypto() { return tipoCrypto; }
-        public void setTipoCrypto(com._bet.entity.CryptoWallet.TipoCrypto tipoCrypto) { this.tipoCrypto = tipoCrypto; }
+        public com._bet.entity.user.CryptoWallet.TipoCrypto getTipoCrypto() { return tipoCrypto; }
+        public void setTipoCrypto(com._bet.entity.user.CryptoWallet.TipoCrypto tipoCrypto) { this.tipoCrypto = tipoCrypto; }
     }
     
     public static class ConversionResponse {
         private final BigDecimal cantidadCrypto;
-        private final com._bet.entity.CryptoWallet.TipoCrypto tipoCrypto;
+        private final com._bet.entity.user.CryptoWallet.TipoCrypto tipoCrypto;
         private final BigDecimal cantidadUsd;
         private final BigDecimal tasaConversion;
         
-        public ConversionResponse(BigDecimal cantidadCrypto, com._bet.entity.CryptoWallet.TipoCrypto tipoCrypto, 
+        public ConversionResponse(BigDecimal cantidadCrypto, com._bet.entity.user.CryptoWallet.TipoCrypto tipoCrypto, 
                                 BigDecimal cantidadUsd, BigDecimal tasaConversion) {
             this.cantidadCrypto = cantidadCrypto;
             this.tipoCrypto = tipoCrypto;
@@ -344,7 +344,7 @@ public class TransaccionCryptoController {
         }
         
         public BigDecimal getCantidadCrypto() { return cantidadCrypto; }
-        public com._bet.entity.CryptoWallet.TipoCrypto getTipoCrypto() { return tipoCrypto; }
+        public com._bet.entity.user.CryptoWallet.TipoCrypto getTipoCrypto() { return tipoCrypto; }
         public BigDecimal getCantidadUsd() { return cantidadUsd; }
         public BigDecimal getTasaConversion() { return tasaConversion; }
     }

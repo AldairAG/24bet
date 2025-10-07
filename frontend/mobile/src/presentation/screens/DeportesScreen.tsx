@@ -55,18 +55,18 @@ export default function DeportesScreen() {
     };
 
     const sports: Sport[] = [
-        { id: 'futbol', name: 'Fútbol', icon: 'football', eventCount: 156 },
-        { id: 'basquet', name: 'Básquetbol', icon: 'basketball', eventCount: 89 },
-        { id: 'tenis', name: 'Tenis', icon: 'sports-tennis', eventCount: 67 },
-        { id: 'americano', name: 'Fútbol Americano', icon: 'american-football', eventCount: 34 },
-        { id: 'baseball', name: 'Béisbol', icon: 'sports-baseball', eventCount: 78 },
-        { id: 'hockey', name: 'Hockey', icon: 'sports-hockey', eventCount: 45 },
-        { id: 'box', name: 'Boxeo', icon: 'fitness', eventCount: 23 },
-        { id: 'mma', name: 'MMA', icon: 'fitness', eventCount: 12 },
-        { id: 'golf', name: 'Golf', icon: 'golf', eventCount: 28 },
-        { id: 'formula1', name: 'Fórmula 1', icon: 'car-sport', eventCount: 15 },
-        { id: 'esports', name: 'eSports', icon: 'game-controller', eventCount: 92 },
-        { id: 'voleibol', name: 'Voleibol', icon: 'basketball', eventCount: 34 },
+        { id: 'Soccer', name: 'Fútbol', icon: 'football', eventCount: 156 },
+        { id: 'Basketball', name: 'Básquetbol', icon: 'basketball', eventCount: 89 },
+        { id: 'Tennis', name: 'Tenis', icon: 'sports-tennis', eventCount: 67 },
+        { id: 'AmericanFootball', name: 'Fútbol Americano', icon: 'american-football', eventCount: 34 },
+        { id: 'Baseball', name: 'Béisbol', icon: 'sports-baseball', eventCount: 78 },
+        { id: 'IceHockey', name: 'Hockey', icon: 'sports-hockey', eventCount: 45 },
+        { id: 'Motorsport', name: 'Motorsport', icon: 'fitness', eventCount: 23 },
+        { id: 'AustralianFootball', name: 'Australian Football', icon: 'fitness', eventCount: 12 },
+        { id: 'Golf', name: 'Golf', icon: 'golf', eventCount: 28 },
+        { id: 'TableTennis', name: 'Tenis de Mesa', icon: 'car-sport', eventCount: 15 },
+        { id: 'Esports', name: 'eSports', icon: 'game-controller', eventCount: 92 },
+        { id: 'Badminton', name: 'Bádminton', icon: 'basketball', eventCount: 34 },
     ];
 
     const events: Event[] = [
@@ -144,13 +144,13 @@ export default function DeportesScreen() {
             'car-sport': 'car-sport',
             'game-controller': 'game-controller',
         };
-        
+
         return iconMap[iconName] || 'sports';
     };
 
     const navigateToSportEvents = (sport: Sport) => {
         // Navegar a la pantalla de eventos del deporte específico
-        navigation.navigate('SportEvents', { sport });
+        navigation.navigate('SportManager', { deporte: sport.id, region: "", liga: '' , evento: undefined });
     };
 
     const navigateToEventDetail = (event: Event) => {
@@ -163,7 +163,7 @@ export default function DeportesScreen() {
             key={sport.id}
             style={[
                 styles.sportCard,
-                { 
+                {
                     backgroundColor: isDark ? '#2a2a2a' : 'white',
                     shadowColor: isDark ? '#000' : '#000',
                     shadowOpacity: isDark ? 0.3 : 0.1,
@@ -183,7 +183,7 @@ export default function DeportesScreen() {
                         <Ionicons name={getSportIcon(sport.icon) as any} size={28} color="#d32f2f" />
                     )}
                 </View>
-                
+
                 <View style={styles.sportInfo}>
                     <Text style={[styles.sportName, { color: isDark ? '#fff' : '#333' }]}>
                         {sport.name}
@@ -193,7 +193,7 @@ export default function DeportesScreen() {
                     </Text>
                 </View>
             </View>
-            
+
             <View style={styles.sportRight}>
                 <View style={[
                     styles.eventBadge,
@@ -201,10 +201,10 @@ export default function DeportesScreen() {
                 ]}>
                     <Text style={styles.eventBadgeText}>{sport.eventCount}</Text>
                 </View>
-                <Ionicons 
-                    name="chevron-forward" 
-                    size={20} 
-                    color={isDark ? '#888' : '#666'} 
+                <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color={isDark ? '#888' : '#666'}
                     style={{ marginTop: 10 }}
                 />
             </View>
@@ -234,19 +234,19 @@ export default function DeportesScreen() {
                 )}
 
                 {((selectedView === 'sports' && filteredSports.length === 0) ||
-                  (selectedView === 'events' && filteredEvents.length === 0)) && (
-                    <View style={styles.emptyContainer}>
-                        <View style={[styles.emptyIconContainer, { backgroundColor: isDark ? '#2a2a2a' : '#f8f9fa' }]}>
-                            <Ionicons name="search" size={50} color={isDark ? '#666' : '#ccc'} />
+                    (selectedView === 'events' && filteredEvents.length === 0)) && (
+                        <View style={styles.emptyContainer}>
+                            <View style={[styles.emptyIconContainer, { backgroundColor: isDark ? '#2a2a2a' : '#f8f9fa' }]}>
+                                <Ionicons name="search" size={50} color={isDark ? '#666' : '#ccc'} />
+                            </View>
+                            <Text style={[styles.emptyText, { color: isDark ? '#888' : '#999' }]}>
+                                No se encontraron resultados
+                            </Text>
+                            <Text style={[styles.emptySubtext, { color: isDark ? '#666' : '#999' }]}>
+                                {selectedView === 'sports' ? 'No hay deportes que coincidan' : 'No hay eventos que coincidan'}
+                            </Text>
                         </View>
-                        <Text style={[styles.emptyText, { color: isDark ? '#888' : '#999' }]}>
-                            No se encontraron resultados
-                        </Text>
-                        <Text style={[styles.emptySubtext, { color: isDark ? '#666' : '#999' }]}>
-                            {selectedView === 'sports' ? 'No hay deportes que coincidan' : 'No hay eventos que coincidan'}
-                        </Text>
-                    </View>
-                )}
+                    )}
             </ScrollView>
         </SafeAreaView>
     );

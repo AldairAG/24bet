@@ -1,8 +1,9 @@
 package com._bet.repository;
 
-import com._bet.entity.Apuesta;
-import com._bet.entity.Usuario;
-import com._bet.entity.EventoDeportivo;
+import com._bet.entity.apuestas.Apuesta;
+import com._bet.entity.eventoEntity.EventoDeportivo;
+import com._bet.entity.user.Usuario;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -52,12 +53,6 @@ public interface ApuestaRepository extends JpaRepository<Apuesta, Long> {
     List<Apuesta> findByUsuarioAndEstadoAndActivaTrue(Usuario usuario, Apuesta.EstadoApuesta estado);
     
     /**
-     * Busca apuestas pendientes de liquidación
-     */
-    @Query("SELECT a FROM Apuesta a WHERE a.eventoDeportivo.estado IN ('Match Finished', 'FINALIZADO') AND a.estado = 'ACTIVA'")
-    List<Apuesta> findApuestasPendientesLiquidacion();
-    
-    /**
      * Calcula ganancias totales de un usuario
      */
     @Query("SELECT COALESCE(SUM(a.gananciaReal), 0) FROM Apuesta a WHERE a.usuario = :usuario AND a.resultadoFinal = 'GANADA'")
@@ -101,13 +96,4 @@ public interface ApuestaRepository extends JpaRepository<Apuesta, Long> {
     @Query("SELECT COALESCE(SUM(a.monto), 0) FROM Apuesta a WHERE a.fechaCreacion >= :fecha")
     BigDecimal sumMontoByFechaCreacionAfter(@Param("fecha") LocalDateTime fecha);
     
-    /**
-     * Busca apuestas de un parlay específico
-     */
-    List<Apuesta> findByParlayIdAndEstado(Long parlayId, Apuesta.EstadoApuesta estado);
-
-    /**
-     * Busca todas las apuestas de un usuario ordenadas por fecha (sin paginación)
-     */
-    List<Apuesta> findByUsuarioIdOrderByFechaCreacionDesc(Long usuarioId);
 }
