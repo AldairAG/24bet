@@ -3,6 +3,7 @@ import { useEventos } from "../../../hooks/useEventos";
 import { useEffect, useState } from "react";
 import type { Bet, Value } from "../../../types/EventosType";
 import Breadcrumb from "../../../components/navigation/Breadcrumb";
+import EventoInfoWidget from "../../../components/EventoInfoWidget";
 
 const EventoPage = () => {
   const { deporte, liga, evento } = useParams();
@@ -138,23 +139,7 @@ const EventoPage = () => {
           
           {/* SECCIÓN 1: Detalles del Evento (Vacía por ahora) */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4 flex items-center">
-                <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm mr-3">
-                  Detalles
-                </span>
-                Información del Evento
-              </h2>
-              
-              {/* Placeholder para detalles del evento */}
-              <div className="flex items-center justify-center h-64 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                <div className="text-center">
-                  <div className="text-gray-400 text-lg mb-2">📊</div>
-                  <p className="text-gray-500 text-lg font-medium">Detalles del Evento</p>
-                  <p className="text-gray-400 text-sm">Esta sección se construirá posteriormente</p>
-                </div>
-              </div>
-            </div>
+            <EventoInfoWidget eventoId={eventoDetail.fixture.id} />
           </div>
 
           {/* SECCIÓN 2: Apuestas */}
