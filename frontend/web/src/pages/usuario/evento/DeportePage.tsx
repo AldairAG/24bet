@@ -2,10 +2,11 @@ import { useEffect, useMemo } from "react";
 import { Outlet, useParams } from "react-router-dom"
 import useEventos from "../../../hooks/useEventos";
 import Accordion from "../../../components/Accordion";
-import type { LigaPorDeporteResponse } from "../../../types/EventosType";
+import Breadcrumb from "../../../components/navigation/Breadcrumb";
+import type { LigaPorDeporteDetalleResponse } from "../../../types/EventosType";
 
 const DeportePage = () => {
-  const { deporte } = useParams();
+  const { deporte, liga } = useParams();
   const {
     ligasPorDeporte,
     loadLigasPorDeporte,
@@ -28,24 +29,49 @@ const DeportePage = () => {
     // Agrupar las ligas por país
     const grupos = ligasPorDeporte.reduce((acc, liga) => {
       const pais = liga.pais;
-      if (!acc[pais]) {
-        acc[pais] = [];
+      if (!acc[pais.name]) {
+        acc[pais.name] = [];
       }
-      acc[pais].push(liga);
+      acc[pais.name].push(liga);
       return acc;
-    }, {} as Record<string, LigaPorDeporteResponse[]>);
+    }, {} as Record<string, LigaPorDeporteDetalleResponse[]>);
 
     // Ordenar las ligas dentro de cada país por nombre
     Object.keys(grupos).forEach(pais => {
-      grupos[pais].sort((a, b) => a.nombreLiga.localeCompare(b.nombreLiga));
+      grupos[pais].sort((a, b) => a.paisNombre.localeCompare(b.paisNombre));
     });
 
     return grupos;
   }, [ligasPorDeporte]);
 
-  // Obtener países ordenados alfabéticamente
+  // Obtener países ordenados con prioridad para países famosos y México
   const paisesOrdenados = useMemo(() => {
-    return Object.keys(ligasAgrupadasPorPais).sort((a, b) => a.localeCompare(b));
+    // Países prioritarios (más famosos + México)
+    const paisesPrioritarios = [
+      'World',
+      'Mexico',
+      'England', 
+      'Spain',
+      'Italy',
+      'Germany',
+      'France',
+      'Brazil',
+      'Argentina',
+      'Netherlands',
+      'Portugal'
+    ];
+
+    const paisesDisponibles = Object.keys(ligasAgrupadasPorPais);
+    
+    // Separar países prioritarios de los demás
+    const prioritarios = paisesPrioritarios.filter(pais => paisesDisponibles.includes(pais));
+    const otros = paisesDisponibles.filter(pais => !paisesPrioritarios.includes(pais));
+    
+    // Ordenar alfabéticamente los países que no son prioritarios
+    otros.sort((a, b) => a.localeCompare(b));
+    
+    // Retornar primero los prioritarios, luego los demás
+    return [...prioritarios, ...otros];
   }, [ligasAgrupadasPorPais]);
 
   if (isLoadingLigasPorDeporte) {
@@ -76,9 +102,16 @@ const DeportePage = () => {
       </div>
     );
   }
+  
+  if (liga) {
+    return <Outlet />;
+  }
 
   return (
     <div className="container mx-auto px-4 py-6">
+      
+      <Breadcrumb />
+
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 capitalize">{deporte}</h1>
         <p className="text-gray-600 mt-1">
@@ -90,7 +123,7 @@ const DeportePage = () => {
         <div className="space-y-2">
           {paisesOrdenados.map((pais) => {
             const ligasDelPais = ligasAgrupadasPorPais[pais];
-            const banderaPais = ligasDelPais[0]?.banderaPais;
+            const banderaPais = ligasDelPais[0]?.pais.flagUrl;
             
             return (
               <Accordion
@@ -114,8 +147,6 @@ const DeportePage = () => {
           </p>
         </div>
       )}
-
-      <Outlet />
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
-import type { EventoDeportivoResponse, EventosEnVivoResponse, LigaPorDeporteResponse } from '../../types/EventosType';
+import type { Evento, EventoDeportivoResponse, EventosEnVivoResponse, EventosPorLigaResponse, LigaPorDeporteDetalleResponse } from '../../types/EventosType';
 import { eventosService } from '../../service/EventosService';
 import type { RootState } from '../index';
 
@@ -14,9 +14,9 @@ export interface EventosState {
 
     // Datos
     eventosEnVivo: EventosEnVivoResponse;
-    eventosFuturos: EventosEnVivoResponse;
-    ligasPorDeporte: LigaPorDeporteResponse[];
-    eventoDetail: EventoDeportivoResponse | null;
+    eventosFuturos: EventosPorLigaResponse[];
+    ligasPorDeporte: LigaPorDeporteDetalleResponse[];
+    eventoDetail: Evento | null;
     eventos: EventoDeportivoResponse[];
 
     // Errores
@@ -82,7 +82,7 @@ const initialState: EventosState = {
  * Thunk para cargar ligas por deporte
  */
 export const getLigasPorDeporte = createAsyncThunk<
-    LigaPorDeporteResponse[], // Tipo de retorno
+    LigaPorDeporteDetalleResponse[], // Tipo de retorno
     string, // Parámetro: deporte
     { rejectValue: string } // Tipo del error
 >(
@@ -100,10 +100,31 @@ export const getLigasPorDeporte = createAsyncThunk<
 );
 
 /**
+ * Thunk para cargar detalles de un evento por su nombre
+ */
+export const getEventoDetail = createAsyncThunk<
+    Evento, // Tipo de retorno
+    string, // Parámetro: nombre del evento
+    { rejectValue: string } // Tipo del error
+>(
+    'eventos/getEventoDetail',
+    async (eventoName, { rejectWithValue }) => {
+        try {
+            const eventoResponse = await eventosService.getEventoPorNombre(eventoName);
+            return eventoResponse.data;
+        } catch (error) {
+            console.error('❌ Error en thunk:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Error al cargar detalles del evento';
+            return rejectWithValue(errorMessage);
+        }
+    }
+);
+
+/**
  * Thunk para cargar eventos futuros
  */
 export const getEventosFuturos = createAsyncThunk<
-    EventosEnVivoResponse, // Tipo de datos de retorno
+    EventosPorLigaResponse[], // Tipo de datos de retorno
     string, // Tipo de parámetro de entrada
     { rejectValue: string } // Tipo de error
 >(
@@ -302,7 +323,7 @@ const eventosSlice = createSlice({
                 state.loadEventosEnVivoError = action.payload || 'Error al cargar eventos en vivo';
                 state.eventosEnVivo = [];
             });
-        
+
         // ========== GET EVENTOS FUTUROS ==========
         builder
             .addCase(getEventosFuturos.pending, (state) => {
@@ -320,7 +341,7 @@ const eventosSlice = createSlice({
                 state.loadEventosFuturosError = action.payload || 'Error al cargar eventos futuros';
                 state.eventosFuturos = [];
             });
-        
+
         // ========== GET LIGAS POR DEPORTE ==========
         builder
             .addCase(getLigasPorDeporte.pending, (state) => {
@@ -336,6 +357,23 @@ const eventosSlice = createSlice({
                 state.isLoadingLigasPorDeporte = false;
                 state.loadLigasPorDeporteError = action.payload || 'Error al cargar ligas por deporte';
                 state.ligasPorDeporte = [];
+            });
+
+        // ========== GET DETALLES DE EVENTO ==========
+        builder
+            .addCase(getEventoDetail.pending, (state) => {
+                state.isLoadingEventoDetail = true;
+                state.loadEventoDetailError = null;
+            })
+            .addCase(getEventoDetail.fulfilled, (state, action) => {
+                state.isLoadingEventoDetail = false;
+                state.eventoDetail = action.payload;
+                state.loadEventoDetailError = null;
+            })
+            .addCase(getEventoDetail.rejected, (state, action) => {
+                state.isLoadingEventoDetail = false;
+                state.loadEventoDetailError = action.payload || 'Error al cargar detalles del evento';
+                state.eventoDetail = null;
             });
     },
 });
@@ -356,7 +394,7 @@ export const {
     updateResultadoEvento,
     clearLoadLigasPorDeporteError,
     clearLoadEventoDetailError,
-    clearLoadEventosError
+    clearLoadEventosError,
 } = eventosSlice.actions;
 
 // ========== SELECTORS ==========
@@ -373,6 +411,10 @@ export const selectUltimaActualizacion = (state: RootState) => state.eventos?.ul
 export const selectLigasPorDeporte = (state: RootState) => state.eventos?.ligasPorDeporte ?? [];
 export const selectIsLoadingLigasPorDeporte = (state: RootState) => state.eventos?.isLoadingLigasPorDeporte ?? false;
 export const selectLoadLigasPorDeporteError = (state: RootState) => state.eventos?.loadLigasPorDeporteError ?? null;
+export const selectEventoDetail = (state: RootState) => state.eventos?.eventoDetail ?? null;
+export const selectIsLoadingEventoDetail = (state: RootState) => state.eventos?.isLoadingEventoDetail ?? false;
+export const selectLoadEventoDetailError = (state: RootState) => state.eventos?.loadEventoDetailError ?? null;
+export const selectEventos = (state: RootState) => state.eventos?.eventos ?? [];
 
 // ========== SELECTORS COMBINADOS ==========
 

@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
-import type { LigaPorDeporteResponse } from '../types/EventosType';
+import type { LigaPorDeporteDetalleResponse } from '../types/EventosType';
+import { useNavigate, useParams } from 'react-router-dom';
+import { ROUTES } from '../routes/routes';
 
 interface AccordionProps {
   title: string;
   banderaPais?: string;
-  ligas: LigaPorDeporteResponse[];
+  ligas: LigaPorDeporteDetalleResponse[];
   defaultOpen?: boolean;
 }
 
 interface AccordionItemProps {
-  liga: LigaPorDeporteResponse;
-  onClick?: (liga: LigaPorDeporteResponse) => void;
+  liga: LigaPorDeporteDetalleResponse;
+  onClick?: (liga: LigaPorDeporteDetalleResponse) => void;
 }
 
 const AccordionItem: React.FC<AccordionItemProps> = ({ liga, onClick }) => (
@@ -20,7 +22,7 @@ const AccordionItem: React.FC<AccordionItemProps> = ({ liga, onClick }) => (
   >
     <div className="flex items-center justify-between">
       <div className="flex items-center space-x-2">
-        <span className="text-sm font-medium text-gray-900">{liga.nombreLiga}</span>
+        <span className="text-sm font-medium text-gray-900">{liga.nombre}</span>
         {liga.activa && (
           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
             Activa
@@ -41,10 +43,11 @@ const Accordion: React.FC<AccordionProps> = ({
   defaultOpen = false 
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
+  const navigate = useNavigate();
+  const { deporte } = useParams<{ deporte: string }>();
 
-  const handleLigaClick = (liga: LigaPorDeporteResponse) => {
-    console.log('Liga seleccionada:', liga);
-    // Aquí puedes agregar la lógica para navegar a la liga o abrir detalles
+  const handleLigaClick = (liga: LigaPorDeporteDetalleResponse) => {
+    navigate(`${ROUTES.USER_LIGA(deporte!, liga.nombre)}`);
   };
 
   return (

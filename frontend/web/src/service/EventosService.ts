@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { apiBase } from '../../src/service/apiBase';
-import type { EventoDeportivoResponse, EventosEnVivoResponse, LigaPorDeporteResponse } from '../../src/types/EventosType';
+import type { Evento, EventoDeportivoResponse, EventosEnVivoResponse, EventosPorLigaResponse, LigaPorDeporteDetalleResponse } from '../../src/types/EventosType';
+import type { ApiResponseWrapper } from '../types/authTypes';
 
 /**
  * Servicio para la gestión de eventos deportivos
@@ -28,11 +29,29 @@ class EventosService {
     }
 
     /**
+ * Obtiene un evento por su nombre
+ * GET /24bet/eventos/nombre/{nombre}
+ * @param nombre Nombre del evento
+ */
+    async getEventoPorNombre(nombre: string): Promise<ApiResponseWrapper<Evento>> {
+        try {
+            const response = await apiBase.get<Evento>(
+                `${this.baseUrl}/evento-por-nombre/${nombre}`
+            );
+
+            return response;
+        } catch (error) {
+            console.error('Error fetching event by name:', error);
+            throw this.handleError(error);
+        }
+    }
+
+    /**
      * Obtiene ligas por deporte
      */
-    async getLigasPorDeporte(deporte: string): Promise<LigaPorDeporteResponse[]> {
+    async getLigasPorDeporte(deporte: string): Promise<LigaPorDeporteDetalleResponse[]> {
         try {
-            const response = await apiBase.get<LigaPorDeporteResponse[]>(
+            const response = await apiBase.get<LigaPorDeporteDetalleResponse[]>(
                 `${this.baseUrl}/ligas-por-deporte/${deporte}`
             );
             return response.data;
@@ -47,12 +66,11 @@ class EventosService {
      * GET /24bet/eventos/futuros
      * @returns Promise con la lista de eventos futuros
      */
-    async getEventosFuturos(ligaNombre: string): Promise<EventosEnVivoResponse> {
+    async getEventosFuturos(ligaNombre: string): Promise<EventosPorLigaResponse[]> {
         try {
-            const response = await apiBase.get<EventosEnVivoResponse>(
-                `${this.baseUrl}/proximos/ligas/${ligaNombre}`
+            const response = await apiBase.get<EventosPorLigaResponse[]>(
+                `${this.baseUrl}/eventos-por-liga/${ligaNombre}`
             );
-
             return response.data;
         } catch (error) {
             console.error('Error fetching future events:', error);

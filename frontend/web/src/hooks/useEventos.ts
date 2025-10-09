@@ -6,6 +6,7 @@ import {
     // Thunks
     getEventosEnVivo,
     getEventosFuturos,
+    getEventoDetail,
     // Actions
     clearLoadEventosEnVivoError,
     clearEventosEnVivo,
@@ -37,6 +38,9 @@ import {
     selectLigasPorDeporte,
     selectIsLoadingLigasPorDeporte,
     selectLoadLigasPorDeporteError,
+    selectIsLoadingEventoDetail,
+    selectLoadEventoDetailError,
+    selectEventoDetail,
     // Types
     // Helpers
     getEventoNombreFormateado,
@@ -72,8 +76,19 @@ export const useEventos = () => {
     const ligasPorDeporte = useSelector(selectLigasPorDeporte);
     const isLoadingLigasPorDeporte = useSelector(selectIsLoadingLigasPorDeporte);
     const loadLigasPorDeporteError = useSelector(selectLoadLigasPorDeporteError);
+    const eventoDetail = useSelector(selectEventoDetail);
+    const isLoadingEventoDetail = useSelector(selectIsLoadingEventoDetail);
+    const loadEventoDetailError = useSelector(selectLoadEventoDetailError);
 
     // ========== ACCIONES PRINCIPALES ==========
+
+    /**
+     * Cargar evento por nombre desde el servidor
+     */
+    const loadEventoPorNombre = useCallback(async (nombre: string) => {
+        const result = await dispatch(getEventoDetail(nombre) as any);
+        return result;
+    }, [dispatch]);
 
     /**
      * Carga ligas por deporte desde el servidor
@@ -136,8 +151,8 @@ export const useEventos = () => {
          */
         buscarLigasPorNombre: (nombre: string) => {
             if (!Array.isArray(ligasPorDeporte)) return [];
-            return ligasPorDeporte.filter(liga => 
-                liga.nombreLiga.toLowerCase().includes(nombre.toLowerCase())
+            return ligasPorDeporte.filter(liga =>
+                liga.nombre.toLowerCase().includes(nombre.toLowerCase())
             );
         },
 
@@ -146,8 +161,8 @@ export const useEventos = () => {
          */
         filtrarLigasPorPais: (pais: string) => {
             if (!Array.isArray(ligasPorDeporte)) return [];
-            return ligasPorDeporte.filter(liga => 
-                liga.pais.toLowerCase().includes(pais.toLowerCase())
+            return ligasPorDeporte.filter(liga =>
+                liga.pais.name.toLowerCase().includes(pais.toLowerCase())
             );
         },
 
@@ -215,13 +230,13 @@ export const useEventos = () => {
          */
         ordenarLigas: (criterio: 'nombre' | 'pais' | 'id' = 'nombre') => {
             if (!Array.isArray(ligasPorDeporte)) return [];
-            
+
             return [...ligasPorDeporte].sort((a, b) => {
                 switch (criterio) {
                     case 'nombre':
-                        return a.nombreLiga.localeCompare(b.nombreLiga);
+                        return a.nombre.localeCompare(b.nombre);
                     case 'pais':
-                        return a.pais.localeCompare(b.pais);
+                        return a.pais.name.localeCompare(b.pais.name);
                     case 'id':
                         return a.id - b.id;
                     default:
@@ -252,8 +267,8 @@ export const useEventos = () => {
          */
         filtrarLigasPorPais: (pais: string) => {
             if (!Array.isArray(ligasPorDeporte)) return [];
-            return ligasPorDeporte.filter(liga => 
-                liga.pais.toLowerCase().includes(pais.toLowerCase())
+            return ligasPorDeporte.filter(liga =>
+                liga.pais.name.toLowerCase().includes(pais.toLowerCase())
             );
         },
 
@@ -263,8 +278,8 @@ export const useEventos = () => {
         filtrarLigasPorPaises: (paises: string[]) => {
             if (!Array.isArray(ligasPorDeporte)) return [];
             const paisesLower = paises.map(p => p.toLowerCase());
-            return ligasPorDeporte.filter(liga => 
-                paisesLower.some(pais => liga.pais.toLowerCase().includes(pais))
+            return ligasPorDeporte.filter(liga =>
+                paisesLower.some(pais => liga.pais.name.toLowerCase().includes(pais))
             );
         },
 
@@ -273,8 +288,8 @@ export const useEventos = () => {
          */
         buscarPaises: (termino: string) => {
             const todosPaises = paisesManager.obtenerTodosLosPaises();
-            return todosPaises.filter(pais => 
-                pais.toLowerCase().includes(termino.toLowerCase())
+            return todosPaises.filter(pais =>
+                pais.name.toLowerCase().includes(termino.toLowerCase())
             );
         },
 
@@ -283,21 +298,21 @@ export const useEventos = () => {
          */
         obtenerEstadisticasPorPais: () => {
             if (!Array.isArray(ligasPorDeporte)) return {};
-            
+
             const estadisticas: { [pais: string]: { total: number; activas: number; inactivas: number } } = {};
-            
+
             ligasPorDeporte.forEach(liga => {
-                if (!estadisticas[liga.pais]) {
-                    estadisticas[liga.pais] = { total: 0, activas: 0, inactivas: 0 };
+                if (!estadisticas[liga.pais.name]) {
+                    estadisticas[liga.pais.name] = { total: 0, activas: 0, inactivas: 0 };
                 }
-                estadisticas[liga.pais].total++;
+                estadisticas[liga.pais.name].total++;
                 if (liga.activa) {
-                    estadisticas[liga.pais].activas++;
+                    estadisticas[liga.pais.name].activas++;
                 } else {
-                    estadisticas[liga.pais].inactivas++;
+                    estadisticas[liga.pais.name].inactivas++;
                 }
             });
-            
+
             return estadisticas;
         },
 
@@ -306,7 +321,7 @@ export const useEventos = () => {
          */
         obtenerTopPaisesPorLigas: (limite: number = 10) => {
             const estadisticas = paisesManager.obtenerEstadisticasPorPais();
-            
+
             return Object.entries(estadisticas)
                 .map(([pais, stats]) => ({
                     pais,
@@ -334,8 +349,8 @@ export const useEventos = () => {
          */
         paisTieneLigas: (pais: string) => {
             if (!Array.isArray(ligasPorDeporte)) return false;
-            return ligasPorDeporte.some(liga => 
-                liga.pais.toLowerCase() === pais.toLowerCase()
+            return ligasPorDeporte.some(liga =>
+                liga.pais.name.toLowerCase() === pais.toLowerCase()
             );
         },
 
@@ -344,8 +359,8 @@ export const useEventos = () => {
          */
         contarLigasPorPais: (pais: string) => {
             if (!Array.isArray(ligasPorDeporte)) return 0;
-            return ligasPorDeporte.filter(liga => 
-                liga.pais.toLowerCase() === pais.toLowerCase()
+            return ligasPorDeporte.filter(liga =>
+                liga.pais.name.toLowerCase() === pais.toLowerCase()
             ).length;
         },
 
@@ -354,25 +369,9 @@ export const useEventos = () => {
          */
         obtenerLigasActivasPorPais: (pais: string) => {
             if (!Array.isArray(ligasPorDeporte)) return [];
-            return ligasPorDeporte.filter(liga => 
-                liga.pais.toLowerCase() === pais.toLowerCase() && liga.activa
+            return ligasPorDeporte.filter(liga =>
+                liga.pais.name.toLowerCase() === pais.toLowerCase() && liga.activa
             );
-        },
-
-        /**
-         * Agrupa las ligas por país
-         */
-        agruparLigasPorPais: () => {
-            if (!Array.isArray(ligasPorDeporte)) return {};
-            
-            return ligasPorDeporte.reduce((grupos, liga) => {
-                const pais = liga.pais;
-                if (!grupos[pais]) {
-                    grupos[pais] = [];
-                }
-                grupos[pais].push(liga);
-                return grupos;
-            }, {} as { [pais: string]: typeof ligasPorDeporte });
         },
 
         /**
@@ -381,44 +380,16 @@ export const useEventos = () => {
         formatearPaisConEstadisticas: (pais: string) => {
             const ligasPais = paisesManager.filtrarLigasPorPais(pais);
             const ligasActivas = ligasPais.filter(liga => liga.activa);
-            
+
             return {
                 nombre: pais,
                 totalLigas: ligasPais.length,
                 ligasActivas: ligasActivas.length,
                 ligasInactivas: ligasPais.length - ligasActivas.length,
                 ligas: ligasPais,
-                banderaUrl: ligasPais.length > 0 ? ligasPais[0].banderaPais : '',
+                banderaUrl: ligasPais.length > 0 ? ligasPais[0].logoUrl : '',
                 displayName: `${pais} (${ligasPais.length} ligas)`
             };
-        },
-
-        /**
-         * Obtiene países ordenados por diferentes criterios
-         */
-        ordenarPaises: (criterio: 'nombre' | 'totalLigas' | 'ligasActivas' = 'nombre') => {
-            const paises = paisesManager.obtenerTodosLosPaises();
-            
-            if (criterio === 'nombre') {
-                return paises.sort();
-            }
-            
-            const paisesConStats = paises.map(pais => 
-                paisesManager.formatearPaisConEstadisticas(pais)
-            );
-            
-            switch (criterio) {
-                case 'totalLigas':
-                    return paisesConStats
-                        .sort((a, b) => b.totalLigas - a.totalLigas)
-                        .map(p => p.nombre);
-                case 'ligasActivas':
-                    return paisesConStats
-                        .sort((a, b) => b.ligasActivas - a.ligasActivas)
-                        .map(p => p.nombre);
-                default:
-                    return paises.sort();
-            }
         },
 
         /**
@@ -428,10 +399,10 @@ export const useEventos = () => {
             const todosPaises = paisesManager.obtenerTodosLosPaises();
             const paisesConLigasActivas = paisesManager.obtenerPaisesConLigasActivas();
             const estadisticas = paisesManager.obtenerEstadisticasPorPais();
-            
+
             const totalLigas = Object.values(estadisticas).reduce((sum, stats) => sum + stats.total, 0);
             const totalLigasActivas = Object.values(estadisticas).reduce((sum, stats) => sum + stats.activas, 0);
-            
+
             return {
                 totalPaises: todosPaises.length,
                 paisesConLigasActivas: paisesConLigasActivas.length,
@@ -474,31 +445,21 @@ export const useEventos = () => {
         },
 
         /**
-         * Filtra eventos futuros por deporte
-         */
-        filtrarPorDeporte: (deporteNombre: string) => {
-            if (!Array.isArray(eventosFuturos)) return [];
-            return eventosFuturos.filter(evento =>
-                evento.liga.deporte.toLowerCase() === deporteNombre.toLowerCase()
-            );
-        },
-
-        /**
          * Agrupa eventos futuros por fecha
          */
         agruparPorFecha: () => {
             if (!Array.isArray(eventosFuturos)) return {};
-            
+
             const eventosPorFecha: { [fecha: string]: typeof eventosFuturos } = {};
-            
+
             eventosFuturos.forEach(evento => {
-                const fecha = new Date(evento.fechaEvento).toDateString();
+                const fecha = new Date(evento.fixture.date).toDateString();
                 if (!eventosPorFecha[fecha]) {
                     eventosPorFecha[fecha] = [];
                 }
                 eventosPorFecha[fecha].push(evento);
             });
-            
+
             return eventosPorFecha;
         },
 
@@ -522,43 +483,13 @@ export const useEventos = () => {
          */
         ordenarPorFecha: (direccion: 'asc' | 'desc' = 'asc') => {
             if (!Array.isArray(eventosFuturos)) return [];
-            
+
             return [...eventosFuturos].sort((a, b) => {
-                const fechaA = new Date(a.fechaEvento).getTime();
-                const fechaB = new Date(b.fechaEvento).getTime();
+                const fechaA = new Date(a.fixture.date).getTime();
+                const fechaB = new Date(b.fixture.date).getTime();
                 return direccion === 'asc' ? fechaA - fechaB : fechaB - fechaA;
             });
         },
-
-        /**
-         * Obtiene estadísticas de eventos futuros
-         */
-        obtenerEstadisticas: () => {
-            if (!Array.isArray(eventosFuturos)) {
-                return {
-                    total: 0,
-                    deportes: 0,
-                    ligas: 0,
-                    proximosSieteDias: 0
-                };
-            }
-
-            const deportesUnicos = new Set(eventosFuturos.map(e => e.liga.deporte)).size;
-            const ligasUnicas = new Set(eventosFuturos.map(e => e.liga.nombre)).size;
-            
-            const ahora = new Date();
-            const sieteDias = new Date(ahora.getTime() + 7 * 24 * 60 * 60 * 1000);
-            const proximosSieteDias = eventosFuturos.filter(evento =>
-                new Date(evento.fechaEvento) <= sieteDias
-            ).length;
-
-            return {
-                total: eventosFuturos.length,
-                deportes: deportesUnicos,
-                ligas: ligasUnicas,
-                proximosSieteDias
-            };
-        }
     };
 
     /**
@@ -854,6 +785,7 @@ export const useEventos = () => {
         // Estado completo
         eventosState,
         ligasPorDeporte,
+        eventoDetail,
 
         // Objeto especializado para ligas
         ligasManager,
@@ -870,6 +802,7 @@ export const useEventos = () => {
         isLoading: eventosLoading.isLoading,
         loading: eventosLoading,
         isLoadingLigasPorDeporte,
+        isLoadingEventoDetail,
 
         // Datos principales
         eventosEnVivo,
@@ -887,6 +820,7 @@ export const useEventos = () => {
         loadEventosEnVivoError,
         loadEventosFuturosError,
         loadLigasPorDeporteError,
+        loadEventoDetailError,
         errors: eventosErrors,
         hasErrors: hasErrors(),
         allErrors: getAllErrors(),
@@ -896,6 +830,7 @@ export const useEventos = () => {
         loadEventosFuturos,
         loadLigasPorDeporte,
         reloadEventosEnVivo,
+        loadEventoPorNombre,
 
         // Acciones de limpieza
         clearLoadError,

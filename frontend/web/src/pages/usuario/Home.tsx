@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import AsideUser from "../../components/aside/AsideUser";
+import { ROUTES } from "../../routes/routes";
 
   const deportes = [
     { name: "Historial", icon: "📊", id: "Historial" },
@@ -20,7 +21,7 @@ const Home = () => {
 
   const onclickDeporte = (deporteId: string) => {
     console.log("Deporte seleccionado:", deporteId);
-    navigate(`/c/${deporteId}`);
+    navigate(`${ROUTES.USER_DEPORTE(deporteId)}`);
   };
 
   return (

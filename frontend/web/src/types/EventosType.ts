@@ -1,9 +1,4 @@
 /**
- * Tipos TypeScript para eventos deportivos
- * Basado en EventoDeportivoResponse del backend
- */
-
-/**
  * DTO básico para liga
  */
 export interface LigaBasica {
@@ -20,6 +15,7 @@ export interface LigaBasica {
 
 /**
  * DTO para respuesta de ligas por deporte
+ * @deprecated
  */
 export interface LigaPorDeporteResponse {
     id: number;
@@ -28,6 +24,79 @@ export interface LigaPorDeporteResponse {
     banderaPais: string;
     deporte: string;
     activa: boolean;
+}
+
+/**
+ * DTO para respuesta detallada de liga por deporte
+ */
+export interface LigaPorDeporteDetalleResponse {
+    id: number,
+    apiSportsId: number,
+    temporada: number,
+    nombre: string,
+    pais: PaisResponse,
+    paisNombre: string,
+    logoUrl: string,
+    activa: boolean,
+    fechaCreacion: string,
+    fechaActualizacion: string,
+}
+
+/**
+ * DTO para respuesta de eventos por liga
+ */
+export interface FixtureStatus {
+    long: string;
+    short: string;
+}
+
+export interface Evento {
+    fixture: Fixture;
+    bets: Bet[];
+}
+
+export interface Bet {
+    id: number;
+    name: string;
+    values: Value[];
+}
+
+export interface Value {
+    id:number
+    value: string;
+    odd: number;
+}
+
+export interface Fixture {
+    id: number;
+    date: string;
+    timestamp: number;
+    status: FixtureStatus;
+}
+
+export interface EventosPorLigaResponse {
+    fixture: Fixture;
+    nombreEvento: string;
+}
+
+export interface DateGroup {
+    date: string;
+    displayDate: string;
+    events: EventosPorLigaResponse[];
+    isExpanded: boolean;
+}
+
+/**
+ * DTO para respuesta de pais
+ */
+export interface PaisResponse {
+    id: number;
+    name: string;
+    countryCode: string;
+    flagUrl: string;
+    activo: boolean;
+    fechaCreacion: string;
+    fechaActualizacion: string;
 }
 
 /**
@@ -51,6 +120,7 @@ export interface EquipoBasico {
  * Respuesta de evento deportivo
  * Utilizado para el endpoint "Obtiene todos los eventos en vivo"
  * GET /24bet/eventos/en-vivo
+ * @deprecated
  */
 export interface EventoDeportivoResponse {
     id: number;
@@ -84,10 +154,10 @@ export interface EventoDeportivoResponse {
 
     strEquipoLocal?: string; // Opcional
     strEquipoVisitante?: string; // Opcional
-    
+
     // Información de la liga
     liga: LigaBasica;
-    
+
     // Información de los equipos - Opcional ya que pueden no venir del backend
     equipoLocal?: EquipoBasico;
     equipoVisitante?: EquipoBasico;
