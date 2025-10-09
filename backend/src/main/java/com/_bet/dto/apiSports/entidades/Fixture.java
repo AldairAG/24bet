@@ -2,9 +2,11 @@ package com._bet.dto.apiSports.entidades;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class Fixture {
     @JsonProperty("id")
     private int id;
@@ -20,6 +22,7 @@ public class Fixture {
     private Status status;
 
     @Data
+    @Builder
     public static class Status {
         @JsonProperty("long")
         private String longStatus;

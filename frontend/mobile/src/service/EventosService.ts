@@ -1,5 +1,6 @@
-import { apiBase } from '../../../mobile/src/service/apiBase';
-import { EventoDeportivoResponse, EventosEnVivoResponse, LigaPorDeporteResponse } from '../../../mobile/src/types/EventosType';
+import { apiBase, ApiResponse } from './apiBase';
+import { Evento, EventoDeportivoResponse, EventosEnVivoResponse, EventosPorLigaResponse, LigaPorDeporteDetalleResponse, LigaPorDeporteResponse } from '../types/EventosType';
+import { ApiResponseWrapper } from '../types/authTypes';
 
 /**
  * Servicio para la gestión de eventos deportivos
@@ -27,14 +28,32 @@ class EventosService {
     }
 
     /**
+     * Obtiene un evento por su nombre
+     * GET /24bet/eventos/nombre/{nombre}
+     * @param nombre Nombre del evento
+     */
+    async getEventoPorNombre(nombre: string): Promise<ApiResponseWrapper<Evento>> {
+        try {
+            const response = await apiBase.get<Evento>(
+                `${this.baseUrl}/evento-por-nombre/${nombre}`
+            );
+
+            return response;
+        } catch (error) {
+            console.error('Error fetching event by name:', error);
+            throw this.handleError(error);
+        }
+    }
+
+    /**
      * Obtiene ligas por deporte
      */
-    async getLigasPorDeporte(deporte: string): Promise<LigaPorDeporteResponse[]> {
+    async getLigasPorDeporte(deporte: string): Promise<ApiResponseWrapper<LigaPorDeporteDetalleResponse[]>> {
         try {
-            const response = await apiBase.get<LigaPorDeporteResponse[]>(
-                `${this.baseUrl}/ligas/${deporte}`
+            const response = await apiBase.get<LigaPorDeporteDetalleResponse[]>(
+                `${this.baseUrl}/ligas-por-deporte/${deporte}`
             );
-            return response.data;
+            return response;
         } catch (error) {
             console.error('Error fetching leagues by sport:', error);
             throw this.handleError(error);
@@ -46,10 +65,10 @@ class EventosService {
      * GET /24bet/eventos/futuros
      * @returns Promise con la lista de eventos futuros
      */
-    async getEventosFuturos(ligaNombre: string): Promise<EventosEnVivoResponse> {
+    async getEventosFuturosByLiga(ligaNombre: string): Promise<EventosPorLigaResponse[]> {
         try {
-            const response = await apiBase.get<EventosEnVivoResponse>(
-                `${this.baseUrl}/proximos/ligas/${ligaNombre}`
+            const response = await apiBase.get<EventosPorLigaResponse[]>(
+                `${this.baseUrl}/eventos-por-liga/${ligaNombre}`
             );
 
             return response.data;

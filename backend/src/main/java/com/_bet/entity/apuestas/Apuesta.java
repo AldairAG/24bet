@@ -43,9 +43,8 @@ public class Apuesta {
     /**
      * Tipo de apuesta
      */
-    @Enumerated(EnumType.STRING)
     @Column(name = "tipo_apuesta", nullable = false)
-    private TipoApuesta tipoApuesta;
+    private String tipoApuesta;
 
     /**
      * Resultado apostado
@@ -59,16 +58,16 @@ public class Apuesta {
      */
     @NotNull(message = "El monto es obligatorio")
     @DecimalMin(value = "0.01", message = "El monto debe ser mayor a 0")
-    @Column(name = "monto", nullable = false, precision = 15, scale = 2)
-    private BigDecimal monto;
+    @Column(name = "monto", nullable = false)
+    private Double monto;
 
     /**
      * Momio al momento de la apuesta
      */
     @NotNull(message = "El momio es obligatorio")
     @DecimalMin(value = "1.00", message = "El momio debe ser mayor o igual a 1")
-    @Column(name = "momio", nullable = false, precision = 8, scale = 3)
-    private BigDecimal momio;
+    @Column(name = "momio", nullable = false)
+    private Double momio;
 
     /**
      * Ganancia potencial

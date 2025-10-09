@@ -2,16 +2,15 @@ package com._bet.entity.eventoEntity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.ToString;
 import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -25,12 +24,12 @@ import java.util.List;
         @Index(name = "idx_momio_activo", columnList = "activo"),
         @Index(name = "idx_momio_fecha", columnList = "fechaCreacion")
 })
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @ToString(exclude = { "eventoDeportivo" })
 @EqualsAndHashCode(exclude = { "eventoDeportivo" })
+@Data
 public class Momio {
 
     @Id
@@ -50,26 +49,6 @@ public class Momio {
      */
     @OneToMany(mappedBy = "momio", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     private List<Valor> valores;
-
-    /**
-     * Límite máximo de apuesta para este momio
-     */
-    @Column(name = "limite_maximo", precision = 15, scale = 2)
-    private BigDecimal limiteMaximo;
-
-    /**
-     * Número de apuestas realizadas con este momio
-     */
-    @Builder.Default
-    @Column(name = "numero_apuestas")
-    private Integer numeroApuestas = 0;
-
-    /**
-     * Monto total apostado con este momio
-     */
-    @Builder.Default
-    @Column(name = "monto_total_apostado", precision = 15, scale = 2)
-    private BigDecimal montoTotalApostado = BigDecimal.ZERO;
 
     /**
      * Indica si el momio está activo para apuestas

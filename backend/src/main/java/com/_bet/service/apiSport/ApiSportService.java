@@ -209,8 +209,8 @@ public class ApiSportService {
     }
 
     public void sincronizarDatosMaestros() {
-        // getLeaguesBySeason();
-        // getTeamsByLeague();
+        //getLeaguesBySeason();
+         //getTeamsByLeague();
         // Obtener eventos de los próximos 7 días a partir de mañana
         LocalDateTime tomorrow = LocalDateTime.now().plusDays(1);
         for (int i = 0; i < 7; i++) {

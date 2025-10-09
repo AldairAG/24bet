@@ -10,14 +10,6 @@ import {
     clearLoadEventosFuturosError,
     clearEventosEnVivo,
     clearEventosData,
-    setFiltroDeporte,
-    setFiltroPais,
-    setTerminoBusqueda,
-    clearFiltros,
-    setOrdenamiento,
-    toggleDireccionOrdenamiento,
-    updateEventoEnVivo,
-    updateResultadoEvento,
     // Selectors
     selectEventosState,
     selectIsLoadingEventosEnVivo,
@@ -26,23 +18,20 @@ import {
     selectIsLoadingEventosFuturos,
     selectEventosFuturos,
     selectLoadEventosFuturosError,
-    selectFiltros,
-    selectOrdenamiento,
     selectUltimaActualizacion,
-    selectEventosEnVivoFiltrados,
-    selectEventosEnVivoPorLiga,
-    selectEventosEnVivoStats,
     selectEventosErrors,
     selectEventosLoading,
     selectLigasPorDeporte,
     selectIsLoadingLigasPorDeporte,
     selectLoadLigasPorDeporteError,
     // Types
-    // Helpers
-    getEventoNombreFormateado,
-    getEventoResultadoFormateado,
-    getEventoTiempoFormateado,
     getLigasPorDeporte,
+    selectEventosPorFecha,
+    setDateGroups,
+    selectIsLoadingEventoDetail,
+    selectEventoDetail,
+    selectLoadEventoDetailError,
+    getEventoDetail,
 } from '../store/slices/EventosSlice';
 import { eventosService } from '../service/EventosService';
 
@@ -61,19 +50,26 @@ export const useEventos = () => {
     const isLoadingEventosFuturos = useSelector(selectIsLoadingEventosFuturos);
     const eventosFuturos = useSelector(selectEventosFuturos);
     const loadEventosFuturosError = useSelector(selectLoadEventosFuturosError);
-    const filtros = useSelector(selectFiltros);
-    const ordenamiento = useSelector(selectOrdenamiento);
     const ultimaActualizacion = useSelector(selectUltimaActualizacion);
-    const eventosEnVivoFiltrados = useSelector(selectEventosEnVivoFiltrados);
-    const eventosEnVivoPorLiga = useSelector(selectEventosEnVivoPorLiga);
-    const eventosStats = useSelector(selectEventosEnVivoStats);
     const eventosErrors = useSelector(selectEventosErrors);
     const eventosLoading = useSelector(selectEventosLoading);
     const ligasPorDeporte = useSelector(selectLigasPorDeporte);
     const isLoadingLigasPorDeporte = useSelector(selectIsLoadingLigasPorDeporte);
     const loadLigasPorDeporteError = useSelector(selectLoadLigasPorDeporteError);
+    const eventosPorFecha = useSelector(selectEventosPorFecha);
+    const eventoDetail = useSelector(selectEventoDetail);
+    const isLoadingEventoDetail = useSelector(selectIsLoadingEventoDetail);
+    const loadEventoDetailError = useSelector(selectLoadEventoDetailError);
 
     // ========== ACCIONES PRINCIPALES ==========
+
+    /**
+     * Cargar evento por nombre desde el servidor
+     */
+    const loadEventoPorNombre = useCallback(async (nombre: string) => {
+        const result = await dispatch(getEventoDetail(nombre) as any);
+        return result;
+    }, [dispatch]);
 
     /**
      * Carga ligas por deporte desde el servidor
@@ -89,6 +85,10 @@ export const useEventos = () => {
     const loadEventosFuturos = useCallback(async (ligaNombre: string) => {
         const result = await dispatch(getEventosFuturos(ligaNombre) as any);
         return result;
+    }, [dispatch]);
+
+    const setEventosPorFecha = useCallback((dateGroups: any) => {
+        dispatch(setDateGroups(dateGroups));
     }, [dispatch]);
 
     // ========== OBJETO PARA MANEJO DE LIGAS POR DEPORTE ==========
@@ -137,7 +137,7 @@ export const useEventos = () => {
         buscarLigasPorNombre: (nombre: string) => {
             if (!Array.isArray(ligasPorDeporte)) return [];
             return ligasPorDeporte.filter(liga => 
-                liga.nombreLiga.toLowerCase().includes(nombre.toLowerCase())
+                liga.nombre.toLowerCase().includes(nombre.toLowerCase())
             );
         },
 
@@ -147,7 +147,7 @@ export const useEventos = () => {
         filtrarLigasPorPais: (pais: string) => {
             if (!Array.isArray(ligasPorDeporte)) return [];
             return ligasPorDeporte.filter(liga => 
-                liga.pais.toLowerCase().includes(pais.toLowerCase())
+                liga.pais.name.toLowerCase().includes(pais.toLowerCase())
             );
         },
 
@@ -156,7 +156,7 @@ export const useEventos = () => {
          */
         obtenerPaisesDisponibles: () => {
             if (!Array.isArray(ligasPorDeporte)) return [];
-            const paises = new Set(ligasPorDeporte.map(liga => liga.pais));
+            const paises = new Set(ligasPorDeporte.map(liga => liga.pais.name));
             return Array.from(paises).sort();
         },
 
@@ -172,7 +172,7 @@ export const useEventos = () => {
             };
 
             const activas = ligasPorDeporte.filter(liga => liga.activa).length;
-            const paises = new Set(ligasPorDeporte.map(liga => liga.pais)).size;
+            const paises = new Set(ligasPorDeporte.map(liga => liga.pais.name)).size;
 
             return {
                 total: ligasPorDeporte.length,
@@ -207,7 +207,7 @@ export const useEventos = () => {
             bandera: liga.banderaPais,
             deporte: liga.deporte,
             activa: liga.activa,
-            displayName: `${liga.nombreLiga} (${liga.pais})`
+            displayName: `${liga.nombreLiga} (${liga.pais.name})`
         }),
 
         /**
@@ -219,9 +219,9 @@ export const useEventos = () => {
             return [...ligasPorDeporte].sort((a, b) => {
                 switch (criterio) {
                     case 'nombre':
-                        return a.nombreLiga.localeCompare(b.nombreLiga);
+                        return a.nombre.localeCompare(b.nombre);
                     case 'pais':
-                        return a.pais.localeCompare(b.pais);
+                        return a.pais.name.localeCompare(b.pais.name);
                     case 'id':
                         return a.id - b.id;
                     default:
@@ -243,7 +243,7 @@ export const useEventos = () => {
          */
         obtenerTodosLosPaises: () => {
             if (!Array.isArray(ligasPorDeporte)) return [];
-            const paises = new Set(ligasPorDeporte.map(liga => liga.pais));
+            const paises = new Set(ligasPorDeporte.map(liga => liga.pais.name));
             return Array.from(paises).sort();
         },
 
@@ -253,7 +253,7 @@ export const useEventos = () => {
         filtrarLigasPorPais: (pais: string) => {
             if (!Array.isArray(ligasPorDeporte)) return [];
             return ligasPorDeporte.filter(liga => 
-                liga.pais.toLowerCase().includes(pais.toLowerCase())
+                liga.pais.name.toLowerCase().includes(pais.toLowerCase())
             );
         },
 
@@ -264,7 +264,7 @@ export const useEventos = () => {
             if (!Array.isArray(ligasPorDeporte)) return [];
             const paisesLower = paises.map(p => p.toLowerCase());
             return ligasPorDeporte.filter(liga => 
-                paisesLower.some(pais => liga.pais.toLowerCase().includes(pais))
+                paisesLower.some(pais => liga.pais.name.toLowerCase().includes(pais))
             );
         },
 
@@ -287,14 +287,14 @@ export const useEventos = () => {
             const estadisticas: { [pais: string]: { total: number; activas: number; inactivas: number } } = {};
             
             ligasPorDeporte.forEach(liga => {
-                if (!estadisticas[liga.pais]) {
-                    estadisticas[liga.pais] = { total: 0, activas: 0, inactivas: 0 };
+                if (!estadisticas[liga.pais.name]) {
+                    estadisticas[liga.pais.name] = { total: 0, activas: 0, inactivas: 0 };
                 }
-                estadisticas[liga.pais].total++;
+                estadisticas[liga.pais.name].total++;
                 if (liga.activa) {
-                    estadisticas[liga.pais].activas++;
+                    estadisticas[liga.pais.name].activas++;
                 } else {
-                    estadisticas[liga.pais].inactivas++;
+                    estadisticas[liga.pais.name].inactivas++;
                 }
             });
             
@@ -324,7 +324,7 @@ export const useEventos = () => {
             const paisesActivos = new Set(
                 ligasPorDeporte
                     .filter(liga => liga.activa)
-                    .map(liga => liga.pais)
+                    .map(liga => liga.pais.name)
             );
             return Array.from(paisesActivos).sort();
         },
@@ -335,7 +335,7 @@ export const useEventos = () => {
         paisTieneLigas: (pais: string) => {
             if (!Array.isArray(ligasPorDeporte)) return false;
             return ligasPorDeporte.some(liga => 
-                liga.pais.toLowerCase() === pais.toLowerCase()
+                liga.pais.name.toLowerCase() === pais.toLowerCase()
             );
         },
 
@@ -345,7 +345,7 @@ export const useEventos = () => {
         contarLigasPorPais: (pais: string) => {
             if (!Array.isArray(ligasPorDeporte)) return 0;
             return ligasPorDeporte.filter(liga => 
-                liga.pais.toLowerCase() === pais.toLowerCase()
+                liga.pais.name.toLowerCase() === pais.toLowerCase()
             ).length;
         },
 
@@ -355,7 +355,7 @@ export const useEventos = () => {
         obtenerLigasActivasPorPais: (pais: string) => {
             if (!Array.isArray(ligasPorDeporte)) return [];
             return ligasPorDeporte.filter(liga => 
-                liga.pais.toLowerCase() === pais.toLowerCase() && liga.activa
+                liga.pais.name.toLowerCase() === pais.toLowerCase() && liga.activa
             );
         },
 
@@ -366,7 +366,7 @@ export const useEventos = () => {
             if (!Array.isArray(ligasPorDeporte)) return {};
             
             return ligasPorDeporte.reduce((grupos, liga) => {
-                const pais = liga.pais;
+                const pais = liga.pais.name;
                 if (!grupos[pais]) {
                     grupos[pais] = [];
                 }
@@ -388,7 +388,7 @@ export const useEventos = () => {
                 ligasActivas: ligasActivas.length,
                 ligasInactivas: ligasPais.length - ligasActivas.length,
                 ligas: ligasPais,
-                banderaUrl: ligasPais.length > 0 ? ligasPais[0].banderaPais : '',
+                banderaUrl: ligasPais.length > 0 ? ligasPais[0].pais.flagUrl : '',
                 displayName: `${pais} (${ligasPais.length} ligas)`
             };
         },
@@ -474,16 +474,6 @@ export const useEventos = () => {
         },
 
         /**
-         * Filtra eventos futuros por deporte
-         */
-        filtrarPorDeporte: (deporteNombre: string) => {
-            if (!Array.isArray(eventosFuturos)) return [];
-            return eventosFuturos.filter(evento =>
-                evento.liga.deporte.toLowerCase() === deporteNombre.toLowerCase()
-            );
-        },
-
-        /**
          * Agrupa eventos futuros por fecha
          */
         agruparPorFecha: () => {
@@ -492,7 +482,7 @@ export const useEventos = () => {
             const eventosPorFecha: { [fecha: string]: typeof eventosFuturos } = {};
             
             eventosFuturos.forEach(evento => {
-                const fecha = new Date(evento.fechaEvento).toDateString();
+                const fecha = new Date(evento.fixture.date).toDateString();
                 if (!eventosPorFecha[fecha]) {
                     eventosPorFecha[fecha] = [];
                 }
@@ -524,41 +514,11 @@ export const useEventos = () => {
             if (!Array.isArray(eventosFuturos)) return [];
             
             return [...eventosFuturos].sort((a, b) => {
-                const fechaA = new Date(a.fechaEvento).getTime();
-                const fechaB = new Date(b.fechaEvento).getTime();
+                const fechaA = new Date(a.fixture.date).getTime();
+                const fechaB = new Date(b.fixture.date).getTime();
                 return direccion === 'asc' ? fechaA - fechaB : fechaB - fechaA;
             });
         },
-
-        /**
-         * Obtiene estadísticas de eventos futuros
-         */
-        obtenerEstadisticas: () => {
-            if (!Array.isArray(eventosFuturos)) {
-                return {
-                    total: 0,
-                    deportes: 0,
-                    ligas: 0,
-                    proximosSieteDias: 0
-                };
-            }
-
-            const deportesUnicos = new Set(eventosFuturos.map(e => e.liga.deporte)).size;
-            const ligasUnicas = new Set(eventosFuturos.map(e => e.liga.nombre)).size;
-            
-            const ahora = new Date();
-            const sieteDias = new Date(ahora.getTime() + 7 * 24 * 60 * 60 * 1000);
-            const proximosSieteDias = eventosFuturos.filter(evento =>
-                new Date(evento.fechaEvento) <= sieteDias
-            ).length;
-
-            return {
-                total: eventosFuturos.length,
-                deportes: deportesUnicos,
-                ligas: ligasUnicas,
-                proximosSieteDias
-            };
-        }
     };
 
     /**
@@ -597,92 +557,6 @@ export const useEventos = () => {
      */
     const clearAllEventosData = useCallback(() => {
         dispatch(clearEventosData());
-    }, [dispatch]);
-
-    // ========== ACCIONES DE FILTRADO ==========
-
-    /**
-     * Establece filtro por deporte
-     */
-    const setDeporteFilter = useCallback((deporte?: string) => {
-        dispatch(setFiltroDeporte(deporte));
-    }, [dispatch]);
-
-    /**
-     * Establece filtro por país
-     */
-    const setPaisFilter = useCallback((pais?: string) => {
-        dispatch(setFiltroPais(pais));
-    }, [dispatch]);
-
-    /**
-     * Establece término de búsqueda
-     */
-    const setSearchTerm = useCallback((termino?: string) => {
-        dispatch(setTerminoBusqueda(termino));
-    }, [dispatch]);
-
-    /**
-     * Limpia todos los filtros activos
-     */
-    const clearAllFilters = useCallback(() => {
-        dispatch(clearFiltros());
-    }, [dispatch]);
-
-    // ========== ACCIONES DE ORDENAMIENTO ==========
-
-    /**
-     * Establece el ordenamiento de eventos
-     */
-    const setSorting = useCallback((campo: 'fecha' | 'nombre', direccion: 'asc' | 'desc') => {
-        dispatch(setOrdenamiento({ campo, direccion }));
-    }, [dispatch]);
-
-    /**
-     * Cambia la dirección del ordenamiento actual
-     */
-    const toggleSortDirection = useCallback(() => {
-        dispatch(toggleDireccionOrdenamiento());
-    }, [dispatch]);
-
-    /**
-     * Ordena por fecha (ascendente/descendente)
-     */
-    const sortByFecha = useCallback((direccion: 'asc' | 'desc' = 'asc') => {
-        dispatch(setOrdenamiento({ campo: 'fecha', direccion }));
-    }, [dispatch]);
-
-    /**
-     * Ordena por nombre del evento (ascendente/descendente)
-     */
-    const sortByNombre = useCallback((direccion: 'asc' | 'desc' = 'asc') => {
-        dispatch(setOrdenamiento({ campo: 'nombre', direccion }));
-    }, [dispatch]);
-
-    // ========== ACTUALIZACIONES EN TIEMPO REAL ==========
-
-    /**
-     * Actualiza un evento específico
-     */
-    const updateEvento = useCallback((evento: EventoDeportivoResponse) => {
-        dispatch(updateEventoEnVivo(evento));
-    }, [dispatch]);
-
-    /**
-     * Actualiza el resultado y tiempo de un evento específico
-     */
-    const updateEventoResultado = useCallback((
-        eventoId: number,
-        resultadoLocal: number,
-        resultadoVisitante: number,
-        tiempoPartido?: string
-    ) => {
-        dispatch(updateResultadoEvento({
-            eventoId,
-            resultadoLocal,
-            resultadoVisitante,
-            tiempoPartido
-        }));
     }, [dispatch]);
 
     // ========== FUNCIONES DE UTILIDAD ==========
@@ -727,51 +601,7 @@ export const useEventos = () => {
         return eventosService.sortEventosByFecha(eventosEnVivo, direccion);
     }, [eventosEnVivo]);
 
-    // ========== FUNCIONES DE FORMATEO ==========
-
-    /**
-     * Formatea el nombre del evento para mostrar en UI
-     */
-    const formatEventoNombre = useCallback((evento: EventoDeportivoResponse): string => {
-        return getEventoNombreFormateado(evento);
-    }, []);
-
-    /**
-     * Formatea el resultado del evento para mostrar en UI
-     */
-    const formatEventoResultado = useCallback((evento: EventoDeportivoResponse): string => {
-        return getEventoResultadoFormateado(evento);
-    }, []);
-
-    /**
-     * Formatea el tiempo del partido para mostrar en UI
-     */
-    const formatEventoTiempo = useCallback((evento: EventoDeportivoResponse): string => {
-        return getEventoTiempoFormateado(evento);
-    }, []);
-
     // ========== FUNCIONES DE VALIDACIÓN ==========
-
-    /**
-     * Valida si un evento está realmente en vivo
-     */
-    const isEventoEnVivo = useCallback((evento: EventoDeportivoResponse): boolean => {
-        return eventosService.validateEventoEnVivo(evento);
-    }, []);
-
-    /**
-     * Verifica si hay eventos cargados
-     */
-    const hasEventos = useCallback((): boolean => {
-        return Array.isArray(eventosEnVivo) && eventosEnVivo.length > 0;
-    }, [eventosEnVivo]);
-
-    /**
-     * Verifica si hay filtros activos
-     */
-    const hasActiveFilters = useCallback((): boolean => {
-        return !!(filtros?.deporte || filtros?.pais || filtros?.terminoBusqueda);
-    }, [filtros]);
 
     /**
      * Verifica si hay errores activos
@@ -789,38 +619,6 @@ export const useEventos = () => {
         return errors;
     }, [loadEventosEnVivoError]);
 
-    // ========== FUNCIONES AUXILIARES ==========
-
-    /**
-     * Obtiene deportes únicos de los eventos cargados
-     */
-    const getDeportesDisponibles = useCallback((): string[] => {
-        if (!Array.isArray(eventosEnVivo)) return [];
-        const deportes = new Set(eventosEnVivo.map(evento => evento.liga.deporte));
-        return Array.from(deportes).sort();
-    }, [eventosEnVivo]);
-
-    /**
-     * Obtiene países únicos de los eventos cargados
-     */
-    const getPaisesDisponibles = useCallback((): string[] => {
-        if (!Array.isArray(eventosEnVivo)) return [];
-        const paises = new Set(
-            eventosEnVivo
-                .map(evento => evento.pais || evento.liga.pais)
-                .filter(pais => pais) // Filtrar valores undefined/null
-        );
-        return Array.from(paises).sort();
-    }, [eventosEnVivo]);
-
-    /**
-     * Obtiene ligas únicas de los eventos cargados
-     */
-    const getLigasDisponibles = useCallback((): string[] => {
-        if (!Array.isArray(eventosEnVivo)) return [];
-        const ligas = new Set(eventosEnVivo.map(evento => evento.liga.nombre));
-        return Array.from(ligas).sort();
-    }, [eventosEnVivo]);
 
     /**
      * Busca un evento específico por ID
@@ -864,29 +662,28 @@ export const useEventos = () => {
         // Objeto especializado para eventos futuros
         eventosFuturosManager,
 
+        // Eventos por fecha
+        eventosPorFecha,
+
         // Estados de carga
         isLoadingEventosEnVivo,
         isLoadingEventosFuturos,
         isLoading: eventosLoading.isLoading,
         loading: eventosLoading,
         isLoadingLigasPorDeporte,
+        isLoadingEventoDetail,
 
         // Datos principales
         eventosEnVivo,
         eventosFuturos,
-        eventosEnVivoFiltrados,
-        eventosEnVivoPorLiga,
-        eventosStats,
-
-        // Estados de configuración
-        filtros,
-        ordenamiento,
         ultimaActualizacion,
+        eventoDetail,
 
         // Errores
         loadEventosEnVivoError,
         loadEventosFuturosError,
         loadLigasPorDeporteError,
+        loadEventoDetailError,
         errors: eventosErrors,
         hasErrors: hasErrors(),
         allErrors: getAllErrors(),
@@ -896,6 +693,8 @@ export const useEventos = () => {
         loadEventosFuturos,
         loadLigasPorDeporte,
         reloadEventosEnVivo,
+        setEventosPorFecha,
+        loadEventoPorNombre,
 
         // Acciones de limpieza
         clearLoadError,
@@ -903,43 +702,12 @@ export const useEventos = () => {
         clearAllEventosData,
         resetEventosState,
 
-        // Acciones de filtrado
-        setDeporteFilter,
-        setPaisFilter,
-        setSearchTerm,
-        clearAllFilters,
-
-        // Acciones de ordenamiento
-        setSorting,
-        toggleSortDirection,
-        sortByFecha,
-        sortByNombre,
-
-        // Actualizaciones en tiempo real
-        updateEvento,
-        updateEventoResultado,
-
         // Funciones de utilidad
         searchEventos,
         filterByDeporte,
         filterByPais,
         getEventosActualmenteEnVivo,
         sortEventosByFecha,
-
-        // Funciones de formateo
-        formatEventoNombre,
-        formatEventoResultado,
-        formatEventoTiempo,
-
-        // Funciones de validación
-        isEventoEnVivo,
-        hasEventos: hasEventos(),
-        hasActiveFilters: hasActiveFilters(),
-
-        // Funciones auxiliares
-        getDeportesDisponibles,
-        getPaisesDisponibles,
-        getLigasDisponibles,
         findEventoById,
         autoLoadEventos,
     };

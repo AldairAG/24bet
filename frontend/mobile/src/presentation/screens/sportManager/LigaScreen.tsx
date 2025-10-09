@@ -13,11 +13,12 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useEventos } from '../../../hooks/useEventos';
-import { EventoDeportivoResponse } from '../../../types/EventosType';
+import { DateGroup, EventoDeportivoResponse, EventosPorLigaResponse } from '../../../types/EventosType';
 import { CompositeNavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { CasinoTabParamList, MainCasinoStackParamList } from '../../navigation/DeportesNavigation';
 import { MaterialTopTabNavigationProp } from '@react-navigation/material-top-tabs';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { set } from 'react-hook-form';
 
 
 // Habilitar LayoutAnimation en Android
@@ -33,77 +34,25 @@ interface LigaScreenProps {
     region?: string;
 }
 
-interface DateGroup {
-    date: string;
-    displayDate: string;
-    events: EventoDeportivoResponse[];
-    isExpanded: boolean;
-}
-
 type SportManagerNavigationProp = CompositeNavigationProp<
     MaterialTopTabNavigationProp<CasinoTabParamList>,
     NativeStackNavigationProp<MainCasinoStackParamList>
 >;
-
-
-type SportManagerRouteProp = RouteProp<MainCasinoStackParamList, 'SportManager'>;
 
 const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporteId, region }) => {
     const navigation = useNavigation<SportManagerNavigationProp>();
     const colorScheme = useColorScheme();
     const isDark = colorScheme === 'dark';
     const [isLoading, setIsLoading] = useState(true);
-    const [dateGroups, setDateGroups] = useState<DateGroup[]>([]);
     const [error, setError] = useState<string | null>(null);
 
     const {
         eventosFuturosManager,
         isLoadingEventosFuturos,
-        loadEventosFuturosError
+        loadEventosFuturosError,
+        eventosPorFecha,
+        setEventosPorFecha
     } = useEventos();
-
-    const formatDisplayDate = (dateString: string): string => {
-        const date = new Date(dateString);
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
-
-        const isToday = date.toDateString() === today.toDateString();
-        const isTomorrow = date.toDateString() === tomorrow.toDateString();
-
-        if (isToday) return 'Hoy';
-        if (isTomorrow) return 'Mañana';
-
-        return date.toLocaleDateString('es-ES', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-    };
-
-    const groupEventsByDate = (events: EventoDeportivoResponse[]): DateGroup[] => {
-        const grouped: { [key: string]: EventoDeportivoResponse[] } = {};
-
-        events.forEach(evento => {
-            const fechaEvento = new Date(evento.fechaEvento).toDateString();
-            if (!grouped[fechaEvento]) {
-                grouped[fechaEvento] = [];
-            }
-            grouped[fechaEvento].push(evento);
-        });
-
-        return Object.keys(grouped)
-            .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
-            .map(date => ({
-                date,
-                displayDate: formatDisplayDate(date),
-                events: grouped[date].sort((a, b) =>
-                    new Date(a.fechaEvento).getTime() - new Date(b.fechaEvento).getTime()
-                ),
-                isExpanded: false
-            }));
-    };
 
     useEffect(() => {
         const cargarEventos = async () => {
@@ -115,13 +64,6 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporteId, region }) => {
             try {
                 // Cargar eventos futuros
                 await eventosFuturosManager.cargarEventosFuturos(liga);
-
-                // Filtrar por liga
-                const eventosFiltrados = eventosFuturosManager.filtrarPorLiga(liga);
-
-                // Agrupar por fecha
-                const grupos = groupEventsByDate(eventosFiltrados);
-                setDateGroups(grupos);
             } catch (err) {
                 console.error('Error cargando eventos de liga:', err);
                 setError('Error al cargar los eventos de la liga');
@@ -135,11 +77,10 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporteId, region }) => {
 
     const toggleDateGroup = (index: number) => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setDateGroups(prevGroups =>
-            prevGroups.map((group, i) =>
-                i === index ? { ...group, isExpanded: !group.isExpanded } : group
-            )
+        const setExpanded = eventosPorFecha.map((group, i) =>
+            i === index ? { ...group, isExpanded: !group.isExpanded } : group
         );
+        setEventosPorFecha(setExpanded);
     };
 
     const formatEventTime = (fechaEvento: string): string => {
@@ -150,8 +91,8 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporteId, region }) => {
         });
     };
 
-    const getEventStatus = (evento: EventoDeportivoResponse): { text: string; color: string } => {
-        const estado = evento.estado?.toLowerCase() || '';
+    const getEventStatus = (evento: EventosPorLigaResponse): { text: string; color: string } => {
+        const estado = evento.fixture.status.short?.toLowerCase() || '';
 
         if (estado.includes('vivo') || estado.includes('live')) {
             return { text: 'EN VIVO', color: '#ff4444' };
@@ -161,33 +102,27 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporteId, region }) => {
             return { text: 'FINALIZADO', color: '#888' };
         }
 
-        return { text: 'PROGRAMADO', color: '#4CAF50' };
+        return { text: 'NS', color: '#4CAF50' };
     };
 
     const onClickEvento = (eventoName: string) => {
         navigation.navigate('SportManager', { deporte: deporteId || '', region: region || '', liga: liga || '', evento: eventoName });
     };
 
-    const renderEvent = (evento: EventoDeportivoResponse) => {
+    const renderEvent = (evento: EventosPorLigaResponse) => {
         const status = getEventStatus(evento);
-        const equipoLocal = evento.strEquipoLocal || 'Equipo Local';
-        const equipoVisitante = evento.strEquipoVisitante || 'Equipo Visitante';
 
         return (
-            <TouchableOpacity key={evento.id} style={[styles.eventCard, { backgroundColor: isDark ? '#2a2a2a' : 'white' }]} onPress={() => onClickEvento(evento.nombre)}>
+            <TouchableOpacity key={evento.fixture.id} style={[styles.eventCard, { backgroundColor: isDark ? '#2a2a2a' : 'white' }]} onPress={() => onClickEvento(evento.nombreEvento)}>
                 <View style={styles.eventHeader}>
                     <View style={styles.teamsContainer}>
                         <Text style={[styles.homeTeam, { color: isDark ? 'white' : '#333' }]}>
-                            {equipoLocal}
-                        </Text>
-                        <Text style={[styles.vs, { color: isDark ? '#bbb' : '#666' }]}>vs</Text>
-                        <Text style={[styles.awayTeam, { color: isDark ? 'white' : '#333' }]}>
-                            {equipoVisitante}
+                            {evento.nombreEvento}
                         </Text>
                     </View>
                     <View style={styles.eventMeta}>
                         <Text style={[styles.eventTime, { color: isDark ? '#bbb' : '#666' }]}>
-                            {formatEventTime(evento.fechaEvento)}
+                            {formatEventTime(evento.fixture.date)}
                         </Text>
                         <View style={[styles.statusBadge, { backgroundColor: status.color }]}>
                             <Text style={styles.statusText}>{status.text}</Text>
@@ -195,19 +130,6 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporteId, region }) => {
                     </View>
                 </View>
 
-                {evento.ubicacion && (
-                    <Text style={[styles.venue, { color: isDark ? '#888' : '#999' }]}>
-                        📍 {evento.ubicacion}
-                    </Text>
-                )}
-
-                {(evento.resultadoLocal !== null && evento.resultadoVisitante !== null) && (
-                    <View style={styles.scoreContainer}>
-                        <Text style={[styles.score, { color: isDark ? '#fff' : '#d32f2f' }]}>
-                            {evento.resultadoLocal} - {evento.resultadoVisitante}
-                        </Text>
-                    </View>
-                )}
             </TouchableOpacity>
         );
     };
@@ -288,13 +210,13 @@ const LigaScreen: React.FC<LigaScreenProps> = ({ liga, deporteId, region }) => {
             </View>
 
             <ScrollView style={styles.content}>
-                {dateGroups.length > 0 ? (
+                {eventosPorFecha.length > 0 ? (
                     <>
                         <Text style={[styles.sectionTitle, { color: isDark ? '#fff' : '#333' }]}>
                             Próximos Eventos
                         </Text>
                         <View style={styles.dateGroupsList}>
-                            {dateGroups.map(renderDateGroup)}
+                            {eventosPorFecha.map(renderDateGroup)}
                         </View>
                     </>
                 ) : (

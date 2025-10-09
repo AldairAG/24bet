@@ -3,6 +3,8 @@ import authReducer from './slices/authSlice';
 import walletReducer from './slices/walletSlice';
 import exampleReducer from './slices/exampleSlice';
 import eventosReducer from './slices/EventosSlice';
+import apuestaSlice from './slices/apuestaSlice';
+import apiSportReducer from './slices/apiSportSlice';
 
 export const store = configureStore({
     reducer: {
@@ -10,6 +12,8 @@ export const store = configureStore({
         wallet: walletReducer,
         example: exampleReducer,
         eventos: eventosReducer,
+        apuesta: apuestaSlice,
+        apiSport: apiSportReducer,
     },
 });
 
