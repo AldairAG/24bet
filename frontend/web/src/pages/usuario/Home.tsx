@@ -1,20 +1,27 @@
+import { useNavigate } from "react-router-dom";
 import AsideUser from "../../components/aside/AsideUser";
 
-const Home = () => {
   const deportes = [
-    { name: "Historial", icon: "📊" },
-    { name: "Streaming", icon: "📺" },
-    { name: "Fútbol", icon: "⚽" },
-    { name: "Fútbol americano", icon: "🏈" },
-    { name: "Béisbol", icon: "⚾" },
-    { name: "Baloncesto", icon: "🏀" },
-    { name: "Tenis", icon: "🎾" },
-    { name: "Boxeo", icon: "🥊" },
-    { name: "MMA", icon: "🥋" },
-    { name: "Hockey", icon: "🏒" },
-    { name: "E-sports +", icon: "🎮" },
-    { name: "Carreras de Autos", icon: "🏎️" },
+    { name: "Historial", icon: "📊", id: "Historial" },
+    { name: "Fútbol", icon: "⚽" ,id:"Soccer"},
+    { name: "Fútbol americano", icon: "🏈" ,id:"American Football"},
+    { name: "Béisbol", icon: "⚾" ,id:"Baseball"},
+    { name: "Baloncesto", icon: "🏀" ,id:"Basketball"},
+    { name: "Tenis", icon: "🎾" ,id:"Tennis"},
+    { name: "Boxeo", icon: "🥊" ,id:"Boxing"},
+    { name: "MMA", icon: "🥋" ,id:"MMA"},
+    { name: "Hockey", icon: "🏒" ,id:"Hockey"},
+    { name: "E-sports +", icon: "🎮" ,id:"Esports"},
+    { name: "Carreras de Autos", icon: "🏎️" ,id:"Auto Racing"},
   ];
+
+const Home = () => {
+  const navigate = useNavigate();
+
+  const onclickDeporte = (deporteId: string) => {
+    console.log("Deporte seleccionado:", deporteId);
+    navigate(`/c/${deporteId}`);
+  };
 
   return (
     <div className="flex h-screen bg-gray-100 overflow-hidden">
@@ -73,7 +80,8 @@ const Home = () => {
           <div className="bg-white rounded-lg shadow-md p-3">
             <div className="flex space-x-4 overflow-x-auto">
               {deportes.map((deporte, index) => (
-                <div key={index} className="flex flex-col items-center min-w-max cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors">
+                <div key={index} className="flex flex-col items-center min-w-max cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors" 
+                onClick={() => onclickDeporte(deporte.id)}>
                   <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mb-1">
                     <span className="text-lg">{deporte.icon}</span>
                   </div>

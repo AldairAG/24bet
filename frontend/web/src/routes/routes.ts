@@ -2,9 +2,9 @@ export const ROUTES = {
   LANDING_PAGE: '/',
   //////////////// USER///////////////////
   USER_CONTAINER: '/c',
-  USER_DEPORTE: (deportes: string) => `/${deportes}`,
-  USER_LIGA: (liga: string) => `/${liga}`,
-  USER_EVENTO: (evento: string) => `/${evento}`,
+  USER_DEPORTE: (deportes: string) => `${deportes}`,
+  USER_LIGA: (liga: string) => `${liga}`,
+  USER_EVENTO: (evento: string) => `${evento}`,
   USER_DEPOSITO: `deposito`,
   USER_EVENTOS_EN_VIVO: `en-vivo`,
   USER_PERFIL: `perfil`,

@@ -1,5 +1,6 @@
-import { apiBase } from '../../../mobile/src/service/apiBase';
-import { EventoDeportivoResponse, EventosEnVivoResponse, LigaPorDeporteResponse } from '../../../mobile/src/types/EventosType';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { apiBase } from '../../src/service/apiBase';
+import type { EventoDeportivoResponse, EventosEnVivoResponse, LigaPorDeporteResponse } from '../../src/types/EventosType';
 
 /**
  * Servicio para la gestión de eventos deportivos
@@ -32,7 +33,7 @@ class EventosService {
     async getLigasPorDeporte(deporte: string): Promise<LigaPorDeporteResponse[]> {
         try {
             const response = await apiBase.get<LigaPorDeporteResponse[]>(
-                `${this.baseUrl}/ligas/${deporte}`
+                `${this.baseUrl}/ligas-por-deporte/${deporte}`
             );
             return response.data;
         } catch (error) {

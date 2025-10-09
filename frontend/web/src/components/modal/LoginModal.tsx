@@ -31,7 +31,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
       if (user.rol === 'ADMIN') {
         navigate(`${ROUTES.ADMIN_CONTAINER}/${ROUTES.ADMIN_DASHBOARD}`);
       } else {
-        navigate(`${ROUTES.USER_CONTAINER}/${ROUTES.HOME}`);
+        navigate(`${ROUTES.USER_CONTAINER}/${ROUTES.USER_HOME}`);
       }
     }
   }, [shouldRedirect, isAuthenticated, user, navigate]);

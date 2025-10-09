@@ -32,9 +32,9 @@ function App() {
 
             <Route path={ROUTES.USER_CONTAINER} element={<UserContainer />} >
 
-              <Route path=":deporte" element={<Deporte />}>
-                <Route path=":liga" element={<LigaPage />}>
-                  <Route path=":evento" element={<EventoPage />} />
+              <Route path={ROUTES.USER_DEPORTE(":deporte")} element={<Deporte />}>
+                <Route path={ROUTES.USER_LIGA(":liga")} element={<LigaPage />}>
+                  <Route path={ROUTES.USER_EVENTO(":evento")} element={<EventoPage />} />
                 </Route>
               </Route>
              

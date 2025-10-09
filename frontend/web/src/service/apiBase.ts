@@ -3,53 +3,78 @@ import { store } from '../store'; // Importar tu store de Redux
 import { logout } from '../store/slices/authSlice'; // Importar action de logout
 
 // Define __DEV__ for development mode checking
-const __DEV__ = process.env.NODE_ENV === 'development';
+const __DEV__ = import.meta.env.DEV;
 
-// Storage wrapper para funcionar tanto en React Native como en Web
-class StorageWrapper {
-  private storage: any;
-
+// Storage wrapper optimizado para Web
+class WebStorageWrapper {
   constructor() {
-    try {
-      // Intentar usar AsyncStorage para React Native
-      this.storage = require('@react-native-async-storage/async-storage').default;
-    } catch {
-      // Fallback para Web usando localStorage
-      this.storage = {
-        getItem: async (key: string) => {
-          if (typeof window !== 'undefined') {
-            return localStorage.getItem(key);
-          }
-          return null;
-        },
-        setItem: async (key: string, value: string) => {
-          if (typeof window !== 'undefined') {
-            localStorage.setItem(key, value);
-          }
-        },
-        removeItem: async (key: string) => {
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem(key);
-          }
-        },
-      };
+    // Verificar si localStorage está disponible
+    if (typeof window === 'undefined' || !window.localStorage) {
+      console.warn('localStorage no está disponible, usando memoria temporal');
     }
   }
 
   async getItem(key: string): Promise<string | null> {
-    return await this.storage.getItem(key);
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        return localStorage.getItem(key);
+      }
+      return null;
+    } catch (error) {
+      console.error('Error al obtener item del localStorage:', error);
+      return null;
+    }
   }
 
   async setItem(key: string, value: string): Promise<void> {
-    return await this.storage.setItem(key, value);
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem(key, value);
+      }
+    } catch (error) {
+      console.error('Error al guardar item en localStorage:', error);
+      throw error;
+    }
   }
 
   async removeItem(key: string): Promise<void> {
-    return await this.storage.removeItem(key);
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.removeItem(key);
+      }
+    } catch (error) {
+      console.error('Error al eliminar item del localStorage:', error);
+      throw error;
+    }
+  }
+
+  // Método adicional para limpiar todo el storage
+  async clear(): Promise<void> {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.clear();
+      }
+    } catch (error) {
+      console.error('Error al limpiar localStorage:', error);
+      throw error;
+    }
+  }
+
+  // Método para obtener todas las claves
+  getAllKeys(): string[] {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        return Object.keys(localStorage);
+      }
+      return [];
+    } catch (error) {
+      console.error('Error al obtener claves del localStorage:', error);
+      return [];
+    }
   }
 }
 
-const storage = new StorageWrapper();
+const storage = new WebStorageWrapper();
 
 // Tipos para las respuestas de la API
 export interface ApiResponse<T> {
@@ -57,6 +82,24 @@ export interface ApiResponse<T> {
   message: string;
   data: T;
 }
+
+// Tipos específicos para web
+export interface UploadProgressEvent {
+  loaded: number;
+  total?: number;
+  progress?: number;
+  lengthComputable?: boolean;
+}
+
+export interface ApiError {
+  message: string;
+  status?: number;
+  code?: string;
+  details?: Record<string, unknown>;
+}
+
+// Tipo para datos de request
+export type RequestData = Record<string, unknown> | FormData | string | null | unknown;
 
 // Configuración base de la API
 const API_BASE_URL = 'http://localhost:8080/24bet';
@@ -207,7 +250,7 @@ class ApiBase {
     }
   }
 
-  async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+  async post<T>(url: string, data?: RequestData, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
     try {
       const response = await this.axiosInstance.post<ApiResponse<T>>(url, data, config);
       return response.data;
@@ -216,7 +259,7 @@ class ApiBase {
     }
   }
 
-  async put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+  async put<T>(url: string, data?: RequestData, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
     try {
       const response = await this.axiosInstance.put<ApiResponse<T>>(url, data, config);
       return response.data;
@@ -225,7 +268,7 @@ class ApiBase {
     }
   }
 
-  async patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+  async patch<T>(url: string, data?: RequestData, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
     try {
       const response = await this.axiosInstance.patch<ApiResponse<T>>(url, data, config);
       return response.data;
@@ -247,14 +290,22 @@ class ApiBase {
   async uploadFile<T>(
     url: string, 
     file: FormData, 
-    onUploadProgress?: (progressEvent: any) => void
+    onUploadProgress?: (progressEvent: UploadProgressEvent) => void
   ): Promise<ApiResponse<T>> {
     try {
       const response = await this.axiosInstance.post<ApiResponse<T>>(url, file, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        onUploadProgress,
+        onUploadProgress: onUploadProgress ? (progressEvent) => {
+          const customEvent: UploadProgressEvent = {
+            loaded: progressEvent.loaded,
+            total: progressEvent.total,
+            progress: progressEvent.total ? (progressEvent.loaded / progressEvent.total) * 100 : 0,
+            lengthComputable: progressEvent.lengthComputable
+          };
+          onUploadProgress(customEvent);
+        } : undefined,
       });
       return response.data;
     } catch (error) {
@@ -314,19 +365,23 @@ class ApiBase {
   }
 
   // Manejo de errores centralizado
-  private handleError(error: any): Error {
+  private handleError(error: unknown): Error {
     let errorMessage = 'Error desconocido';
     
-    if (error.response?.data) {
-      // Error desde el servidor
-      const serverError = error.response.data;
-      if (serverError.message) {
-        errorMessage = serverError.message;
-      } else if (typeof serverError === 'string') {
-        errorMessage = serverError;
+    if (axios.isAxiosError(error)) {
+      if (error.response?.data) {
+        // Error desde el servidor
+        const serverError = error.response.data;
+        if (serverError.message) {
+          errorMessage = serverError.message;
+        } else if (typeof serverError === 'string') {
+          errorMessage = serverError;
+        }
+      } else if (error.message) {
+        // Error de Axios o red
+        errorMessage = error.message;
       }
-    } else if (error.message) {
-      // Error de Axios o red
+    } else if (error instanceof Error) {
       errorMessage = error.message;
     }
 
@@ -344,11 +399,11 @@ export { ApiBase, API_BASE_URL };
 // Helper functions para facilitar el uso
 export const api = {
   get: <T>(url: string, config?: AxiosRequestConfig) => apiBase.get<T>(url, config),
-  post: <T>(url: string, data?: any, config?: AxiosRequestConfig) => apiBase.post<T>(url, data, config),
-  put: <T>(url: string, data?: any, config?: AxiosRequestConfig) => apiBase.put<T>(url, data, config),
-  patch: <T>(url: string, data?: any, config?: AxiosRequestConfig) => apiBase.patch<T>(url, data, config),
+  post: <T>(url: string, data?: RequestData, config?: AxiosRequestConfig) => apiBase.post<T>(url, data, config),
+  put: <T>(url: string, data?: RequestData, config?: AxiosRequestConfig) => apiBase.put<T>(url, data, config),
+  patch: <T>(url: string, data?: RequestData, config?: AxiosRequestConfig) => apiBase.patch<T>(url, data, config),
   delete: <T>(url: string, config?: AxiosRequestConfig) => apiBase.delete<T>(url, config),
-  uploadFile: <T>(url: string, file: FormData, onUploadProgress?: (progressEvent: any) => void) => 
+  uploadFile: <T>(url: string, file: FormData, onUploadProgress?: (progressEvent: UploadProgressEvent) => void) => 
     apiBase.uploadFile<T>(url, file, onUploadProgress),
   downloadFile: (url: string, filename?: string) => apiBase.downloadFile(url, filename),
 };
