@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import AsideUser from "../../components/aside/AsideUser";
 import { ROUTES } from "../../routes/routes";
 
   const deportes = [
@@ -26,9 +25,6 @@ const Home = () => {
 
   return (
     <div className="flex h-screen bg-gray-100 overflow-hidden">
-      {/* Aside izquierdo - Ligas */}
-      <AsideUser />
-
       {/* Contenido principal */}
       <main className="flex-1 overflow-y-auto">
         {/* Banners promocionales */}

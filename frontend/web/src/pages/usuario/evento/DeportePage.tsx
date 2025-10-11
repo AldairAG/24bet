@@ -109,15 +109,15 @@ const DeportePage = () => {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      
-      <Breadcrumb />
+          
+          <Breadcrumb />
 
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 capitalize">{deporte}</h1>
-        <p className="text-gray-600 mt-1">
-          {paisesOrdenados.length} países • {ligasPorDeporte?.length || 0} ligas disponibles
-        </p>
-      </div>
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900 capitalize">{deporte}</h1>
+            <p className="text-gray-600 mt-1">
+              {paisesOrdenados.length} países • {ligasPorDeporte?.length || 0} ligas disponibles
+            </p>
+          </div>
 
       {paisesOrdenados.length > 0 ? (
         <div className="space-y-2">

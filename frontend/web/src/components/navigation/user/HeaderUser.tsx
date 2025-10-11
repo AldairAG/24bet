@@ -1,8 +1,17 @@
+import { useNavigate } from "react-router-dom";
+import { ROUTES } from "../../../routes/routes";
+
 interface HeaderUserProps {
     onMenuToggle: () => void;
 }
 
 const HeaderUser: React.FC<HeaderUserProps> = ({ onMenuToggle }) => {
+    const navigate = useNavigate();
+
+    const handleLogoClick = () => {
+        navigate(ROUTES.USER_HOME);
+    };
+
     return (
         <header className="bg-red-600 shadow-lg">
             <div className="container mx-auto px-4 py-4">
@@ -30,11 +39,26 @@ const HeaderUser: React.FC<HeaderUserProps> = ({ onMenuToggle }) => {
 
                     {/* Logo centrado */}
                     <div className="flex-1 flex justify-center">
-                        <img 
-                            src="/src/assets/24bet.png" 
-                            alt="24bet Logo" 
-                            className="h-16 w-auto"
-                        />
+                        <button 
+                            onClick={handleLogoClick}
+                            className="bg-transparent focus:outline-none transition-all duration-300 hover:scale-105 p-2"
+                            aria-label="Ir a la página de inicio"
+                        >
+                            <img 
+                                src="/src/assets/24bet.png" 
+                                alt="24bet Logo" 
+                                className="h-16 w-auto transition-all duration-300 hover:brightness-0 hover:saturate-100 hover:contrast-200"
+                                style={{
+                                    filter: "none"
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.filter = "brightness(0) saturate(100%) invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(97%)";
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.filter = "none";
+                                }}
+                            />
+                        </button>
                     </div>
 
                     {/* Espacio para mantener el logo centrado */}

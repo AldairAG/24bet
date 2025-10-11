@@ -216,7 +216,7 @@ public class ApiSportService {
         for (int i = 0; i < 7; i++) {
             LocalDateTime targetDate = tomorrow.plusDays(i);
             Date date = Date.from(targetDate.atZone(ZoneId.systemDefault()).toInstant());
-            //obtenerEventosByDate(date);
+            obtenerEventosByDate(date);
         }
     }
 
