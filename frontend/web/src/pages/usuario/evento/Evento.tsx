@@ -4,13 +4,14 @@ import { useEffect, useState } from "react";
 import type { Bet, Value } from "../../../types/EventosType";
 import Breadcrumb from "../../../components/navigation/Breadcrumb";
 import EventoInfoWidget from "../../../components/EventoInfoWidget";
+import { useApuesta } from "../../../hooks/useApuesta";
+import { useToast } from "../../../components/Toast";
 
 const EventoPage = () => {
   const { deporte, liga, evento } = useParams();
   
-  const [selectedBets, setSelectedBets] = useState<{[key: string]: Value}>({});
-  const [betAmount, setBetAmount] = useState<string>('');
   const [expandedBets, setExpandedBets] = useState<Set<number>>(new Set());
+  const { showToast, ToastComponent } = useToast();
 
   const {
     loadEventoPorNombre,
@@ -19,11 +20,25 @@ const EventoPage = () => {
     eventoDetail
   } = useEventos();
 
+  const { 
+    agregarApuestaAlBoleto, 
+    existeApuestaEnBoleto,
+    eliminarApuestaDelBoleto,
+    puedeAgregarApuesta
+  } = useApuesta();
+
   useEffect(() => {
     if (deporte && liga && evento) {
       loadEventoPorNombre(evento);
     }
   }, [deporte, liga, evento, loadEventoPorNombre]);
+
+  // Abrir automáticamente el primer mercado cuando se cargue el evento
+  useEffect(() => {
+    if (eventoDetail?.bets && eventoDetail.bets.length > 0 && expandedBets.size === 0) {
+      setExpandedBets(new Set([eventoDetail.bets[0].id]));
+    }
+  }, [eventoDetail, expandedBets.size]);
 
   const toggleBetExpansion = (betId: number) => {
     setExpandedBets(prev => {
@@ -38,53 +53,41 @@ const EventoPage = () => {
   };
 
   const handleBetSelection = (bet: Bet, value: Value) => {
-    const betKey = `bet_${bet.id}`;
-    setSelectedBets(prev => {
-      const newSelection = { ...prev };
+    if (!eventoDetail) return;
+    
+    const apuestaId = value.id;
+    const eventoId = eventoDetail.fixture.id;
+    
+    // Verificar si la apuesta ya existe en el boleto
+    if (existeApuestaEnBoleto(apuestaId, eventoId)) {
+      // Si existe, la eliminamos
+      eliminarApuestaDelBoleto(apuestaId, eventoId);
+    } else {
+      // Crear la nueva apuesta
+      const nuevaApuesta = {
+        id: apuestaId,
+        eventoId: eventoId,
+        monto: 10, // Monto por defecto
+        odd: value.odd,
+        tipoApuesta: bet.name,
+        eventoName: `Evento ${eventoDetail.fixture.id}`,
+        descripcion: value.value
+      };
       
-      // Si ya está seleccionada la misma opción, la deseleccionamos
-      if (newSelection[betKey]?.id === value.id) {
-        delete newSelection[betKey];
-      } else {
-        // Seleccionamos la nueva opción (reemplaza cualquier selección previa para esta apuesta)
-        newSelection[betKey] = value;
+      // Validar antes de agregar
+      const validacion = puedeAgregarApuesta(nuevaApuesta);
+      if (!validacion.valido) {
+        // Mostrar mensaje de error con toast
+        showToast(validacion.mensaje, 'error');
+        return;
       }
       
-      return newSelection;
-    });
-  };
-
-  const calculatePotentialWinnings = () => {
-    if (!betAmount || Object.keys(selectedBets).length === 0) return 0;
-    
-    const amount = parseFloat(betAmount);
-    if (isNaN(amount)) return 0;
-
-    // Para apuestas múltiples, multiplicamos las cuotas
-    const totalOdds = Object.values(selectedBets).reduce((acc, bet) => acc * bet.odd, 1);
-    return amount * totalOdds;
-  };
-
-  const getTotalOdds = () => {
-    if (Object.keys(selectedBets).length === 0) return 0;
-    return Object.values(selectedBets).reduce((acc, bet) => acc * bet.odd, 1);
-  };
-
-  const handlePlaceBet = () => {
-    if (Object.keys(selectedBets).length === 0 || !betAmount) {
-      alert('Por favor selecciona al menos una apuesta e ingresa un monto');
-      return;
+      agregarApuestaAlBoleto(nuevaApuesta);
+      showToast('Apuesta agregada al boleto', 'success');
     }
-    
-    // Aquí implementarías la lógica para enviar la apuesta
-    console.log('Apuesta realizada:', {
-      selectedBets,
-      amount: parseFloat(betAmount),
-      potentialWinnings: calculatePotentialWinnings()
-    });
-    
-    alert(`Apuesta realizada: $${betAmount} con ganancia potencial de $${calculatePotentialWinnings().toFixed(2)}`);
   };
+
+
 
   if (isLoadingEventoDetail) {
     return (
@@ -145,36 +148,52 @@ const EventoPage = () => {
           {/* SECCIÓN 2: Apuestas */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4 flex items-center">
-                <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm mr-3">
-                  Apuestas
+              <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
+                <span className="bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-2 rounded-full text-sm mr-3 shadow-lg">
+                  🎯 Apuestas
                 </span>
-                Mercados
+                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-bold">
+                  Mercados Disponibles
+                </span>
               </h2>
               
               {/* Lista de apuestas disponibles */}
-              <div className="space-y-2">
+              <div className="space-y-6 p-4 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl">
                 {eventoDetail.bets && eventoDetail.bets.length > 0 ? (
                   eventoDetail.bets.map((bet) => (
-                    <div key={bet.id} className="bg-gray-50 rounded-lg">
+                    <div key={bet.id} className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
                       {/* Header del acordeón */}
                       <button
                         onClick={() => toggleBetExpansion(bet.id)}
-                        className="w-full px-4 py-3 text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset hover:bg-gray-100 transition-colors duration-200 rounded-lg"
+                        className={`w-full px-6 py-4 text-left focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
+                          expandedBets.has(bet.id) 
+                            ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white' 
+                            : 'bg-gradient-to-r from-gray-50 to-gray-100 hover:from-blue-50 hover:to-blue-100 text-gray-800 hover:text-blue-800'
+                        }`}
                       >
                         <div className="flex items-center justify-between">
-                          <h3 className="font-semibold text-gray-900">{bet.name}</h3>
-                          <div className="flex items-center space-x-2">
-                            <span className="text-xs text-gray-500">{bet.values.length} opciones</span>
+                          <h3 className={`font-bold text-lg ${
+                            expandedBets.has(bet.id) ? 'text-white' : 'text-gray-900'
+                          }`}>
+                            {bet.name}
+                          </h3>
+                          <div className="flex items-center space-x-3">
+                            <span className={`text-sm font-medium px-2 py-1 rounded-full ${
+                              expandedBets.has(bet.id) 
+                                ? 'bg-blue-500 text-white' 
+                                : 'bg-blue-100 text-blue-700'
+                            }`}>
+                              {bet.values.length} opciones
+                            </span>
                             <svg
-                              className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${
-                                expandedBets.has(bet.id) ? 'transform rotate-180' : ''
+                              className={`w-6 h-6 transition-transform duration-300 ${
+                                expandedBets.has(bet.id) ? 'transform rotate-180 text-white' : 'text-gray-500'
                               }`}
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
                             >
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7 7" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                             </svg>
                           </div>
                         </div>
@@ -182,30 +201,38 @@ const EventoPage = () => {
 
                       {/* Contenido del acordeón */}
                       {expandedBets.has(bet.id) && (
-                        <div className="px-4 pb-3">
-                          <div className="grid gap-2 pt-2">
+                        <div className="px-6 pb-6 bg-gradient-to-b from-gray-50 to-white animate-fadeIn">
+                          <div className="grid gap-3 pt-3">
                             {bet.values.map((value) => {
-                              const betKey = `bet_${bet.id}`;
-                              const isSelected = selectedBets[betKey]?.id === value.id;
+                              const isSelected = eventoDetail && existeApuestaEnBoleto(value.id, eventoDetail.fixture.id);
                               
                               return (
                                 <button
                                   key={value.id}
                                   onClick={() => handleBetSelection(bet, value)}
-                                  className={`w-full p-3 text-left rounded-lg transition-all duration-200 ${
+                                  className={`w-full p-4 text-left rounded-xl transition-all duration-300 transform hover:scale-[1.02] ${
                                     isSelected
-                                      ? 'bg-blue-500 text-white shadow-md'
-                                      : 'bg-white hover:bg-gray-50 shadow-sm'
+                                      ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg border-2 border-red-700 ring-2 ring-red-200'
+                                      : 'bg-gradient-to-r from-white to-blue-50 hover:from-blue-100 hover:to-blue-200 shadow-md hover:shadow-lg border-2 border-blue-300 hover:border-blue-500'
                                   }`}
                                 >
                                   <div className="flex justify-between items-center">
-                                    <span className="font-medium">{value.value}</span>
-                                    <span className={`font-bold ${
-                                      isSelected ? 'text-white' : 'text-green-600'
+                                    <span className={`font-semibold text-sm ${isSelected ? 'text-white' : 'text-gray-800'}`}>
+                                      {value.value}
+                                    </span>
+                                    <span className={`font-bold text-lg px-3 py-2 rounded-lg shadow-md ${
+                                      isSelected 
+                                        ? 'text-white bg-red-700 ring-1 ring-white' 
+                                        : 'text-white bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800'
                                     }`}>
                                       {value.odd.toFixed(2)}
                                     </span>
                                   </div>
+                                  {isSelected && (
+                                    <div className="text-xs mt-1 opacity-90">
+                                      ✓ Agregado al boleto
+                                    </div>
+                                  )}
                                 </button>
                               );
                             })}
@@ -223,78 +250,11 @@ const EventoPage = () => {
               </div>
             </div>
 
-            {/* Boleto de Apuesta */}
-            {Object.keys(selectedBets).length > 0 && (
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <span className="bg-purple-600 text-white px-2 py-1 rounded-full text-xs mr-2">
-                    Boleto
-                  </span>
-                  Tu Apuesta
-                </h3>
-                
-                {/* Apuestas seleccionadas */}
-                <div className="space-y-3 mb-4">
-                  {Object.entries(selectedBets).map(([betKey, value]) => {
-                    const bet = eventoDetail.bets.find(b => `bet_${b.id}` === betKey);
-                    return (
-                      <div key={betKey} className="bg-gray-50 p-3 rounded-lg">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-medium text-sm text-gray-900">{bet?.name}</p>
-                            <p className="text-sm text-gray-600">{value.value}</p>
-                          </div>
-                          <span className="font-bold text-green-600">{value.odd.toFixed(2)}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
 
-                {/* Monto de apuesta */}
-                <div className="mb-4">
-                  <label htmlFor="betAmount" className="block text-sm font-medium text-gray-700 mb-2">
-                    Monto a apostar
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
-                    <input
-                      type="number"
-                      id="betAmount"
-                      value={betAmount}
-                      onChange={(e) => setBetAmount(e.target.value)}
-                      className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="0.00"
-                      min="0"
-                      step="0.01"
-                    />
-                  </div>
-                </div>
-
-                {/* Resumen */}
-                <div className="border-t border-gray-200 pt-4">
-                  <div className="flex justify-between text-sm text-gray-600 mb-2">
-                    <span>Cuota total:</span>
-                    <span className="font-medium">{getTotalOdds().toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-lg font-bold text-gray-900 mb-4">
-                    <span>Ganancia potencial:</span>
-                    <span className="text-green-600">${calculatePotentialWinnings().toFixed(2)}</span>
-                  </div>
-                  
-                  <button
-                    onClick={handlePlaceBet}
-                    disabled={!betAmount || Object.keys(selectedBets).length === 0}
-                    className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
-                  >
-                    Realizar Apuesta
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
+      {ToastComponent}
     </div>
   );
 }

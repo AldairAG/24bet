@@ -1,4 +1,9 @@
+import { ROUTES } from "../../routes/routes";
+import { useLocation } from 'react-router-dom';
 const AsideUser = () => {
+    const location = useLocation();
+    const currentPath = location.pathname;
+
   const ligas = [
     { name: "Liga MX", icon: "🇲🇽", flag: true },
     { name: "Liga MX Femenil", icon: "🇲🇽", flag: true },
@@ -18,22 +23,26 @@ const AsideUser = () => {
     { name: "Primera División", icon: "🇦🇷", flag: true },
     { name: "Eredivisie", icon: "🇳🇱", flag: true },
   ];
-
+  if (currentPath.includes(ROUTES.USER_PERFIL) ||
+    currentPath.includes(ROUTES.USER_RETIRO) ||
+    currentPath.includes(ROUTES.USER_DEPOSITO)) {
+    return null;
+  }
   return (
     <aside className="w-64 bg-gray-800 text-white overflow-y-auto flex-shrink-0">
       {/* Header del aside */}
       <div className="bg-red-600 p-3">
         <h2 className="text-sm font-bold">LIGAS PRINCIPALES</h2>
       </div>
-      
+
 
       {/* Lista de ligas */}
       <nav className="p-2">
         <ul className="space-y-1">
           {ligas.map((liga, index) => (
             <li key={index}>
-              <a 
-                href="#" 
+              <a
+                href="#"
                 className="flex items-center space-x-2 px-2 py-1 rounded hover:bg-gray-700 transition-colors"
               >
                 <span className="text-sm">{liga.icon}</span>

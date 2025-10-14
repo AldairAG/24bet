@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { ApuestaEnBoleto } from '../types/apuestasTypes';
-import { AppDispatch } from '../store';
+import {type ApuestaEnBoleto } from '../types/apuestasTypes';
+import type { AppDispatch } from '../store';
 import {
     // Acciones
     agregarApuesta,
@@ -22,8 +22,10 @@ import {
     selectIsRealizandoApuesta,
     selectErrorRealizandoApuesta,
     selectCantidadApuestas,
-    selectApuestaPorId,
     selectHayApuestas,
+    selectParlayTotal,
+    selectParlayGanancia,
+    selectEsParlayValido,
 } from '../store/slices/apuestaSlice';
 
 /**
@@ -41,6 +43,9 @@ export const useApuesta = () => {
     const errorRealizandoApuesta = useSelector(selectErrorRealizandoApuesta);
     const cantidadApuestas = useSelector(selectCantidadApuestas);
     const hayApuestas = useSelector(selectHayApuestas);
+    const parlayTotal = useSelector(selectParlayTotal);
+    const parlayGanancia = useSelector(selectParlayGanancia);
+    const esParlayValido = useSelector(selectEsParlayValido);
 
     // ========== ACCIONES DEL BOLETO ==========
     
@@ -144,7 +149,7 @@ export const useApuesta = () => {
     }, []);
 
     /**
-     * Validar si se puede agregar una apuesta (validaciones de negocio)
+     * Validar si se puede agregar una apuesta (validaciones de negocio avanzadas)
      */
     const puedeAgregarApuesta = useCallback((apuesta: ApuestaEnBoleto) => {
         // Verificar si ya existe
@@ -157,13 +162,86 @@ export const useApuesta = () => {
             return { valido: false, mensaje: 'El monto debe ser mayor a 0' };
         }
 
+        // Validar monto máximo
+        if (apuesta.monto > 10000) {
+            return { valido: false, mensaje: 'El monto máximo permitido es $10,000' };
+        }
+
         // Validar odd mínima
         if (apuesta.odd <= 1) {
             return { valido: false, mensaje: 'La cuota debe ser mayor a 1' };
         }
 
+        // Validar conflictos en el mismo evento (no apostar a ambos equipos)
+        const apuestasDelEvento = obtenerApuestasPorEvento(apuesta.eventoId);
+        
+        // Tipos de apuestas que son mutuamente excluyentes (solo se puede apostar a una opción)
+        const tiposConflictivos = [
+            'Resultado Final', 
+            'Ganador', 
+            'Moneyline', 
+            '1X2',
+            'Match Winner',
+            'Winner',
+            'Full Time Result',
+            'Handicap',
+            'Asian Handicap'
+        ];
+        
+        // Para apuestas de resultado (ganar/perder), verificar conflictos más específicos
+        if (tiposConflictivos.some(tipo => apuesta.tipoApuesta.toLowerCase().includes(tipo.toLowerCase()))) {
+            // Buscar conflictos en apuestas del mismo tipo y diferentes resultados EN EL MISMO EVENTO
+            const hayConflicto = apuestasDelEvento.some(ap => {
+                // Si es el mismo tipo de apuesta pero diferente resultado
+                const mismaTipoApuesta = tiposConflictivos.some(tipo => 
+                    ap.tipoApuesta.toLowerCase().includes(tipo.toLowerCase())
+                );
+                
+                if (mismaTipoApuesta && ap.descripcion !== apuesta.descripcion) {
+                    // Detectar conflictos específicos entre equipos/resultados
+                    return true; // Simplificado: cualquier diferencia en el mismo tipo es conflicto
+                }
+                return false;
+            });
+            
+            if (hayConflicto) {
+                return { 
+                    valido: false, 
+                    mensaje: 'No puedes apostar a resultados diferentes en el mismo tipo de apuesta para este evento' 
+                };
+            }
+        }
+        
+        // Validación adicional: No permitir múltiples apuestas del mismo tipo exacto EN EL MISMO EVENTO
+        const apuestaMismoTipo = apuestasDelEvento.find(ap => 
+            ap.tipoApuesta === apuesta.tipoApuesta && ap.descripcion === apuesta.descripcion
+        );
+        
+        if (apuestaMismoTipo) {
+            return {
+                valido: false,
+                mensaje: `Ya tienes esta misma apuesta en este evento`
+            };
+        }
+
+        // Validar límite de apuestas por evento (máximo 3)
+        if (apuestasDelEvento.length >= 3) {
+            return { 
+                valido: false, 
+                mensaje: 'Máximo 3 apuestas por evento permitidas' 
+            };
+        }
+
+        // Validar límite total de apuestas en el boleto (máximo 15)
+        if (boleto.length >= 15) {
+            return { 
+                valido: false, 
+                mensaje: 'Máximo 15 apuestas permitidas en el boleto' 
+            };
+        }
+
         return { valido: true, mensaje: '' };
-    }, [existeApuestaEnBoleto]);
+    }, [existeApuestaEnBoleto, obtenerApuestasPorEvento, boleto]);
 
     /**
      * Obtener resumen del boleto
@@ -211,6 +289,10 @@ export const useApuesta = () => {
         errorRealizandoApuesta,
         cantidadApuestas,
         hayApuestas,
+        // Estado de Parlay
+        parlayTotal,
+        parlayGanancia,
+        esParlayValido,
 
         // Acciones del boleto
         agregarApuestaAlBoleto,

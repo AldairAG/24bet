@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../routes/routes";
+import { useApuesta } from "../../hooks/useApuesta";
 
   const deportes = [
     { name: "Historial", icon: "📊", id: "Historial" },
@@ -17,10 +18,37 @@ import { ROUTES } from "../../routes/routes";
 
 const Home = () => {
   const navigate = useNavigate();
+  const { agregarApuestaAlBoleto, existeApuestaEnBoleto, puedeAgregarApuesta } = useApuesta();
 
   const onclickDeporte = (deporteId: string) => {
     console.log("Deporte seleccionado:", deporteId);
     navigate(`${ROUTES.USER_DEPORTE(deporteId)}`);
+  };
+
+  // Función para manejar apuestas rápidas desde la Home
+  const handleQuickBet = (eventoId: number, eventoName: string, tipoApuesta: string, descripcion: string, odd: number, valueId: number) => {
+    if (existeApuestaEnBoleto(valueId, eventoId)) {
+      return; // Ya existe la apuesta
+    }
+
+    const nuevaApuesta = {
+      id: valueId,
+      eventoId: eventoId,
+      monto: 10, // Monto por defecto
+      odd: odd,
+      tipoApuesta: tipoApuesta,
+      eventoName: eventoName,
+      descripcion: descripcion
+    };
+    
+    // Validar antes de agregar
+    const validacion = puedeAgregarApuesta(nuevaApuesta);
+    if (!validacion.valido) {
+      alert(validacion.mensaje);
+      return;
+    }
+    
+    agregarApuestaAlBoleto(nuevaApuesta);
   };
 
   return (
@@ -163,14 +191,28 @@ const Home = () => {
                   </div>
                 </div>
                 <div className="flex space-x-2">
-                  <div className="bg-gray-600 px-3 py-1 rounded text-xs text-center">
+                  <button
+                    onClick={() => handleQuickBet(1, "Águilas UAGro vs Colegio Once Mexico", "Total de Goles", "Más de 6.5", 2.25, 101)}
+                    className={`px-3 py-1 rounded text-xs text-center transition-colors duration-200 ${
+                      existeApuestaEnBoleto(101, 1) 
+                        ? 'bg-blue-500 text-white' 
+                        : 'bg-gray-600 hover:bg-gray-500'
+                    }`}
+                  >
                     <p className="text-green-400 font-bold">+125</p>
                     <p className="text-xs">Más de 6.5</p>
-                  </div>
-                  <div className="bg-gray-600 px-3 py-1 rounded text-xs text-center">
+                  </button>
+                  <button
+                    onClick={() => handleQuickBet(1, "Águilas UAGro vs Colegio Once Mexico", "Total de Goles", "Menos de 6.5", 1.55, 102)}
+                    className={`px-3 py-1 rounded text-xs text-center transition-colors duration-200 ${
+                      existeApuestaEnBoleto(102, 1) 
+                        ? 'bg-blue-500 text-white' 
+                        : 'bg-gray-600 hover:bg-gray-500'
+                    }`}
+                  >
                     <p className="text-white font-bold">-182</p>
                     <p className="text-xs">Menos de 6.5</p>
-                  </div>
+                  </button>
                   <div className="text-gray-400 px-2 py-1">
                     <span>⋯</span>
                   </div>
@@ -201,14 +243,28 @@ const Home = () => {
                   </div>
                 </div>
                 <div className="flex space-x-2">
-                  <div className="bg-gray-600 px-3 py-1 rounded text-xs text-center">
+                  <button
+                    onClick={() => handleQuickBet(2, "Lechuzas FC vs Centro De Formacion Chiapas Futbol", "Total de Goles", "Más de 4.5", 1.42, 201)}
+                    className={`px-3 py-1 rounded text-xs text-center transition-colors duration-200 ${
+                      existeApuestaEnBoleto(201, 2) 
+                        ? 'bg-blue-500 text-white' 
+                        : 'bg-gray-600 hover:bg-gray-500'
+                    }`}
+                  >
                     <p className="text-white font-bold">-240</p>
                     <p className="text-xs">Más de 4.5</p>
-                  </div>
-                  <div className="bg-gray-600 px-3 py-1 rounded text-xs text-center">
+                  </button>
+                  <button
+                    onClick={() => handleQuickBet(2, "Lechuzas FC vs Centro De Formacion Chiapas Futbol", "Total de Goles", "Menos de 4.5", 2.60, 202)}
+                    className={`px-3 py-1 rounded text-xs text-center transition-colors duration-200 ${
+                      existeApuestaEnBoleto(202, 2) 
+                        ? 'bg-blue-500 text-white' 
+                        : 'bg-gray-600 hover:bg-gray-500'
+                    }`}
+                  >
                     <p className="text-green-400 font-bold">+160</p>
                     <p className="text-xs">Menos de 4.5</p>
-                  </div>
+                  </button>
                   <div className="text-gray-400 px-2 py-1">
                     <span>⋯</span>
                   </div>

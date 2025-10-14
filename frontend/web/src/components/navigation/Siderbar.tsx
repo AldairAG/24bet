@@ -1,3 +1,6 @@
+import { Link } from 'react-router-dom';
+import { ROUTES } from '../../routes/routes';
+
 interface SidebarProps {
     isOpen: boolean;
     onClose: () => void;
@@ -9,7 +12,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             {/* Overlay */}
             {isOpen && (
                 <div 
-                    className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity"
+                    className="fixed inset-0 opacity-50 bg-black z-40 transition-opacity"
                     onClick={onClose}
                 />
             )}
@@ -47,7 +50,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
                     {/* Enlaces del menú */}
                     <nav>
-                        <ul className="space-y-4">
+                        <ul className="space-y-4" onClick={onClose}>
                             <li>
                                 <a 
                                     href="#" 
@@ -61,26 +64,38 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                                 </a>
                             </li>
                             <li>
-                                <a 
-                                    href="#" 
+                                <Link 
+                                    to={ROUTES.USER_PERFIL} 
                                     className="flex items-center px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
                                 >
                                     <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                     </svg>
                                     Mi Perfil
-                                </a>
+                                </Link>
                             </li>
                             <li>
-                                <a 
-                                    href="#" 
+                                <Link 
+                                    to={ROUTES.USER_RETIRO} 
                                     className="flex items-center px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
                                 >
                                     <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                                     </svg>
-                                    Billetera
-                                </a>
+                                    Retiro
+                                </Link>
+
+                            </li>
+                            <li>
+                                <Link 
+                                    to={ROUTES.USER_DEPOSITO} 
+                                    className="flex items-center px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+                                >
+                                    <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                    </svg>
+                                    Depósito
+                                </Link>
                             </li>
                             <li>
                                 <a 
