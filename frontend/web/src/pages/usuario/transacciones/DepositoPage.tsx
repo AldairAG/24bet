@@ -748,7 +748,7 @@ const DepositoPage = () => {
                       Monto:
                     </span>
                     <span className="text-base font-bold text-green-900">
-                      ${formik.values.monto.toFixed(2)} {criptoSeleccionada ? 'USD' : opcionBancariaSeleccionada?.moneda}
+                      ${(formik.values.monto || 0).toFixed(2)} {criptoSeleccionada ? 'USD' : opcionBancariaSeleccionada?.moneda}
                     </span>
                   </div>
                   
