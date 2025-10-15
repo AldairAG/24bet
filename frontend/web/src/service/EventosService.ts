@@ -10,6 +10,25 @@ import type { ApiResponseWrapper } from '../types/authTypes';
 class EventosService {
     private baseUrl = '/eventos';
 
+
+    /**
+     * Obtiene todos los eventos en vivo de un deporte
+     * GET /24bet/eventos/en-vivo/{deporte}
+     * @param deporte Nombre del deporte (e.g., "Soccer", "Basketball")
+     * @returns Promise con la lista de eventos deportivos en vivo
+     */
+    async getEventosEnVivoPorDeporte(deporte: string): Promise<ApiResponseWrapper<EventosEnVivoResponse[]>> {
+        try {
+            const response = await apiBase.get<ApiResponseWrapper<EventosEnVivoResponse[]>>(
+                `${this.baseUrl}/eventos-en-vivo-por-deporte/${deporte}`
+            );
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching live events by sport:', error);
+            throw this.handleError(error);
+        }
+    }
+
     /**
      * Obtiene todos los eventos en vivo
      * GET /24bet/eventos/en-vivo
@@ -118,6 +137,7 @@ class EventosService {
      * Valida si un evento está en vivo
      * @param evento Evento a validar
      * @returns true si el evento está en vivo
+     * @deprecated
      */
     validateEventoEnVivo(evento: EventoDeportivoResponse): boolean {
         // Si tiene la propiedad enVivo, usarla

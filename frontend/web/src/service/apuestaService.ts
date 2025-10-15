@@ -11,7 +11,7 @@ export interface IApuestaService {
      * @param apuestas Lista de apuestas a crear
      * @returns Promise con el resultado de la operación
      */
-    crearListaApuestas(apuestas: CrearApuesta[]): Promise<any>;
+    crearListaApuestas(apuestas: CrearApuesta[]): Promise<ApiResponseWrapper<CrearApuesta[]>>;
 
     /**
      * Obtiene una lista de apuestas por usuario (método futuro)
@@ -25,7 +25,7 @@ export interface IApuestaService {
  * Implementación del servicio de apuestas
  */
 class ApuestaService implements IApuestaService {
-    private readonly baseUrl = '/24bet/apuestas';
+    private readonly baseUrl = '/apuestas';
 
     /**
      * Crea una lista de apuestas
@@ -38,9 +38,7 @@ class ApuestaService implements IApuestaService {
             throw new Error('La lista de apuestas no puede estar vacía');
         }
 
-        const response = await apiBase.post<ApiResponseWrapper<CrearApuesta[]>>(`${this.baseUrl}/crear-lista`, {
-            apuestas
-        });
+        const response = await apiBase.post<ApiResponseWrapper<CrearApuesta[]>>(`${this.baseUrl}/crear`, apuestas);
 
         return response.data;
     }

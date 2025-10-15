@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -103,6 +104,42 @@ public class EventosController {
             }
 
             return ResponseEntity.ok(new ApiResponseWrapper<>(true, "Evento encontrado exitosamente", evento));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ApiResponseWrapper<>(false, "Error interno del servidor: " + e.getMessage(), null));
+        }
+    }
+
+    /**
+     * Obtiene todos los eventos en vivo de un deporte por nombre
+     * @param nombreDeporte Nombre del deporte
+     * @return Lista de eventos del deporte
+     */
+    @GetMapping("/eventos-en-vivo-por-deporte/{nombreDeporte}")
+    public ResponseEntity<ApiResponseWrapper<List<EventoDeportivoResponse>>> getEventosEnVivo
+    (@PathVariable String nombreDeporte) {
+        try {
+            
+            return ResponseEntity.ok(new ApiResponseWrapper<>(true, "Eventos obtenidos exitosamente", new ArrayList<>()));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ApiResponseWrapper<>(false, "Error interno del servidor: " + e.getMessage(), null));
+        }
+    }
+
+    /**
+     * Obtiene todos los eventos mas proximos de un deporte por nombre
+     * @param nombreDeporte Nombre del deporte
+     * @return Lista de eventos del deporte
+     */
+    @GetMapping("/eventos-mas-proximos-por-deporte/{nombreDeporte}")
+    public ResponseEntity<ApiResponseWrapper<List<EventoDeportivoResponse>>> getEventosMasProximosPorDeporte
+    (@PathVariable String nombreDeporte) {
+        try {
+            
+            return ResponseEntity.ok(new ApiResponseWrapper<>(true, "Eventos obtenidos exitosamente", new ArrayList<>()));
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

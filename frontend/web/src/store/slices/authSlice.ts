@@ -11,6 +11,40 @@ import type{
 	ApiResponseWrapper
 } from '../../types/authTypes';
 
+// Utility functions para sessionStorage
+const saveToSessionStorage = (key: string, value: unknown) => {
+	try {
+		if (typeof window !== 'undefined' && window.sessionStorage) {
+			sessionStorage.setItem(key, JSON.stringify(value));
+		}
+	} catch (error) {
+		console.error('Error saving to sessionStorage:', error);
+	}
+};
+
+const loadFromSessionStorage = (key: string) => {
+	try {
+		if (typeof window !== 'undefined' && window.sessionStorage) {
+			const item = sessionStorage.getItem(key);
+			return item ? JSON.parse(item) : null;
+		}
+		return null;
+	} catch (error) {
+		console.error('Error loading from sessionStorage:', error);
+		return null;
+	}
+};
+
+const removeFromSessionStorage = (key: string) => {
+	try {
+		if (typeof window !== 'undefined' && window.sessionStorage) {
+			sessionStorage.removeItem(key);
+		}
+	} catch (error) {
+		console.error('Error removing from sessionStorage:', error);
+	}
+};
+
 interface AuthState {
 	user: Usuario | null;
 	token: string | null;
@@ -19,13 +53,21 @@ interface AuthState {
 	isAuthenticated: boolean;
 }
 
-const initialState: AuthState = {
-	user: null,
-	token: null,
-	loading: false,
-	error: null,
-	isAuthenticated: false,
+// Cargar estado inicial desde sessionStorage
+const loadInitialState = (): AuthState => {
+	const savedUser = loadFromSessionStorage('auth_user');
+	const savedToken = loadFromSessionStorage('auth_token');
+	
+	return {
+		user: savedUser,
+		token: savedToken,
+		loading: false,
+		error: null,
+		isAuthenticated: !!(savedUser && savedToken),
+	};
 };
+
+const initialState: AuthState = loadInitialState();
 
 export const registro = createAsyncThunk<
 	ApiResponseWrapper<UsuarioResponse>,
@@ -40,8 +82,9 @@ export const registro = createAsyncThunk<
 				return rejectWithValue(response.message);
 			}
 			return response;
-		} catch (error: any) {
-			return rejectWithValue(error?.response?.data?.message || 'Error en el registro');
+		} catch (error: unknown) {
+			const errorMessage = error instanceof Error ? error.message : 'Error en el registro';
+			return rejectWithValue(errorMessage);
 		}
 	}
 );
@@ -59,8 +102,9 @@ export const login = createAsyncThunk<
 				return rejectWithValue(response.message);
 			}
 			return response;
-		} catch (error: any) {
-			return rejectWithValue(error?.response?.data?.message || 'Error en el login');
+		} catch (error: unknown) {
+			const errorMessage = error instanceof Error ? error.message : 'Error en el login';
+			return rejectWithValue(errorMessage);
 		}
 	}
 );
@@ -74,13 +118,20 @@ const authSlice = createSlice({
 			state.token = null;
 			state.isAuthenticated = false;
 			state.error = null;
+			// Limpiar sessionStorage
+			removeFromSessionStorage('auth_user');
+			removeFromSessionStorage('auth_token');
 		},
 		setUser(state, action: PayloadAction<Usuario>) {
 			state.user = action.payload;
 			state.isAuthenticated = true;
+			// Guardar en sessionStorage
+			saveToSessionStorage('auth_user', action.payload);
 		},
 		setToken(state, action: PayloadAction<string>) {
 			state.token = action.payload;
+			// Guardar en sessionStorage
+			saveToSessionStorage('auth_token', action.payload);
 		},
 	},
 	extraReducers: (builder) => {
@@ -93,7 +144,7 @@ const authSlice = createSlice({
 				state.loading = false;
 				// Para el registro, convertimos UsuarioResponse a Usuario básico
 				const userData = action.payload.data;
-				state.user = {
+				const user = {
 					id: userData.id,
 					username: userData.username,
 					email: userData.email,
@@ -106,11 +157,14 @@ const authSlice = createSlice({
 					fechaCreacion: new Date().toISOString(),
 					fechaActualizacion: new Date().toISOString(),
 					rol: 'USER', // Rol por defecto para usuarios registrados
-					informacionPersonal: {} as any, // Placeholder
+					informacionPersonal: {} as Usuario['informacionPersonal'], // Placeholder tipado
 					documentosKyc: [] // Array vacío inicial
 				};
+				state.user = user;
 				state.isAuthenticated = true;
 				state.error = null;
+				// Guardar en sessionStorage
+				saveToSessionStorage('auth_user', user);
 			})
 			.addCase(registro.rejected, (state, action) => {
 				state.loading = false;
@@ -126,6 +180,9 @@ const authSlice = createSlice({
 				state.user = action.payload.data.user;
 				state.isAuthenticated = true;
 				state.error = null;
+				// Guardar en sessionStorage
+				saveToSessionStorage('auth_token', action.payload.data.token);
+				saveToSessionStorage('auth_user', action.payload.data.user);
 			})
 			.addCase(login.rejected, (state, action) => {
 				state.loading = false;

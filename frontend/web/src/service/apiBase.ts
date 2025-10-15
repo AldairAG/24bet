@@ -5,45 +5,45 @@ import { logout } from '../store/slices/authSlice'; // Importar action de logout
 // Define __DEV__ for development mode checking
 const __DEV__ = import.meta.env.DEV;
 
-// Storage wrapper optimizado para Web
-class WebStorageWrapper {
+// Storage wrapper optimizado para Web usando sessionStorage
+class WebSessionStorageWrapper {
   constructor() {
-    // Verificar si localStorage está disponible
-    if (typeof window === 'undefined' || !window.localStorage) {
-      console.warn('localStorage no está disponible, usando memoria temporal');
+    // Verificar si sessionStorage está disponible
+    if (typeof window === 'undefined' || !window.sessionStorage) {
+      console.warn('sessionStorage no está disponible, usando memoria temporal');
     }
   }
 
   async getItem(key: string): Promise<string | null> {
     try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        return localStorage.getItem(key);
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        return sessionStorage.getItem(key);
       }
       return null;
     } catch (error) {
-      console.error('Error al obtener item del localStorage:', error);
+      console.error('Error al obtener item del sessionStorage:', error);
       return null;
     }
   }
 
   async setItem(key: string, value: string): Promise<void> {
     try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        localStorage.setItem(key, value);
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        sessionStorage.setItem(key, value);
       }
     } catch (error) {
-      console.error('Error al guardar item en localStorage:', error);
+      console.error('Error al guardar item en sessionStorage:', error);
       throw error;
     }
   }
 
   async removeItem(key: string): Promise<void> {
     try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        localStorage.removeItem(key);
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        sessionStorage.removeItem(key);
       }
     } catch (error) {
-      console.error('Error al eliminar item del localStorage:', error);
+      console.error('Error al eliminar item del sessionStorage:', error);
       throw error;
     }
   }
@@ -51,11 +51,11 @@ class WebStorageWrapper {
   // Método adicional para limpiar todo el storage
   async clear(): Promise<void> {
     try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        localStorage.clear();
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        sessionStorage.clear();
       }
     } catch (error) {
-      console.error('Error al limpiar localStorage:', error);
+      console.error('Error al limpiar sessionStorage:', error);
       throw error;
     }
   }
@@ -63,18 +63,18 @@ class WebStorageWrapper {
   // Método para obtener todas las claves
   getAllKeys(): string[] {
     try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        return Object.keys(localStorage);
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        return Object.keys(sessionStorage);
       }
       return [];
     } catch (error) {
-      console.error('Error al obtener claves del localStorage:', error);
+      console.error('Error al obtener claves del sessionStorage:', error);
       return [];
     }
   }
 }
 
-const storage = new WebStorageWrapper();
+const storage = new WebSessionStorageWrapper();
 
 // Tipos para las respuestas de la API
 export interface ApiResponse<T> {
@@ -134,7 +134,7 @@ class ApiBase {
           
           // 2. Fallback: obtener desde storage si Redux no está disponible
           if (!token) {
-            token = await storage.getItem('token');
+            token = await storage.getItem('auth_token');
           }
 
           if (token) {
@@ -201,8 +201,8 @@ class ApiBase {
   private async handleUnauthorized() {
     try {
       // 1. Limpiar storage
-      await storage.removeItem('token');
-      await storage.removeItem('user');
+      await storage.removeItem('auth_token');
+      await storage.removeItem('auth_user');
       
       // 2. Limpiar headers de axios
       delete this.axiosInstance.defaults.headers.common['Authorization'];
@@ -229,10 +229,10 @@ class ApiBase {
   // Método para inicializar token desde storage al arranque
   public async initializeAuthFromStorage(): Promise<void> {
     try {
-      const token = await storage.getItem('token');
+      const token = await storage.getItem('auth_token');
       if (token) {
         this.axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        console.log('🔐 Token inicializado desde storage');
+        console.log('🔐 Token inicializado desde sessionStorage');
       }
     } catch (error) {
       console.error('Error al inicializar token:', error);
@@ -342,7 +342,7 @@ class ApiBase {
   // Actualizar token manualmente
   async setAuthToken(token: string): Promise<void> {
     try {
-      await storage.setItem('token', token);
+      await storage.setItem('auth_token', token);
       this.axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     } catch (error) {
       console.error('Error al establecer el token:', error);
@@ -352,7 +352,7 @@ class ApiBase {
   // Limpiar token
   async clearAuthToken(): Promise<void> {
     try {
-      await storage.removeItem('token');
+      await storage.removeItem('auth_token');
       delete this.axiosInstance.defaults.headers.common['Authorization'];
     } catch (error) {
       console.error('Error al limpiar el token:', error);
