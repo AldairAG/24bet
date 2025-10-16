@@ -1,29 +1,8 @@
 import React from 'react';
-
-export interface Team {
-  name: string;
-  score?: number;
-}
-
-export interface BettingOption {
-  id: number;
-  label: string;
-  odd: number;
-  description: string;
-}
+import type { Evento } from '../../types/EventosType';
 
 export interface EventoItemProps {
-  id: number;
-  homeTeam: Team;
-  awayTeam: Team;
-  isLive: boolean;
-  time?: string;
-  league: string;
-  country: string;
-  countryFlag: string;
-  bettingOptions: BettingOption[];
-  hasVideo?: boolean;
-  hasFavorite?: boolean;
+  evento:Evento;
   onBetClick: (
     eventoId: number,
     eventoName: string,
@@ -36,25 +15,16 @@ export interface EventoItemProps {
 }
 
 const EventoItem: React.FC<EventoItemProps> = ({
-  id,
-  homeTeam,
-  awayTeam,
-  isLive,
-  time,
-  league,
-  countryFlag,
-  bettingOptions,
-  hasVideo = false,
-  hasFavorite = false,
+  evento,
   onBetClick,
   isBetSelected
 }) => {
-  const eventoName = `${homeTeam.name} vs ${awayTeam.name}`;
+  const eventoName = `${evento.fixture.name} vs ${evento.awayTeam.name}`;
 
   const handleBetClick = (option: BettingOption) => {
     onBetClick(id, eventoName, option.description, option.label, option.odd, option.id);
   };
-
+  
   return (
     <div className="border-b border-gray-600 p-3">
       {/* Header del evento */}

@@ -21,12 +21,32 @@ const EventosEnVivo: React.FC<EventosEnVivoProps> = ({
   onBetClick,
   isBetSelected
 }) => {
-    const [deporte,setDeporte]=useState('Soccer');
-    const {isLoadingEventosEnVivo,eventosEnVivo,loadEventosEnVivoError,loadEventosEnVivoPorDeporte}=useEventos();
+  const [deporte, setDeporte] = useState('Soccer');
+  const { isLoadingEventosEnVivo, eventosEnVivo, loadEventosEnVivoError, loadEventosEnVivoPorDeporte } = useEventos();
 
-    useEffect(() => {
-        loadEventosEnVivoPorDeporte(deporte);
-    }, [loadEventosEnVivoPorDeporte,deporte]);
+  useEffect(() => {
+    loadEventosEnVivoPorDeporte(deporte);
+  }, [loadEventosEnVivoPorDeporte, deporte]);
+
+  const renderEventos = () => {
+    if (isLoadingEventosEnVivo) {
+      return <div className="p-4 text-center text-white">Cargando eventos en vivo...</div>;
+    }
+    if (loadEventosEnVivoError) {
+      return <div className="p-4 text-center text-red-500">Error: {loadEventosEnVivoError}</div>;
+    }
+    if (eventosEnVivo.length === 0) {
+      return <div className="p-4 text-center text-white">No hay eventos en vivo disponibles.</div>;
+    }
+    return eventosEnVivo.map((evento) => (
+      <EventoItem
+        key={evento.fixture.id}
+        {...evento}
+        onBetClick={onBetClick}
+        isBetSelected={isBetSelected}
+      />
+    ));
+  }
 
   return (
     <section className="px-3 pb-4">
@@ -79,26 +99,14 @@ const EventosEnVivo: React.FC<EventosEnVivoProps> = ({
 
       {/* Lista de partidos en vivo */}
       <div className="bg-gray-700 text-white">
-        {
-                if (isLoadingEventosEnVivo) {
-        return <div className="p-4 text-center text-white">Cargando eventos en vivo...</div>;
-    }
-
-              if (loadEventosEnVivoError) {
-        return <div className="p-4 text-center text-red-500">Error: {loadEventosEnVivoError}</div>;
-    }
-
-              if (eventos.length === 0) {
-        return <div className="p-4 text-center text-white">No hay eventos en vivo disponibles.</div>;
-    }
-        eventos.map((evento) => (
-          <EventoItem
-            key={evento.id}
-            {...evento}
-            onBetClick={onBetClick}
-            isBetSelected={isBetSelected}
-          />
-        ))}
+        { eventos.map((evento) => (
+            <EventoItem
+              key={evento.id}
+              {...evento}
+              onBetClick={onBetClick}
+              isBetSelected={isBetSelected}
+            />
+          ))}
       </div>
     </section>
   );

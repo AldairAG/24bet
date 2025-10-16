@@ -17,9 +17,9 @@ class EventosService {
      * @param deporte Nombre del deporte (e.g., "Soccer", "Basketball")
      * @returns Promise con la lista de eventos deportivos en vivo
      */
-    async getEventosEnVivoPorDeporte(deporte: string): Promise<ApiResponseWrapper<EventosEnVivoResponse[]>> {
+    async getEventosEnVivoPorDeporte(deporte: string): Promise<ApiResponseWrapper<Evento[]>> {
         try {
-            const response = await apiBase.get<ApiResponseWrapper<EventosEnVivoResponse[]>>(
+            const response = await apiBase.get<ApiResponseWrapper<Evento[]>>(
                 `${this.baseUrl}/eventos-en-vivo-por-deporte/${deporte}`
             );
             return response.data;

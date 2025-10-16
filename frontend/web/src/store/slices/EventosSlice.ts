@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
-import type { Evento, EventoDeportivoResponse, EventosEnVivoResponse, EventosPorLigaResponse, LigaPorDeporteDetalleResponse } from '../../types/EventosType';
+import type { Evento, EventoDeportivoResponse, EventosPorLigaResponse, LigaPorDeporteDetalleResponse } from '../../types/EventosType';
 import { eventosService } from '../../service/EventosService';
 import type { RootState } from '../index';
 
@@ -13,7 +13,7 @@ export interface EventosState {
     isLoadingEventosFuturos: boolean;
 
     // Datos
-    eventosEnVivo: EventosEnVivoResponse[];
+    eventosEnVivo: Evento[];
     eventosFuturos: EventosPorLigaResponse[];
     ligasPorDeporte: LigaPorDeporteDetalleResponse[];
     eventoDetail: Evento | null;
@@ -144,7 +144,7 @@ export const getEventosFuturos = createAsyncThunk<
  * @return {Promise<EventosEnVivoResponse[]>} Lista de eventos en vivo
  */
 export const getEventosEnVivoPorDeporte = createAsyncThunk<
-    EventosEnVivoResponse[], // Tipo de retorno: array
+    Evento[], // Tipo de retorno: array
     string, // Parámetro: deporte
     { rejectValue: string } // Tipo del error
 >(

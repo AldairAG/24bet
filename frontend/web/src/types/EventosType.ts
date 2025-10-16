@@ -165,6 +165,7 @@ export interface EventoDeportivoResponse {
 
 /**
  * Array de eventos deportivos - Respuesta del endpoint en vivo
+ * @deprecated
  */
 export type EventosEnVivoResponse = EventoDeportivoResponse[];
 
