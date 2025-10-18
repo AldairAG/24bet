@@ -1,37 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import EventoItem from './EventoItem';
-import type { EventoItemProps } from './EventoItem';
 import useEventos from '../../hooks/useEventos';
-import type { EventoResponseApi } from '../../service/apiSportService';
+import { getEventosByIds } from '../../service/apiSportService';
+import { type EventoResponseApi } from '../../types/sportApiTypes';
 
-interface EventosEnVivoProps {
-  eventos: Omit<EventoItemProps, 'onBetClick' | 'isBetSelected'>[];
-  onBetClick: (
-    eventoId: number,
-    eventoName: string,
-    tipoApuesta: string,
-    descripcion: string,
-    odd: number,
-    valueId: number
-  ) => void;
-  isBetSelected: (valueId: number, eventoId: number) => boolean;
-}
-
-const EventosEnVivo: React.FC<EventosEnVivoProps> = ({
-  eventos,
-  onBetClick,
-  isBetSelected
-}) => {
-  const [deporte, setDeporte] = useState('Soccer');
+const EventosEnVivo: React.FC = () => {
+  const [deporte, setDeporte] = useState('soccer');
+  const [eventos, setEventos] = useState<EventoResponseApi[]>([]);
+  // const [isLoadingEventosEnVivo, setIsLoadingEventosEnVivo] = useState(false);
   const { isLoadingEventosEnVivo, eventosEnVivo, loadEventosEnVivoError, loadEventosEnVivoPorDeporte } = useEventos();
 
   useEffect(() => {
     loadEventosEnVivoPorDeporte(deporte);
   }, [loadEventosEnVivoPorDeporte, deporte]);
 
-  u
+  useEffect(() => {
+    const cargarEventosEnVivoDesdeAPI = async () => {
+      const result = await getEventosByIds(eventosEnVivo.map(e => e.fixture.id));
+      setEventos(result);
+    }
 
-  
+    if (eventosEnVivo.length > 0) {
+      cargarEventosEnVivoDesdeAPI();
+    } else {
+      setEventos([]);
+    }
+  }, [eventosEnVivo]);
 
   const renderEventos = () => {
     if (isLoadingEventosEnVivo) {
@@ -43,10 +37,10 @@ const EventosEnVivo: React.FC<EventosEnVivoProps> = ({
     if (eventosEnVivo.length === 0) {
       return <div className="p-4 text-center text-white">No hay eventos en vivo disponibles.</div>;
     }
-    return eventosEnVivo.map((evento) => (
+    return eventos.map((evento) => (
       <EventoItem
         key={evento.fixture.id}
-        {...evento}
+        evento={evento}
         isLive={true}
       />
     ));
@@ -103,14 +97,7 @@ const EventosEnVivo: React.FC<EventosEnVivoProps> = ({
 
       {/* Lista de partidos en vivo */}
       <div className="bg-gray-700 text-white">
-        { eventos.map((evento) => (
-            <EventoItem
-              key={evento.id}
-              {...evento}
-              onBetClick={onBetClick}
-              isBetSelected={isBetSelected}
-            />
-          ))}
+        {renderEventos()}
       </div>
     </section>
   );

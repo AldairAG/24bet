@@ -55,6 +55,12 @@ public class EventoDeportivo {
     private String nombre;
 
     /**
+     * El evento es en vivo
+     */
+    @Column(name = "en_vivo")
+    private Boolean enVivo;
+
+    /**
      * Nombre corto del evento
      */
     @Size(max = 100, message = "El nombre corto no puede exceder 100 caracteres")

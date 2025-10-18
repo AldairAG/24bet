@@ -78,4 +78,18 @@ public class ApiSportsScheduledTasks {
         }
     }
 
+    /**
+     * Sincronización de eventos en vivo y cuotas de apuestas cada 2 minutos
+     */
+    @Scheduled(fixedRate = 120000) // 2 minutos
+    @Async("theSportsDbTaskExecutor")
+    public void sincronizacionEventosEnVivoYCuotas() {
+
+        try {
+            apiSportService.obtenerEventosEnVivo();
+        } catch (Exception e) {
+            log.error("❌ Error en la sincronización de eventos en vivo y cuotas de apuestas: {}", e.getMessage(), e);
+        }
+    }
+
 }

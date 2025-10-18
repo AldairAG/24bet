@@ -102,4 +102,10 @@ public class EventoService {
 
                 return response;
         }
+
+        public List<EventoDeportivoResponse> obtenerEventosEnVivoPorDeporte(String nombreDeporte) {
+                // Lógica para obtener eventos en vivo por deporte
+                return new ArrayList<>();
+        }
+
 }
