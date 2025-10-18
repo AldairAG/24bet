@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import EventoItem from './EventoItem';
 import type { EventoItemProps } from './EventoItem';
 import useEventos from '../../hooks/useEventos';
+import type { EventoResponseApi } from '../../service/apiSportService';
 
 interface EventosEnVivoProps {
   eventos: Omit<EventoItemProps, 'onBetClick' | 'isBetSelected'>[];
@@ -28,6 +29,10 @@ const EventosEnVivo: React.FC<EventosEnVivoProps> = ({
     loadEventosEnVivoPorDeporte(deporte);
   }, [loadEventosEnVivoPorDeporte, deporte]);
 
+  u
+
+  
+
   const renderEventos = () => {
     if (isLoadingEventosEnVivo) {
       return <div className="p-4 text-center text-white">Cargando eventos en vivo...</div>;
@@ -42,8 +47,7 @@ const EventosEnVivo: React.FC<EventosEnVivoProps> = ({
       <EventoItem
         key={evento.fixture.id}
         {...evento}
-        onBetClick={onBetClick}
-        isBetSelected={isBetSelected}
+        isLive={true}
       />
     ));
   }

@@ -26,6 +26,7 @@ const apiEndpoints = {
     EVENTO_BY_ID: (id: number) => `/fixtures?id=${id}`,
     H2H: (team1: number, team2: number) => `/fixtures/headtohead?h2h=${team1}-${team2}`,
     TABLA_CLASIFICACION: (leagueId: number, season: number = 2025) => `/standings?league=${leagueId}&season=${season}`,
+    EVENTOS_BY_IDS: (ids: number[]) => `/fixtures?ids=${ids.join('-')}`,
 
 };
 
@@ -82,6 +83,22 @@ export const getTablaClasificacion = async (leagueId: number, season: number = 2
             : [];
     } catch (error) {
         console.error('Error al obtener tabla de clasificación:', error);
+        throw error;
+    }
+};
+
+/**
+ * Obtener varios eventos por ids
+ * @param ids Array de IDs de eventos
+ * @returns Array de eventos
+ */
+export const getEventosByIds = async (ids: number[]): Promise<EventoResponseApi[]> => {
+    try {
+        const response = await get<EventoResponseApi>(apiEndpoints.EVENTOS_BY_IDS(ids));
+        return response.response;
+    }
+    catch (error) {
+        console.error('Error al obtener eventos por IDs:', error);
         throw error;
     }
 };

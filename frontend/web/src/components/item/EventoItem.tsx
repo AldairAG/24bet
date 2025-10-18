@@ -1,28 +1,17 @@
 import React from 'react';
-import type { Evento } from '../../types/EventosType';
+import type { EventoResponseApi } from '../../types/sportApiTypes';
 
 export interface EventoItemProps {
-  evento:Evento;
-  onBetClick: (
-    eventoId: number,
-    eventoName: string,
-    tipoApuesta: string,
-    descripcion: string,
-    odd: number,
-    valueId: number
-  ) => void;
-  isBetSelected: (valueId: number, eventoId: number) => boolean;
+  evento: EventoResponseApi;
+  isLive: boolean;
 }
 
 const EventoItem: React.FC<EventoItemProps> = ({
   evento,
-  onBetClick,
-  isBetSelected
+  isLive
 }) => {
-  const eventoName = `${evento.fixture.name} vs ${evento.awayTeam.name}`;
 
-  const handleBetClick = (option: BettingOption) => {
-    onBetClick(id, eventoName, option.description, option.label, option.odd, option.id);
+  const handleBetClick = () => {
   };
   
   return (
@@ -34,14 +23,12 @@ const EventoItem: React.FC<EventoItemProps> = ({
           {isLive ? (
             <>
               <span className="bg-green-500 text-white px-2 py-1 rounded text-xs font-bold">EN VIVO</span>
-              <span className="text-xs text-gray-300">{time}</span>
+              <span className="text-xs text-gray-300">{evento?.fixture.date}</span>
             </>
           ) : (
-            <span className="text-xs text-gray-300">{time}</span>
+            <span className="text-xs text-gray-300">{evento?.fixture.date}</span>
           )}
-          {hasFavorite && <span className="text-xs">⭐</span>}
-          {hasVideo && <span className="text-xs">📺</span>}
-          <span className="text-xs text-gray-300">{countryFlag} {league}</span>
+          <span className="text-xs text-gray-300">{evento?.league.name} {evento?.league.country}</span>
         </div>
         {isLive && (
           <div className="flex items-center space-x-2">
@@ -59,23 +46,23 @@ const EventoItem: React.FC<EventoItemProps> = ({
         <div className="flex-1">
           <div className="flex items-center space-x-2 mb-1">
             <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-            <span className="text-sm">{homeTeam.name}</span>
-            {isLive && homeTeam.score !== undefined && (
-              <span className="text-sm font-bold">{homeTeam.score}</span>
+            <span className="text-sm">{evento?.teams.home.name}</span>
+            {isLive && evento?.goals.home !==undefined && (
+              <span className="text-sm font-bold">{evento?.goals.home}</span>
             )}
           </div>
           <div className="flex items-center space-x-2">
             <span className="w-2 h-2 bg-black rounded-full"></span>
-            <span className="text-sm">{awayTeam.name}</span>
-            {isLive && awayTeam.score !== undefined && (
-              <span className="text-sm font-bold">{awayTeam.score}</span>
+            <span className="text-sm">{evento?.teams.away.name}</span>
+            {isLive && evento?.goals.away !== undefined && (
+              <span className="text-sm font-bold">{evento?.goals.away}</span>
             )}
           </div>
         </div>
         
         {/* Botones de apuestas */}
         <div className="flex space-x-2 text-xs">
-          {bettingOptions.slice(0, 5).map((option) => (
+{/*           {bettingOptions.slice(0, 5).map((option) => (
             <button
               key={option.id}
               onClick={() => handleBetClick(option)}
@@ -95,7 +82,7 @@ const EventoItem: React.FC<EventoItemProps> = ({
             <div className="text-gray-400 px-2 py-1">
               <span>⋯</span>
             </div>
-          )}
+          )} */}
         </div>
       </div>
     </div>
