@@ -17,22 +17,36 @@ public class OddsLiveResponse {
     Fixture fixture;
     @JsonProperty("league")
     League league;
-    @JsonProperty("teams")
-    Teams teams;
+    /* @JsonProperty("teams")
+    Teams teams; */
     @JsonProperty("update")
     String update;
     @JsonProperty("status")
     OddStatus status;
     @JsonProperty("odds")
-    List<Odds> odds;
+    List<OddsLive> odds;
+
+    @Data
+    public static class OddsLive {
+        @JsonProperty("id")
+        private int id;
+        @JsonProperty("name")
+        private String name;
+        @JsonProperty("values")
+        private List<OddValue> bets;
+    }
+
+    @Data
+    public static class OddValue {
+        @JsonProperty("value")
+        String value;
+        @JsonProperty("odd")
+        String odd;
+        @JsonProperty("handicap")
+        String handicap;
+        @JsonProperty("main")
+        String main;
+        @JsonProperty("suspended")
+        Boolean suspended;
+    }
 }
-"id": 33,
-                    "name": "Asian Handicap",
-                    "values": [
-                        {
-                            "value": "Home",
-                            "odd": "1.9",
-                            "handicap": "0",
-                            "main": null,
-                            "suspended": true
-                        },

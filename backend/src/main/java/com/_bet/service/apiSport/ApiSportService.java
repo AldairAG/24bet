@@ -42,6 +42,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -63,7 +64,7 @@ public class ApiSportService {
     private final EquipoRepository equipoRepository;
     private final MomioRepository momioRepository;
     String urlEventosEnVivo = "https://v3.football.api-sports.io/fixtures?live=all";
-    String urlOddsEnVivo = "https://v3.football.api-sports.io/odds/live?";
+    String urlOddsEnVivo = "https://v3.football.api-sports.io/odds/live";
 
     /**
      * Metodo get base para consumir la API de ApiSport
@@ -218,7 +219,7 @@ public class ApiSportService {
         for (int i = 0; i < 7; i++) {
             LocalDateTime targetDate = tomorrow.plusDays(i);
             Date date = Date.from(targetDate.atZone(ZoneId.systemDefault()).toInstant());
-            // obtenerEventosByDate(date);
+            //obtenerEventosByDate(date);
         }
     }
 
@@ -500,10 +501,10 @@ public class ApiSportService {
         Response<EventsByLeagueResponse> eventosResponse = getFromSportApi(urlEventosEnVivo,
                 new ParameterizedTypeReference<Response<EventsByLeagueResponse>>() {
                 });
+        Response<OddsLiveResponse> oddsEnVivoResponse = getFromSportApi(urlOddsEnVivo,
+            new ParameterizedTypeReference<Response<OddsLiveResponse>>() {
+            });
 
-        Response<OddsLiveResponse> oddsResponse = getFromSportApi(urlOddsEnVivo,
-                new ParameterizedTypeReference<Response<OddsLiveResponse>>() {
-                });
 
     }
 }

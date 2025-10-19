@@ -13,10 +13,6 @@ import lombok.Data;
 public class Response<T> {
     @JsonProperty("get")
     private String get;
-    @JsonProperty("parameters")
-    private Map<String, String> parameters;
-    private List<String> errors;
-    @JsonProperty("results")
     private int results;
     private Paging paging;
 
