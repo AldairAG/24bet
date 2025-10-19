@@ -219,7 +219,7 @@ public class ApiSportService {
         for (int i = 0; i < 7; i++) {
             LocalDateTime targetDate = tomorrow.plusDays(i);
             Date date = Date.from(targetDate.atZone(ZoneId.systemDefault()).toInstant());
-            //obtenerEventosByDate(date);
+            // obtenerEventosByDate(date);
         }
     }
 
@@ -501,10 +501,36 @@ public class ApiSportService {
         Response<EventsByLeagueResponse> eventosResponse = getFromSportApi(urlEventosEnVivo,
                 new ParameterizedTypeReference<Response<EventsByLeagueResponse>>() {
                 });
+
         Response<OddsLiveResponse> oddsEnVivoResponse = getFromSportApi(urlOddsEnVivo,
-            new ParameterizedTypeReference<Response<OddsLiveResponse>>() {
-            });
+                new ParameterizedTypeReference<Response<OddsLiveResponse>>() {
+                });
 
+        eventosResponse.getResponse().forEach(eventoEnVivo -> {
+            EventoDeportivo existingEvent = eventoDeportivoRepository
+                    .findByApiSportsId(eventoEnVivo.getFixture().getId());
 
+            if (existingEvent != null) {
+                // Actualiza el estado del evento existente
+                existingEvent.getEstado().setLargo(eventoEnVivo.getFixture().getStatus().getLongStatus());
+                existingEvent.getEstado().setCorto(eventoEnVivo.getFixture().getStatus().getShortStatus());
+                existingEvent.getEstado().setElapsed(eventoEnVivo.getFixture().getStatus().getElapsed());
+                existingEvent.getEstado().setExtra(eventoEnVivo.getFixture().getStatus().getExtra());
+                existingEvent.setFechaActualizacion(LocalDateTime.now());
+
+                //Actualizacion de goles
+                existingEvent.getGoles().setLocales(eventoEnVivo.getScore().getFulltime().getHome() != null ? eventoEnVivo.getScore().getFulltime().getHome() : 0);
+                existingEvent.getGoles().setVisitantes(eventoEnVivo.getScore().getFulltime().getAway() != null ? eventoEnVivo.getScore().getFulltime().getAway() : 0);
+
+                existingEvent.getGoles().getFulltime().setLocales(eventoEnVivo.getScore().getFulltime().getHome());
+                existingEvent.getGoles().getFulltime().setVisitantes(eventoEnVivo.getScore().getFulltime().getAway());
+
+                existingEvent.getGoles().getExtratime().setLocales(eventoEnVivo.getScore().getExtratime().getHome());
+                existingEvent.getGoles().getExtratime().setVisitantes(eventoEnVivo.getScore().getExtratime().getAway());
+                
+                existingEvent.getGoles().getPenalty().setLocales(eventoEnVivo.getScore().getPenalty().getHome());
+                existingEvent.getGoles().getPenalty().setVisitantes(eventoEnVivo.getScore().getPenalty().getAway());
+            }
+        });
     }
 }

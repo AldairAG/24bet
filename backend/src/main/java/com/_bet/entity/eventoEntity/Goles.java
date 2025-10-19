@@ -1,10 +1,6 @@
 package com._bet.entity.eventoEntity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -20,9 +16,42 @@ public class Goles {
     private Integer visitantes;
     private Integer locales;
 
-    /**
-     * Evento asociado a estos goles
-     */
+    @Embedded
+    private FullTime fulltime;
+    
+    @Embedded
+    private ExtraTime extratime;
+    
+    @Embedded
+    private Penalty penalty;
+    
+    @Embeddable
+    @Data
+    public static class FullTime {
+        @Column(name = "fulltime_visitantes")
+        private Integer visitantes;
+        @Column(name = "fulltime_locales")
+        private Integer locales;
+    }
+    
+    @Embeddable
+    @Data
+    public static class ExtraTime {
+        @Column(name = "extratime_visitantes")
+        private Integer visitantes;
+        @Column(name = "extratime_locales")
+        private Integer locales;
+    }
+    
+    @Embeddable
+    @Data
+    public static class Penalty {
+        @Column(name = "penalty_visitantes")
+        private Integer visitantes;
+        @Column(name = "penalty_locales")
+        private Integer locales;
+    }
+
     @OneToOne(mappedBy = "goles")
     private EventoDeportivo evento;
 }

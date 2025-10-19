@@ -29,9 +29,9 @@ public class Fixture {
         @JsonProperty("short")
         private String shortStatus;
         @JsonProperty("elapsed")
-        private String elapsed;
+        private int elapsed;
         @JsonProperty("extra")
-        private String extra;
+        private int extra;
     }
 
 }
