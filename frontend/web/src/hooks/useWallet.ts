@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { CreateCryptoWalletDto, TipoCrypto, SolicitudDepositoDto, SolicitudRetiroDto } from '../types/walletTypes';
+import type { CreateCryptoWalletDto, TipoCrypto, SolicitudDepositoDto, SolicitudRetiroDto } from '../types/walletTypes';
 import {
     // Thunks
     createCryptoWallet,
@@ -256,17 +256,17 @@ export const useWallet = () => {
      */
     const hasErrors = useCallback((): boolean => {
         return !!(
-            createWalletError || 
-            loadUserWalletsError || 
-            deactivateWalletError || 
+            createWalletError ||
+            loadUserWalletsError ||
+            deactivateWalletError ||
             validationError ||
             depositRequestState.error ||
             withdrawalRequestState.error
         );
     }, [
-        createWalletError, 
-        loadUserWalletsError, 
-        deactivateWalletError, 
+        createWalletError,
+        loadUserWalletsError,
+        deactivateWalletError,
         validationError,
         depositRequestState.error,
         withdrawalRequestState.error
@@ -285,9 +285,9 @@ export const useWallet = () => {
         if (withdrawalRequestState.error) errors.push(withdrawalRequestState.error);
         return errors;
     }, [
-        createWalletError, 
-        loadUserWalletsError, 
-        deactivateWalletError, 
+        createWalletError,
+        loadUserWalletsError,
+        deactivateWalletError,
         validationError,
         depositRequestState.error,
         withdrawalRequestState.error

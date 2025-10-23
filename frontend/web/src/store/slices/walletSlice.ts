@@ -1,5 +1,5 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { CreateCryptoWalletDto, TipoCrypto, CryptoWalletDto, SolicitudDepositoResponse, SolicitudRetiroDto, SolicitudRetiroResponse, SolicitudDepositoDto } from '../../types/walletTypes';
+import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
+import type { CreateCryptoWalletDto, TipoCrypto, CryptoWalletDto, SolicitudDepositoResponse, SolicitudRetiroDto, SolicitudRetiroResponse, SolicitudDepositoDto } from '../../types/walletTypes';
 import { walletService } from '../../service/walletService';
 
 // ========== ESTADO INICIAL ==========
@@ -151,7 +151,7 @@ export const getUserWallets = createAsyncThunk<
     async (usuarioId, { rejectWithValue }) => {
         try {
             const wallets = await walletService.getWalletsByUsuario(usuarioId) || [];
-            return wallets.data || [] ;
+            return wallets.data || [];
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Error al cargar wallets del usuario';
             return rejectWithValue(errorMessage);

@@ -40,10 +40,10 @@ export interface InformacionPersonal {
 }
 
 export const Genero = {
-    MASCULINO: "Masculino",
-    FEMENINO: "Femenino",
-    OTRO: "Otro",
-    NO_ESPECIFICADO: "No Especificado"
+    MASCULINO: "MASCULINO",
+    FEMENINO: "FEMENINO",
+    OTRO: "OTRO",
+    NO_ESPECIFICADO: "NO_ESPECIFICADO"
 } as const;
 
 export type Genero = typeof Genero[keyof typeof Genero];

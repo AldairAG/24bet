@@ -1,47 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useToast } from '../../../components/Toast';
-
-// Interfaces
-interface PerfilUsuario {
-  // Información de Cuenta
-  nombreUsuario: string;
-  email: string;
-  
-  // Información Personal
-  nombre: string;
-  apellido: string;
-  
-  // Información de Contacto
-  codigoPais: string;
-  numeroTelefono: string;
-  
-  // Información Adicional
-  genero: string;
-  ocupacion: string;
-  
-  // Dirección
-  calle: string;
-  numeroExterior: string;
-  numeroInterior: string;
-  colonia: string;
-  codigoPostal: string;
-  ciudad: string;
-  estado: string;
-  pais: string;
-  
-  // Información Fiscal
-  rfc: string;
-}
+import { useUser } from '../../../hooks/useUser';
+import { useAuth } from '../../../hooks/useAuth';
+import type { EditUserProfile } from '../../../types/userTypes';
+import type { Genero } from '../../../types/kycTypes';
 
 // Opciones para selects
 const generos = [
-  { value: '', label: 'Seleccionar género' },
-  { value: 'masculino', label: 'Masculino' },
-  { value: 'femenino', label: 'Femenino' },
-  { value: 'otro', label: 'Otro' },
-  { value: 'prefiero-no-decir', label: 'Prefiero no decir' }
+  { value: 'MASCULINO', label: 'Masculino' },
+  { value: 'FEMENINO', label: 'Femenino' },
+  { value: 'OTRO', label: 'Otro' },
+  { value: 'NO_ESPECIFICADO', label: 'Prefiero no decir' }
 ];
 
 const codigosPais = [
@@ -67,7 +38,7 @@ const paises = [
 
 // Esquema de validación
 const perfilValidationSchema = Yup.object().shape({
-  nombreUsuario: Yup.string()
+  username: Yup.string()
     .min(3, 'El nombre de usuario debe tener al menos 3 caracteres')
     .max(20, 'El nombre de usuario no puede tener más de 20 caracteres')
     .matches(/^[a-zA-Z0-9_]+$/, 'Solo se permiten letras, números y guiones bajos')
@@ -89,59 +60,61 @@ const perfilValidationSchema = Yup.object().shape({
     .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'Solo se permiten letras y espacios')
     .required('El apellido es obligatorio'),
   
-  codigoPais: Yup.string()
+  ladaTelefono: Yup.string()
     .required('El código de país es obligatorio'),
   
   numeroTelefono: Yup.string()
     .matches(/^\d{7,15}$/, 'El número debe tener entre 7 y 15 dígitos')
     .required('El número de teléfono es obligatorio'),
   
-  genero: Yup.string()
-    .required('El género es obligatorio'),
-  
-  ocupacion: Yup.string()
-    .min(2, 'La ocupación debe tener al menos 2 caracteres')
-    .max(50, 'La ocupación no puede tener más de 50 caracteres')
-    .required('La ocupación es obligatoria'),
-  
-  calle: Yup.string()
-    .min(5, 'La calle debe tener al menos 5 caracteres')
-    .max(100, 'La calle no puede tener más de 100 caracteres')
-    .required('La calle es obligatoria'),
-  
-  numeroExterior: Yup.string()
-    .min(1, 'El número exterior es obligatorio')
-    .max(10, 'El número exterior no puede tener más de 10 caracteres')
-    .required('El número exterior es obligatorio'),
-  
-  numeroInterior: Yup.string()
-    .max(10, 'El número interior no puede tener más de 10 caracteres'),
-  
-  colonia: Yup.string()
-    .min(2, 'La colonia debe tener al menos 2 caracteres')
-    .max(50, 'La colonia no puede tener más de 50 caracteres')
-    .required('La colonia es obligatoria'),
-  
-  codigoPostal: Yup.string()
-    .matches(/^\d{5}$/, 'El código postal debe tener exactamente 5 dígitos')
-    .required('El código postal es obligatorio'),
-  
-  ciudad: Yup.string()
-    .min(2, 'La ciudad debe tener al menos 2 caracteres')
-    .max(50, 'La ciudad no puede tener más de 50 caracteres')
-    .required('La ciudad es obligatoria'),
-  
-  estado: Yup.string()
-    .min(2, 'El estado debe tener al menos 2 caracteres')
-    .max(50, 'El estado no puede tener más de 50 caracteres')
-    .required('El estado es obligatorio'),
-  
-  pais: Yup.string()
-    .required('El país es obligatorio'),
-  
-  rfc: Yup.string()
-    .matches(/^[A-Z&Ñ]{3,4}[0-9]{6}[A-Z0-9]{3}$/, 'Formato de RFC inválido (ej: XAXX010101000)')
-    .required('El RFC es obligatorio')
+  informacionPersonal: Yup.object().shape({
+    genero: Yup.string()
+      .required('El género es obligatorio'),
+    
+    ocupacion: Yup.string()
+      .min(2, 'La ocupación debe tener al menos 2 caracteres')
+      .max(50, 'La ocupación no puede tener más de 50 caracteres')
+      .required('La ocupación es obligatoria'),
+    
+    calle: Yup.string()
+      .min(5, 'La calle debe tener al menos 5 caracteres')
+      .max(100, 'La calle no puede tener más de 100 caracteres')
+      .required('La calle es obligatoria'),
+    
+    numeroExterior: Yup.string()
+      .min(1, 'El número exterior es obligatorio')
+      .max(10, 'El número exterior no puede tener más de 10 caracteres')
+      .required('El número exterior es obligatorio'),
+    
+    numeroInterior: Yup.string()
+      .max(10, 'El número interior no puede tener más de 10 caracteres'),
+    
+    colonia: Yup.string()
+      .min(2, 'La colonia debe tener al menos 2 caracteres')
+      .max(50, 'La colonia no puede tener más de 50 caracteres')
+      .required('La colonia es obligatoria'),
+    
+    codigoPostal: Yup.string()
+      .matches(/^\d{5}$/, 'El código postal debe tener exactamente 5 dígitos')
+      .required('El código postal es obligatorio'),
+    
+    ciudad: Yup.string()
+      .min(2, 'La ciudad debe tener al menos 2 caracteres')
+      .max(50, 'La ciudad no puede tener más de 50 caracteres')
+      .required('La ciudad es obligatoria'),
+    
+    estado: Yup.string()
+      .min(2, 'El estado debe tener al menos 2 caracteres')
+      .max(50, 'El estado no puede tener más de 50 caracteres')
+      .required('El estado es obligatorio'),
+    
+    pais: Yup.string()
+      .required('El país es obligatorio'),
+    
+    rfc: Yup.string()
+      .matches(/^[A-Z&Ñ]{3,4}[0-9]{6}[A-Z0-9]{3}$/, 'Formato de RFC inválido (ej: XAXX010101000)')
+      .required('El RFC es obligatorio')
+  })
 });
 
 const PerfilPage = () => {
@@ -149,44 +122,41 @@ const PerfilPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
-  // Simulación de hooks (pueden ser reemplazados por los reales)
-  const useAuth = () => ({
-    usuario: { id: 1, nombre: 'Usuario Demo' }
-  });
+  // Hooks reales
+  const { editarPerfil } = useUser();
+  const { usuario } = useAuth();
 
-  const authHook = useAuth();
-
-  // Valores iniciales (simulados - en producción vendrían de la API)
-  const initialValues: PerfilUsuario = {
-    nombreUsuario: 'demo_user',
-    email: 'demo@24bet.com',
-    nombre: 'Juan Carlos',
-    apellido: 'Pérez López',
-    codigoPais: '+52',
-    numeroTelefono: '5551234567',
-    genero: 'masculino',
-    ocupacion: 'Ingeniero de Software',
-    calle: 'Av. Revolución',
-    numeroExterior: '123',
-    numeroInterior: 'A',
-    colonia: 'San Ángel',
-    codigoPostal: '01000',
-    ciudad: 'Ciudad de México',
-    estado: 'Ciudad de México',
-    pais: 'mexico',
-    rfc: 'PELJ850101ABC'
-  };
-
-  const formik = useFormik({
-    initialValues,
+  const formik = useFormik<EditUserProfile>({
+    initialValues: {
+      username: usuario?.username || '',
+      email: usuario?.email || '',
+      nombre: usuario?.nombre || '',
+      apellido: usuario?.apellido || '',
+      ladaTelefono: usuario?.ladaTelefono || '+52',
+      numeroTelefono: usuario?.numeroTelefono || '',
+      informacionPersonal: {
+        id: usuario?.informacionPersonal?.id || 0,
+        genero: usuario?.informacionPersonal?.genero || 'MASCULINO' as Genero,
+        calle: usuario?.informacionPersonal?.calle || '',
+        numeroExterior: usuario?.informacionPersonal?.numeroExterior || '',
+        numeroInterior: usuario?.informacionPersonal?.numeroInterior || '',
+        colonia: usuario?.informacionPersonal?.colonia || '',
+        codigoPostal: usuario?.informacionPersonal?.codigoPostal || '',
+        ciudad: usuario?.informacionPersonal?.ciudad || '',
+        estado: usuario?.informacionPersonal?.estado || '',
+        pais: usuario?.informacionPersonal?.pais || '',
+        rfc: usuario?.informacionPersonal?.rfc || '',
+        ocupacion: usuario?.informacionPersonal?.ocupacion || '',
+        nacionalidad:'',
+        fechaCreacion: new Date(),
+        fechaActualizacion: new Date(),
+      },
+    },
     validationSchema: perfilValidationSchema,
     onSubmit: async (values) => {
       setIsLoading(true);
       try {
-        // Simulación de API call
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        console.log('Datos del perfil:', values);
+        await editarPerfil(values);
         showToast('Perfil actualizado correctamente', 'success');
         setIsEditing(false);
       } catch (error) {
@@ -293,8 +263,8 @@ const PerfilPage = () => {
                 </label>
                 <input
                   type="text"
-                  name="nombreUsuario"
-                  value={formik.values.nombreUsuario}
+                  name="username"
+                  value={formik.values.username}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                   disabled={!isEditing}
@@ -305,8 +275,8 @@ const PerfilPage = () => {
                   }`}
                   placeholder="Ej: juan_perez"
                 />
-                {formik.touched.nombreUsuario && formik.errors.nombreUsuario && (
-                  <p className="text-red-600 text-sm mt-1">{formik.errors.nombreUsuario}</p>
+                {formik.touched.username && formik.errors.username && (
+                  <p className="text-red-600 text-sm mt-1">{formik.errors.username}</p>
                 )}
               </div>
 
@@ -417,11 +387,12 @@ const PerfilPage = () => {
                 </label>
                 <div className="relative">
                   <select
-                    name="codigoPais"
-                    value={formik.values.codigoPais}
+                    name="ladaTelefono"
+                    value={formik.values.ladaTelefono}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     disabled={!isEditing}
+                    aria-label="Código de País"
                     className={`w-full px-4 py-3 border-2 rounded-xl text-gray-900 appearance-none transition-all duration-300 ${
                       !isEditing
                         ? 'bg-gray-100 border-gray-200 cursor-not-allowed'
@@ -440,8 +411,8 @@ const PerfilPage = () => {
                     </svg>
                   </div>
                 </div>
-                {formik.touched.codigoPais && formik.errors.codigoPais && (
-                  <p className="text-red-600 text-sm mt-1">{formik.errors.codigoPais}</p>
+                {formik.touched.ladaTelefono && formik.errors.ladaTelefono && (
+                  <p className="text-red-600 text-sm mt-1">{formik.errors.ladaTelefono}</p>
                 )}
               </div>
 
@@ -490,11 +461,12 @@ const PerfilPage = () => {
                 </label>
                 <div className="relative">
                   <select
-                    name="genero"
-                    value={formik.values.genero}
+                    name="informacionPersonal.genero"
+                    value={formik.values.informacionPersonal.genero}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     disabled={!isEditing}
+                    aria-label="Género"
                     className={`w-full px-4 py-3 border-2 rounded-xl text-gray-900 appearance-none transition-all duration-300 ${
                       !isEditing
                         ? 'bg-gray-100 border-gray-200 cursor-not-allowed'
@@ -513,8 +485,8 @@ const PerfilPage = () => {
                     </svg>
                   </div>
                 </div>
-                {formik.touched.genero && formik.errors.genero && (
-                  <p className="text-red-600 text-sm mt-1">{formik.errors.genero}</p>
+                {formik.touched.informacionPersonal?.genero && formik.errors.informacionPersonal?.genero && (
+                  <p className="text-red-600 text-sm mt-1">{formik.errors.informacionPersonal.genero}</p>
                 )}
               </div>
 
@@ -525,8 +497,8 @@ const PerfilPage = () => {
                 </label>
                 <input
                   type="text"
-                  name="ocupacion"
-                  value={formik.values.ocupacion}
+                  name="informacionPersonal.ocupacion"
+                  value={formik.values.informacionPersonal.ocupacion}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                   disabled={!isEditing}
@@ -537,8 +509,8 @@ const PerfilPage = () => {
                   }`}
                   placeholder="Ej: Ingeniero de Software"
                 />
-                {formik.touched.ocupacion && formik.errors.ocupacion && (
-                  <p className="text-red-600 text-sm mt-1">{formik.errors.ocupacion}</p>
+                {formik.touched.informacionPersonal?.ocupacion && formik.errors.informacionPersonal?.ocupacion && (
+                  <p className="text-red-600 text-sm mt-1">{formik.errors.informacionPersonal.ocupacion}</p>
                 )}
               </div>
             </div>
@@ -565,8 +537,8 @@ const PerfilPage = () => {
                   </label>
                   <input
                     type="text"
-                    name="calle"
-                    value={formik.values.calle}
+                    name="informacionPersonal.calle"
+                    value={formik.values.informacionPersonal.calle}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     disabled={!isEditing}
@@ -577,8 +549,8 @@ const PerfilPage = () => {
                     }`}
                     placeholder="Ej: Av. Revolución"
                   />
-                  {formik.touched.calle && formik.errors.calle && (
-                    <p className="text-red-600 text-sm mt-1">{formik.errors.calle}</p>
+                  {formik.touched.informacionPersonal?.calle && formik.errors.informacionPersonal?.calle && (
+                    <p className="text-red-600 text-sm mt-1">{formik.errors.informacionPersonal.calle}</p>
                   )}
                 </div>
 
@@ -588,8 +560,8 @@ const PerfilPage = () => {
                   </label>
                   <input
                     type="text"
-                    name="numeroExterior"
-                    value={formik.values.numeroExterior}
+                    name="informacionPersonal.numeroExterior"
+                    value={formik.values.informacionPersonal.numeroExterior}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     disabled={!isEditing}
@@ -600,8 +572,8 @@ const PerfilPage = () => {
                     }`}
                     placeholder="Ej: 123"
                   />
-                  {formik.touched.numeroExterior && formik.errors.numeroExterior && (
-                    <p className="text-red-600 text-sm mt-1">{formik.errors.numeroExterior}</p>
+                  {formik.touched.informacionPersonal?.numeroExterior && formik.errors.informacionPersonal?.numeroExterior && (
+                    <p className="text-red-600 text-sm mt-1">{formik.errors.informacionPersonal.numeroExterior}</p>
                   )}
                 </div>
               </div>
@@ -614,8 +586,8 @@ const PerfilPage = () => {
                   </label>
                   <input
                     type="text"
-                    name="numeroInterior"
-                    value={formik.values.numeroInterior}
+                    name="informacionPersonal.numeroInterior"
+                    value={formik.values.informacionPersonal.numeroInterior}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     disabled={!isEditing}
@@ -626,8 +598,8 @@ const PerfilPage = () => {
                     }`}
                     placeholder="Ej: A (opcional)"
                   />
-                  {formik.touched.numeroInterior && formik.errors.numeroInterior && (
-                    <p className="text-red-600 text-sm mt-1">{formik.errors.numeroInterior}</p>
+                  {formik.touched.informacionPersonal?.numeroInterior && formik.errors.informacionPersonal?.numeroInterior && (
+                    <p className="text-red-600 text-sm mt-1">{formik.errors.informacionPersonal.numeroInterior}</p>
                   )}
                 </div>
 
@@ -637,8 +609,8 @@ const PerfilPage = () => {
                   </label>
                   <input
                     type="text"
-                    name="colonia"
-                    value={formik.values.colonia}
+                    name="informacionPersonal.colonia"
+                    value={formik.values.informacionPersonal.colonia}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     disabled={!isEditing}
@@ -649,8 +621,8 @@ const PerfilPage = () => {
                     }`}
                     placeholder="Ej: San Ángel"
                   />
-                  {formik.touched.colonia && formik.errors.colonia && (
-                    <p className="text-red-600 text-sm mt-1">{formik.errors.colonia}</p>
+                  {formik.touched.informacionPersonal?.colonia && formik.errors.informacionPersonal?.colonia && (
+                    <p className="text-red-600 text-sm mt-1">{formik.errors.informacionPersonal.colonia}</p>
                   )}
                 </div>
               </div>
@@ -663,8 +635,8 @@ const PerfilPage = () => {
                   </label>
                   <input
                     type="text"
-                    name="codigoPostal"
-                    value={formik.values.codigoPostal}
+                    name="informacionPersonal.codigoPostal"
+                    value={formik.values.informacionPersonal.codigoPostal}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     disabled={!isEditing}
@@ -676,8 +648,8 @@ const PerfilPage = () => {
                     placeholder="Ej: 01000"
                     maxLength={5}
                   />
-                  {formik.touched.codigoPostal && formik.errors.codigoPostal && (
-                    <p className="text-red-600 text-sm mt-1">{formik.errors.codigoPostal}</p>
+                  {formik.touched.informacionPersonal?.codigoPostal && formik.errors.informacionPersonal?.codigoPostal && (
+                    <p className="text-red-600 text-sm mt-1">{formik.errors.informacionPersonal.codigoPostal}</p>
                   )}
                 </div>
 
@@ -687,8 +659,8 @@ const PerfilPage = () => {
                   </label>
                   <input
                     type="text"
-                    name="ciudad"
-                    value={formik.values.ciudad}
+                    name="informacionPersonal.ciudad"
+                    value={formik.values.informacionPersonal.ciudad}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     disabled={!isEditing}
@@ -699,8 +671,8 @@ const PerfilPage = () => {
                     }`}
                     placeholder="Ej: Ciudad de México"
                   />
-                  {formik.touched.ciudad && formik.errors.ciudad && (
-                    <p className="text-red-600 text-sm mt-1">{formik.errors.ciudad}</p>
+                  {formik.touched.informacionPersonal?.ciudad && formik.errors.informacionPersonal?.ciudad && (
+                    <p className="text-red-600 text-sm mt-1">{formik.errors.informacionPersonal.ciudad}</p>
                   )}
                 </div>
               </div>
@@ -713,8 +685,8 @@ const PerfilPage = () => {
                   </label>
                   <input
                     type="text"
-                    name="estado"
-                    value={formik.values.estado}
+                    name="informacionPersonal.estado"
+                    value={formik.values.informacionPersonal.estado}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     disabled={!isEditing}
@@ -725,8 +697,8 @@ const PerfilPage = () => {
                     }`}
                     placeholder="Ej: Ciudad de México"
                   />
-                  {formik.touched.estado && formik.errors.estado && (
-                    <p className="text-red-600 text-sm mt-1">{formik.errors.estado}</p>
+                  {formik.touched.informacionPersonal?.estado && formik.errors.informacionPersonal?.estado && (
+                    <p className="text-red-600 text-sm mt-1">{formik.errors.informacionPersonal.estado}</p>
                   )}
                 </div>
 
@@ -736,11 +708,12 @@ const PerfilPage = () => {
                   </label>
                   <div className="relative">
                     <select
-                      name="pais"
-                      value={formik.values.pais}
+                      name="informacionPersonal.pais"
+                      value={formik.values.informacionPersonal.pais}
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
                       disabled={!isEditing}
+                      aria-label="País"
                       className={`w-full px-4 py-3 border-2 rounded-xl text-gray-900 appearance-none transition-all duration-300 ${
                         !isEditing
                           ? 'bg-gray-100 border-gray-200 cursor-not-allowed'
@@ -759,8 +732,8 @@ const PerfilPage = () => {
                       </svg>
                     </div>
                   </div>
-                  {formik.touched.pais && formik.errors.pais && (
-                    <p className="text-red-600 text-sm mt-1">{formik.errors.pais}</p>
+                  {formik.touched.informacionPersonal?.pais && formik.errors.informacionPersonal?.pais && (
+                    <p className="text-red-600 text-sm mt-1">{formik.errors.informacionPersonal.pais}</p>
                   )}
                 </div>
               </div>
@@ -786,21 +759,20 @@ const PerfilPage = () => {
                 </label>
                 <input
                   type="text"
-                  name="rfc"
-                  value={formik.values.rfc}
+                  name="informacionPersonal.rfc"
+                  value={formik.values.informacionPersonal.rfc}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                   disabled={!isEditing}
-                  className={`w-full px-4 py-3 border-2 rounded-xl text-gray-900 font-mono transition-all duration-300 ${
+                  className={`w-full px-4 py-3 border-2 rounded-xl text-gray-900 font-mono uppercase transition-all duration-300 ${
                     !isEditing
                       ? 'bg-gray-100 border-gray-200 cursor-not-allowed'
                       : 'bg-gray-50 border-gray-300 hover:bg-white hover:border-gray-400 focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 focus:outline-none'
                   }`}
                   placeholder="Ej: XAXX010101000"
-                  style={{ textTransform: 'uppercase' }}
                 />
-                {formik.touched.rfc && formik.errors.rfc && (
-                  <p className="text-red-600 text-sm mt-1">{formik.errors.rfc}</p>
+                {formik.touched.informacionPersonal?.rfc && formik.errors.informacionPersonal?.rfc && (
+                  <p className="text-red-600 text-sm mt-1">{formik.errors.informacionPersonal.rfc}</p>
                 )}
                 <p className="text-xs text-gray-500 mt-1">
                   Formato: XAXX010101000 (4 letras + 6 números + 3 caracteres)
@@ -841,4 +813,4 @@ const PerfilPage = () => {
   );
 };
 
-export default PerfilPage
+export default PerfilPage;

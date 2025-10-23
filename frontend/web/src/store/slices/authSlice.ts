@@ -46,6 +46,7 @@ const removeFromSessionStorage = (key: string) => {
 };
 
 interface AuthState {
+	usuario: Usuario | null;
 	user: Usuario | null;
 	token: string | null;
 	loading: boolean;
@@ -59,6 +60,7 @@ const loadInitialState = (): AuthState => {
 	const savedToken = loadFromSessionStorage('auth_token');
 	
 	return {
+		usuario: savedUser,
 		user: savedUser,
 		token: savedToken,
 		loading: false,
@@ -115,6 +117,7 @@ const authSlice = createSlice({
 	reducers: {
 		logout(state) {
 			state.user = null;
+			state.usuario = null;
 			state.token = null;
 			state.isAuthenticated = false;
 			state.error = null;
@@ -124,6 +127,7 @@ const authSlice = createSlice({
 		},
 		setUser(state, action: PayloadAction<Usuario>) {
 			state.user = action.payload;
+			state.usuario = action.payload;
 			state.isAuthenticated = true;
 			// Guardar en sessionStorage
 			saveToSessionStorage('auth_user', action.payload);
@@ -133,6 +137,12 @@ const authSlice = createSlice({
 			// Guardar en sessionStorage
 			saveToSessionStorage('auth_token', action.payload);
 		},
+		setUsuario(state, action: PayloadAction<Usuario>) {
+			state.usuario = action.payload;
+			state.user = action.payload;
+			// Guardar en sessionStorage
+			saveToSessionStorage('auth_user', action.payload);
+		}
 	},
 	extraReducers: (builder) => {
 		builder
@@ -142,29 +152,13 @@ const authSlice = createSlice({
 			})
 			.addCase(registro.fulfilled, (state, action) => {
 				state.loading = false;
-				// Para el registro, convertimos UsuarioResponse a Usuario básico
-				const userData = action.payload.data;
-				const user = {
-					id: userData.id,
-					username: userData.username,
-					email: userData.email,
-					nombre: userData.nombre,
-					apellido: userData.apellido,
-					ladaTelefono: userData.ladaTelefono,
-					numeroTelefono: userData.numeroTelefono,
-					fechaNacimiento: new Date(userData.fechaNacimiento),
-					activo: true, // Asumimos que el usuario registrado está activo
-					fechaCreacion: new Date().toISOString(),
-					fechaActualizacion: new Date().toISOString(),
-					rol: 'USER', // Rol por defecto para usuarios registrados
-					informacionPersonal: {} as Usuario['informacionPersonal'], // Placeholder tipado
-					documentosKyc: [] // Array vacío inicial
-				};
-				state.user = user;
+				// Para el registro, guardamos el UsuarioResponse directamente
+				state.user = action.payload.data as unknown as Usuario;
+				state.usuario = action.payload.data as unknown as Usuario;
 				state.isAuthenticated = true;
 				state.error = null;
 				// Guardar en sessionStorage
-				saveToSessionStorage('auth_user', user);
+				saveToSessionStorage('auth_user', action.payload.data);
 			})
 			.addCase(registro.rejected, (state, action) => {
 				state.loading = false;
@@ -178,6 +172,7 @@ const authSlice = createSlice({
 				state.loading = false;
 				state.token = action.payload.data.token;
 				state.user = action.payload.data.user;
+				state.usuario = action.payload.data.user;
 				state.isAuthenticated = true;
 				state.error = null;
 				// Guardar en sessionStorage
@@ -191,5 +186,5 @@ const authSlice = createSlice({
 	},
 });
 
-export const { logout, setUser, setToken } = authSlice.actions;
+export const { logout, setUser, setToken, setUsuario } = authSlice.actions;
 export default authSlice.reducer;

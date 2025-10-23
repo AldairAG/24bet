@@ -44,7 +44,7 @@ export const useAuth = () => {
 	}, [dispatch]);
 
 	// Set user
-	const handleSetUser = useCallback((user: Usuario) => {
+	const handleSetUser = useCallback((user: Usuario ) => {
 		return dispatch(setUser(user));
 	}, [dispatch]);
 
