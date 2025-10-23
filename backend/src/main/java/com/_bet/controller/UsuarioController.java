@@ -32,7 +32,6 @@ public class UsuarioController {
     private final UsuarioService usuarioService;
 
     // ========== ENDPOINTS PARA ADMINISTRADORES ==========
-    // https://web.postman.co/workspace/My-Workspace~b4d7d548-256b-4458-83c1-7d3a47f9a191/collection/39804580-a8686f31-e866-43ae-900e-4ec4ddd6936f?action=share&source=copy-link&creator=39804580
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Listar todos los usuarios", description = "Solo disponible para administradores")
@@ -155,7 +154,7 @@ public class UsuarioController {
             @PathVariable Long id,
             @Valid @RequestBody EditarPerfilRequest request) {
         try {
-            System.out.println("ID del usuario autenticado: " + SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+            //System.out.println("ID del usuario autenticado: " + SecurityContextHolder.getContext().getAuthentication().getPrincipal());
             UsuarioResponse usuario = usuarioService.editarPerfil(id, request);
             return ResponseEntity.ok(new ApiResponseWrapper<>(
                     true,
