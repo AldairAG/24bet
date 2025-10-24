@@ -21,7 +21,12 @@ const HeaderAdmin: React.FC = () => {
       label: 'Usuarios',
       path: `${ROUTES.ADMIN_CONTAINER}/${ROUTES.ADMIN_USUARIOS}`,
       route: ROUTES.ADMIN_USUARIOS
-    } 
+    },
+    {
+      label: 'Eventos',
+      path: `${ROUTES.ADMIN_CONTAINER}/${ROUTES.ADMIN_EVENTOS}`,
+      route: ROUTES.ADMIN_EVENTOS
+    }
   ];
 
   const isActiveRoute = (route: string) => {
