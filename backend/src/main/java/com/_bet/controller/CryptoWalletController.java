@@ -64,9 +64,9 @@ public class CryptoWalletController {
      */
     @GetMapping("/usuario/{usuarioId}/activos")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<List<CryptoWalletDto>> getActiveWalletsByUsuario(@PathVariable Long usuarioId) {
+    public ResponseEntity<ApiResponseWrapper<List<CryptoWalletDto>>> getActiveWalletsByUsuario(@PathVariable Long usuarioId) {
         List<CryptoWalletDto> wallets = cryptoWalletService.getActiveWalletsByUsuario(usuarioId);
-        return ResponseEntity.ok(wallets);
+        return ResponseEntity.ok(new ApiResponseWrapper<>(true,"Wallets activas obtenidas correctamente",wallets));
     }
     
     /**

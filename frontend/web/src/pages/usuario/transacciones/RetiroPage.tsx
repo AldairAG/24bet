@@ -2,15 +2,16 @@ import { useState, useEffect } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useToast } from '../../../components/Toast';
+import { useWallet } from '../../../hooks/useWallet';
+import { useAuth } from '../../../hooks/useAuth';
+import { 
+  TipoCrypto, 
+  MetodoRetiro, 
+  EstadoSolicitud,
+  type SolicitudRetiroDto as SolicitudRetiroApiDto 
+} from '../../../types/walletTypes';
 
-// Enums para criptomonedas y métodos de retiro
-enum TipoCrypto {
-  BITCOIN = 'BTC',
-  ETHEREUM = 'ETH',
-  USDT = 'USDT',
-  SOLANA = 'SOL'
-}
-
+// Enum local para tipo de retiro en UI
 enum TipoRetiro {
   CRIPTOMONEDA = 'CRIPTOMONEDA',
   TRANSFERENCIA_BANCARIA = 'TRANSFERENCIA_BANCARIA'
@@ -44,17 +45,6 @@ interface CriptomonedaConfig {
   tasaCambio: number;
 }
 
-interface SolicitudRetiroDto {
-  tipoRetiro: TipoRetiro;
-  walletId?: string;
-  cuentaBancariaId?: string;
-  cantidadUSD: number;
-  cantidadCrypto?: number;
-  tipoCrypto?: TipoCrypto;
-  beneficiario?: string;
-  clabe?: string;
-}
-
 interface SolicitudRetiro {
   id: string;
   tipoRetiro: TipoRetiro;
@@ -85,7 +75,7 @@ const criptomonedas: Record<TipoCrypto, CriptomonedaConfig> = {
     tasaCambio: 2650
   },
   [TipoCrypto.USDT]: {
-    nombre: 'USDT (TRC20)',
+    nombre: 'USDT',
     simbolo: 'USDT',
     icono: '₮',
     color: '#26A17B',
@@ -97,6 +87,105 @@ const criptomonedas: Record<TipoCrypto, CriptomonedaConfig> = {
     icono: '◎',
     color: '#9945FF',
     tasaCambio: 98
+  },
+  // Agregar más criptomonedas con valores por defecto
+  [TipoCrypto.LITECOIN]: {
+    nombre: 'Litecoin',
+    simbolo: 'LTC',
+    icono: 'Ł',
+    color: '#345D9D',
+    tasaCambio: 85
+  },
+  [TipoCrypto.RIPPLE]: {
+    nombre: 'Ripple',
+    simbolo: 'XRP',
+    icono: '✕',
+    color: '#23292F',
+    tasaCambio: 0.5
+  },
+  [TipoCrypto.CARDANO]: {
+    nombre: 'Cardano',
+    simbolo: 'ADA',
+    icono: '₳',
+    color: '#0033AD',
+    tasaCambio: 0.4
+  },
+  [TipoCrypto.POLKADOT]: {
+    nombre: 'Polkadot',
+    simbolo: 'DOT',
+    icono: '●',
+    color: '#E6007A',
+    tasaCambio: 6
+  },
+  [TipoCrypto.CHAINLINK]: {
+    nombre: 'Chainlink',
+    simbolo: 'LINK',
+    icono: '⬡',
+    color: '#2A5ADA',
+    tasaCambio: 15
+  },
+  [TipoCrypto.BITCOIN_CASH]: {
+    nombre: 'Bitcoin Cash',
+    simbolo: 'BCH',
+    icono: '฿',
+    color: '#8DC351',
+    tasaCambio: 220
+  },
+  [TipoCrypto.STELLAR]: {
+    nombre: 'Stellar',
+    simbolo: 'XLM',
+    icono: '*',
+    color: '#000000',
+    tasaCambio: 0.12
+  },
+  [TipoCrypto.DOGECOIN]: {
+    nombre: 'Dogecoin',
+    simbolo: 'DOGE',
+    icono: 'Ð',
+    color: '#C2A633',
+    tasaCambio: 0.08
+  },
+  [TipoCrypto.POLYGON]: {
+    nombre: 'Polygon',
+    simbolo: 'MATIC',
+    icono: '⬡',
+    color: '#8247E5',
+    tasaCambio: 0.9
+  },
+  [TipoCrypto.AVALANCHE]: {
+    nombre: 'Avalanche',
+    simbolo: 'AVAX',
+    icono: '▲',
+    color: '#E84142',
+    tasaCambio: 35
+  },
+  [TipoCrypto.TRON]: {
+    nombre: 'Tron',
+    simbolo: 'TRX',
+    icono: '⚡',
+    color: '#FF060A',
+    tasaCambio: 0.1
+  },
+  [TipoCrypto.BINANCE_COIN]: {
+    nombre: 'Binance Coin',
+    simbolo: 'BNB',
+    icono: '◆',
+    color: '#F3BA2F',
+    tasaCambio: 310
+  },
+  [TipoCrypto.USDC]: {
+    nombre: 'USD Coin',
+    simbolo: 'USDC',
+    icono: '$',
+    color: '#2775CA',
+    tasaCambio: 1
+  },
+  [TipoCrypto.BUSD]: {
+    nombre: 'Binance USD',
+    simbolo: 'BUSD',
+    icono: '$',
+    color: '#F0B90B',
+    tasaCambio: 1
   }
 };
 
@@ -165,10 +254,31 @@ const cuentaBancariaValidationSchema = Yup.object().shape({
 const RetiroPage = () => {
   const { showToast, ToastComponent } = useToast();
   
+  // Hooks reales de wallet y autenticación
+  const { 
+    createWallet,
+    isCreatingWallet,
+    createdWallet,
+    createWalletError,
+    clearWallet,
+    createWithdrawal, 
+    isCreatingWithdrawalRequest, 
+    withdrawalRequestResponse,
+    withdrawalRequestError,
+    clearWithdrawal,
+    loadWithdrawalRequests,
+    withdrawalRequests,
+    isLoadingWithdrawalRequests,
+    loadWithdrawalRequestsError,
+    loadUserWallets,
+    userWallets,
+    isLoadingUserWallets
+  } = useWallet();
+  
+  const { usuario } = useAuth();
+  
   // Estados principales
-  const [wallets, setWallets] = useState<WalletInfo[]>([]);
   const [cuentasBancarias, setCuentasBancarias] = useState<CuentaBancariaInfo[]>([]);
-  const [solicitudesRetiro, setSolicitudesRetiro] = useState<SolicitudRetiro[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   
   // Estados para modales
@@ -183,12 +293,55 @@ const RetiroPage = () => {
   const [walletSeleccionada, setWalletSeleccionada] = useState<WalletInfo | null>(null);
   const [cuentaBancariaSeleccionada, setCuentaBancariaSeleccionada] = useState<CuentaBancariaInfo | null>(null);
 
-  // Simulación de hooks (pueden ser reemplazados por los reales)
-  const useAuth = () => ({
-    usuario: { id: 1, nombre: 'Usuario Demo' }
-  });
+  // Limpiar respuestas al desmontar
+  useEffect(() => {
+    return () => {
+      clearWithdrawal();
+      clearWallet();
+    };
+  }, [clearWithdrawal, clearWallet]);
 
-  const authHook = useAuth();
+  // Mostrar notificación cuando hay respuesta exitosa de retiro
+  useEffect(() => {
+    if (withdrawalRequestResponse) {
+      showToast(withdrawalRequestResponse.mensaje || 'Solicitud de retiro creada exitosamente', 'success');
+      setModalRetiroVisible(false);
+      setWalletSeleccionada(null);
+      setCuentaBancariaSeleccionada(null);
+      formikRetiro.resetForm();
+      clearWithdrawal();
+      // Recargar solicitudes
+      cargarSolicitudes();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [withdrawalRequestResponse, clearWithdrawal, showToast]);
+
+  // Mostrar notificación cuando hay error de retiro
+  useEffect(() => {
+    if (withdrawalRequestError) {
+      showToast(withdrawalRequestError, 'error');
+    }
+  }, [withdrawalRequestError, showToast]);
+
+  // Mostrar notificación cuando se crea wallet exitosamente
+  useEffect(() => {
+    if (createdWallet) {
+      showToast('Wallet agregada exitosamente', 'success');
+      setModalAgregarVisible(false);
+      formikWallet.resetForm();
+      clearWallet();
+      // Recargar wallets
+      cargarWallets();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [createdWallet, clearWallet, showToast]);
+
+  // Mostrar notificación cuando hay error al crear wallet
+  useEffect(() => {
+    if (createWalletError) {
+      showToast(createWalletError, 'error');
+    }
+  }, [createWalletError, showToast]);
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -197,29 +350,19 @@ const RetiroPage = () => {
     cargarSolicitudes();
   }, []);
 
-  const cargarWallets = () => {
-    // Simulación de wallets
-    const walletsSimuladas: WalletInfo[] = [
-      {
-        id: '1',
-        nombre: 'Mi Wallet Bitcoin',
-        direccion: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
-        criptomoneda: TipoCrypto.BITCOIN,
-        color: '#F7931A',
-        icono: '₿',
-        activa: true
-      },
-      {
-        id: '2',
-        nombre: 'Wallet Ethereum Principal',
-        direccion: '0x1234567890abcdef1234567890abcdef12345678',
-        criptomoneda: TipoCrypto.ETHEREUM,
-        color: '#627EEA',
-        icono: '⟠',
-        activa: true
-      }
-    ];
-    setWallets(walletsSimuladas);
+  // Cargar wallets reales desde el backend
+  const cargarWallets = async () => {
+    if (!usuario?.id) {
+      return;
+    }
+
+    try {
+      await loadUserWallets(usuario.id);
+      // Las wallets se guardan en Redux y se obtienen del selector userWallets
+    } catch (error) {
+      console.error('Error al cargar wallets:', error);
+      showToast('Error al cargar las wallets', 'error');
+    }
   };
 
   const cargarCuentasBancarias = () => {
@@ -237,28 +380,18 @@ const RetiroPage = () => {
     setCuentasBancarias(cuentasSimuladas);
   };
 
-  const cargarSolicitudes = () => {
-    // Simulación de solicitudes
-    const solicitudesSimuladas: SolicitudRetiro[] = [
-      {
-        id: '1',
-        tipoRetiro: TipoRetiro.CRIPTOMONEDA,
-        wallet: {
-          id: '1',
-          nombre: 'Mi Wallet Bitcoin',
-          direccion: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
-          criptomoneda: TipoCrypto.BITCOIN,
-          color: '#F7931A',
-          icono: '₿',
-          activa: true
-        },
-        cantidadUSD: 100,
-        cantidadCrypto: 0.0023,
-        estado: 'pendiente',
-        fecha: '2024-01-15T10:30:00Z'
-      }
-    ];
-    setSolicitudesRetiro(solicitudesSimuladas);
+  const cargarSolicitudes = async () => {
+    if (!usuario?.id) {
+      return;
+    }
+
+    try {
+      await loadWithdrawalRequests(usuario.id);
+      // Las solicitudes se guardan en Redux y se obtienen del selector withdrawalRequests
+    } catch (error) {
+      console.error('Error al cargar solicitudes de retiro:', error);
+      showToast('Error al cargar el historial de retiros', 'error');
+    }
   };
 
   // Formik para agregar wallet
@@ -270,27 +403,24 @@ const RetiroPage = () => {
     },
     validationSchema: walletValidationSchema,
     onSubmit: async (values) => {
-      setIsLoading(true);
+      if (!usuario?.id) {
+        showToast('Usuario no autenticado', 'error');
+        return;
+      }
+
       try {
-        const nuevaWallet: WalletInfo = {
-          id: Date.now().toString(),
+        // Crear wallet con el hook real
+        const walletData = {
           nombre: values.nombre,
-          direccion: values.direccion,
-          criptomoneda: values.criptomoneda as TipoCrypto,
-          color: criptomonedas[values.criptomoneda as TipoCrypto].color,
-          icono: criptomonedas[values.criptomoneda as TipoCrypto].icono,
-          activa: true
+          address: values.direccion,
+          tipoCrypto: values.criptomoneda as TipoCrypto
         };
         
-        setWallets(prev => [...prev, nuevaWallet]);
-        showToast('Wallet agregada exitosamente', 'success');
-        setModalAgregarVisible(false);
-        formikWallet.resetForm();
+        await createWallet(usuario.id, walletData);
+        // El éxito se maneja en el useEffect
       } catch (error) {
         console.error('Error al agregar wallet:', error);
-        showToast('Error al agregar wallet', 'error');
-      } finally {
-        setIsLoading(false);
+        // El error se maneja en el useEffect
       }
     }
   });
@@ -342,32 +472,59 @@ const RetiroPage = () => {
     },
     validationSchema: retiroValidationSchema,
     onSubmit: async (values) => {
-      if (values.tipoRetiro === TipoRetiro.CRIPTOMONEDA && !walletSeleccionada) return;
-      if (values.tipoRetiro === TipoRetiro.TRANSFERENCIA_BANCARIA && !values.beneficiario && !cuentaBancariaSeleccionada) return;
+      if (!usuario?.id) {
+        showToast('Usuario no autenticado', 'error');
+        return;
+      }
+
+      if (values.tipoRetiro === TipoRetiro.CRIPTOMONEDA && !walletSeleccionada) {
+        showToast('Debes seleccionar una wallet', 'error');
+        return;
+      }
       
-      setIsLoading(true);
+      if (values.tipoRetiro === TipoRetiro.TRANSFERENCIA_BANCARIA && !values.beneficiario) {
+        showToast('Debes ingresar los datos bancarios', 'error');
+        return;
+      }
+      
       try {
-        const nuevaSolicitud: SolicitudRetiro = {
-          id: Date.now().toString(),
-          tipoRetiro: values.tipoRetiro,
-          wallet: values.tipoRetiro === TipoRetiro.CRIPTOMONEDA ? walletSeleccionada || undefined : undefined,
-          cuentaBancaria: values.tipoRetiro === TipoRetiro.TRANSFERENCIA_BANCARIA ? cuentaBancariaSeleccionada || undefined : undefined,
-          cantidadUSD: values.cantidadUSD,
-          cantidadCrypto: values.tipoRetiro === TipoRetiro.CRIPTOMONEDA ? values.cantidadCrypto : undefined,
-          beneficiario: values.tipoRetiro === TipoRetiro.TRANSFERENCIA_BANCARIA ? values.beneficiario || cuentaBancariaSeleccionada?.beneficiario : undefined,
-          clabe: values.tipoRetiro === TipoRetiro.TRANSFERENCIA_BANCARIA ? values.clabe || cuentaBancariaSeleccionada?.clabe : undefined,
-          estado: 'pendiente',
-          fecha: new Date().toISOString()
+        // Crear solicitud de retiro con los datos del formulario
+        const retiroData: SolicitudRetiroApiDto = {
+          monto: values.cantidadUSD,
+          metodoRetiro: values.tipoRetiro === TipoRetiro.CRIPTOMONEDA 
+            ? (walletSeleccionada?.criptomoneda === TipoCrypto.BITCOIN ? MetodoRetiro.BITCOIN 
+              : walletSeleccionada?.criptomoneda === TipoCrypto.ETHEREUM ? MetodoRetiro.ETHEREUM
+              : walletSeleccionada?.criptomoneda === TipoCrypto.USDT ? MetodoRetiro.USDT
+              : walletSeleccionada?.criptomoneda === TipoCrypto.USDC ? MetodoRetiro.USDC
+              : MetodoRetiro.TRANSFERENCIA_CRYPTO)
+            : MetodoRetiro.TRANSFERENCIA_BANCARIA,
+          cuentaDestino: values.tipoRetiro === TipoRetiro.CRIPTOMONEDA 
+            ? walletSeleccionada?.nombre || ''
+            : values.beneficiario,
+          banco: values.tipoRetiro === TipoRetiro.TRANSFERENCIA_BANCARIA 
+            ? cuentaBancariaSeleccionada?.banco || 'N/A'
+            : '',
+          numeroCuenta: values.tipoRetiro === TipoRetiro.TRANSFERENCIA_BANCARIA 
+            ? values.clabe
+            : '',
+          titularCuenta: values.tipoRetiro === TipoRetiro.TRANSFERENCIA_BANCARIA 
+            ? values.beneficiario
+            : '',
+          direccionWallet: values.tipoRetiro === TipoRetiro.CRIPTOMONEDA 
+            ? walletSeleccionada?.direccion || ''
+            : '',
+          tipoCrypto: values.tipoRetiro === TipoRetiro.CRIPTOMONEDA 
+            ? (walletSeleccionada?.criptomoneda || TipoCrypto.BITCOIN)
+            : TipoCrypto.USDT, // Valor por defecto para retiros bancarios
+          observaciones: '',
+          estado: EstadoSolicitud.PENDIENTE
         };
         
-        setSolicitudesRetiro(prev => [nuevaSolicitud, ...prev]);
-        showToast('Solicitud de retiro creada exitosamente', 'success');
-        cerrarModales();
+        await createWithdrawal(usuario.id, retiroData);
+        // El éxito se maneja en el useEffect
       } catch (error) {
-        console.error('Error al crear solicitud:', error);
-        showToast('Error al crear solicitud de retiro', 'error');
-      } finally {
-        setIsLoading(false);
+        console.error('Error al crear retiro:', error);
+        // El error se maneja en el useEffect
       }
     }
   });
@@ -493,54 +650,70 @@ const RetiroPage = () => {
             </button>
           </div>
 
-          {wallets.length > 0 ? (
+          {isLoadingUserWallets ? (
+            <div className="bg-white rounded-xl shadow-md p-8 border border-gray-200 text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Cargando wallets...</p>
+            </div>
+          ) : userWallets.length > 0 ? (
             <div className="grid gap-4">
-              {wallets.map((wallet) => (
-                <div
-                  key={wallet.id}
-                  className="bg-white rounded-xl shadow-md p-6 border border-gray-200 hover:shadow-lg transition-all duration-300"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <div
-                        className="w-12 h-12 rounded-full flex items-center justify-center text-white text-xl font-bold mr-4"
-                        style={{ backgroundColor: wallet.color }}
-                      >
-                        {wallet.icono}
+              {userWallets.map((wallet) => {
+                const cryptoConfig = criptomonedas[wallet.tipoCrypto];
+                return (
+                  <div
+                    key={wallet.id}
+                    className="bg-white rounded-xl shadow-md p-6 border border-gray-200 hover:shadow-lg transition-all duration-300"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <div
+                          className="w-12 h-12 rounded-full flex items-center justify-center text-white text-xl font-bold mr-4"
+                          style={{ backgroundColor: cryptoConfig.color }}
+                        >
+                          {cryptoConfig.icono}
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-gray-900">{wallet.nombre}</h3>
+                          <p className="text-sm font-medium text-gray-600 mb-1">
+                            {cryptoConfig.nombre} ({wallet.tipoCrypto})
+                          </p>
+                          <p className="text-xs text-gray-500 font-mono break-all">
+                            {wallet.address}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900">{wallet.nombre}</h3>
-                        <p className="text-sm font-medium text-gray-600 mb-1">
-                          {criptomonedas[wallet.criptomoneda].nombre} ({wallet.criptomoneda})
-                        </p>
-                        <p className="text-xs text-gray-500 font-mono break-all">
-                          {wallet.direccion}
-                        </p>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => abrirModalRetiro({
+                            id: wallet.id.toString(),
+                            nombre: wallet.nombre,
+                            direccion: wallet.address,
+                            criptomoneda: wallet.tipoCrypto,
+                            color: cryptoConfig.color,
+                            icono: cryptoConfig.icono,
+                            activa: wallet.activo
+                          })}
+                          className="flex items-center gap-1 bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-105 duration-200"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                          </svg>
+                          Retirar
+                        </button>
+                        <button
+                          onClick={() => eliminarWallet(wallet.id.toString())}
+                          className="flex items-center justify-center w-10 h-10 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shadow-md hover:shadow-lg transform hover:scale-105 duration-200"
+                          title="Eliminar wallet"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => abrirModalRetiro(wallet)}
-                        className="flex items-center gap-1 bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm font-semibold shadow-md hover:shadow-lg transform hover:scale-105 duration-200"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                        </svg>
-                        Retirar
-                      </button>
-                      <button
-                        onClick={() => eliminarWallet(wallet.id)}
-                        className="flex items-center justify-center w-10 h-10 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shadow-md hover:shadow-lg transform hover:scale-105 duration-200"
-                        title="Eliminar wallet"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="bg-white rounded-xl shadow-md p-12 border border-gray-200 text-center">
@@ -656,18 +829,18 @@ const RetiroPage = () => {
         </div>
 
         {/* Solicitudes de Retiro */}
-        {solicitudesRetiro.length > 0 && (
+        {withdrawalRequests.length > 0 && (
           <div className="mb-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Historial de Retiros</h2>
             <div className="space-y-4">
-              {solicitudesRetiro.map((solicitud) => (
+              {withdrawalRequests.map((solicitud: any) => (
                 <div
                   key={solicitud.id}
                   className="bg-white rounded-xl shadow-md p-6 border border-gray-200"
                 >
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-gray-900">
-                      Retiro {solicitud.tipoRetiro === TipoRetiro.CRIPTOMONEDA ? solicitud.wallet?.nombre : solicitud.cuentaBancaria?.nombre}
+                      Retiro {solicitud.metodoRetiro}
                     </h3>
                     <span className={`px-3 py-1 rounded-full text-white text-sm font-bold ${getEstadoColor(solicitud.estado)}`}>
                       {getEstadoTexto(solicitud.estado)}
@@ -677,36 +850,40 @@ const RetiroPage = () => {
                     <div>
                       <p className="text-sm text-gray-600 mb-1">Cantidad:</p>
                       <p className="text-lg font-semibold text-gray-900">
-                        ${solicitud.cantidadUSD.toFixed(2)} USD
+                        ${solicitud.monto?.toFixed(2)} USD
                       </p>
-                      {solicitud.tipoRetiro === TipoRetiro.CRIPTOMONEDA && solicitud.cantidadCrypto && (
+                      {solicitud.direccionWallet && solicitud.tipoCrypto && (
                         <p className="text-sm text-gray-500">
-                          {solicitud.cantidadCrypto.toFixed(8)} {solicitud.wallet?.criptomoneda}
+                          {solicitud.tipoCrypto}
                         </p>
                       )}
                     </div>
                     <div>
-                      {solicitud.tipoRetiro === TipoRetiro.CRIPTOMONEDA ? (
+                      {solicitud.direccionWallet ? (
                         <>
                           <p className="text-sm text-gray-600 mb-1">Wallet:</p>
                           <p className="text-sm font-mono text-gray-500">
-                            {solicitud.wallet?.direccion}
+                            {solicitud.direccionWallet}
                           </p>
                         </>
                       ) : (
                         <>
                           <p className="text-sm text-gray-600 mb-1">Beneficiario:</p>
                           <p className="text-sm font-semibold text-gray-700">
-                            {solicitud.beneficiario}
+                            {solicitud.titularCuenta}
                           </p>
-                          <p className="text-sm text-gray-600 mb-1 mt-2">CLABE:</p>
+                          <p className="text-sm text-gray-600 mb-1 mt-2">Cuenta:</p>
                           <p className="text-sm font-mono text-gray-500">
-                            {solicitud.clabe}
+                            {solicitud.numeroCuenta}
+                          </p>
+                          <p className="text-sm text-gray-600 mb-1 mt-2">Banco:</p>
+                          <p className="text-sm text-gray-500">
+                            {solicitud.banco}
                           </p>
                         </>
                       )}
                       <p className="text-xs text-gray-400 mt-2">
-                        {new Date(solicitud.fecha).toLocaleDateString('es-ES', {
+                        {new Date(solicitud.fechaSolicitud).toLocaleDateString('es-ES', {
                           year: 'numeric',
                           month: 'long',
                           day: 'numeric',
@@ -719,6 +896,26 @@ const RetiroPage = () => {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+        
+        {/* Mensaje cuando no hay solicitudes */}
+        {isLoadingWithdrawalRequests && (
+          <div className="bg-white rounded-xl shadow-md p-8 border border-gray-200 text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Cargando historial de retiros...</p>
+          </div>
+        )}
+        
+        {!isLoadingWithdrawalRequests && withdrawalRequests.length === 0 && (
+          <div className="bg-white rounded-xl shadow-md p-8 border border-gray-200 text-center">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No hay solicitudes de retiro</h3>
+            <p className="text-gray-500">Aún no has realizado ningún retiro</p>
           </div>
         )}
 
@@ -862,14 +1059,14 @@ const RetiroPage = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={isLoading || !formikWallet.isValid}
+                  disabled={isCreatingWallet || !formikWallet.isValid}
                   className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-md hover:shadow-lg ${
-                    isLoading || !formikWallet.isValid
+                    isCreatingWallet || !formikWallet.isValid
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 transform hover:scale-105'
                   }`}
                 >
-                  {isLoading ? (
+                  {isCreatingWallet ? (
                     <>
                       <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -1288,14 +1485,14 @@ const RetiroPage = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={isLoading || !formikRetiro.isValid || formikRetiro.values.cantidadUSD < 10}
+                  disabled={isCreatingWithdrawalRequest || !formikRetiro.isValid || formikRetiro.values.cantidadUSD < 10}
                   className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-md hover:shadow-lg ${
-                    isLoading || !formikRetiro.isValid || formikRetiro.values.cantidadUSD < 10
+                    isCreatingWithdrawalRequest || !formikRetiro.isValid || formikRetiro.values.cantidadUSD < 10
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 transform hover:scale-105'
                   }`}
                 >
-                  {isLoading ? (
+                  {isCreatingWithdrawalRequest ? (
                     <>
                       <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

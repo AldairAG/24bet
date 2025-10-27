@@ -52,8 +52,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     <nav>
                         <ul className="space-y-4" onClick={onClose}>
                             <li>
-                                <a 
-                                    href="#" 
+                                <Link 
+                                    to={ROUTES.USER_HOME}
                                     className="flex items-center px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
                                 >
                                     <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -61,7 +61,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 1v6M16 1v6" />
                                     </svg>
                                     Dashboard
-                                </a>
+                                </Link>
                             </li>
                             <li>
                                 <Link 
@@ -107,6 +107,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                                     </svg>
                                     Historial
                                 </a>
+                            </li>
+                            <li>
+                                <Link 
+                                    to={ROUTES.USER_SOPORTE}
+                                    className="flex items-center px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+                                >
+                                    <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                                    </svg>
+                                    Soporte
+                                </Link>
                             </li>
                             <li>
                                 <a 

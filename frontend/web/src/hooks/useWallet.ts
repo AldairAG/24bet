@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import type { CreateCryptoWalletDto, TipoCrypto, SolicitudDepositoDto, SolicitudRetiroDto } from '../types/walletTypes';
+import type { CreateCryptoWalletDto, SolicitudDepositoDto, SolicitudRetiroDto } from '../types/walletTypes';
+import { TipoCrypto } from '../types/walletTypes';
 import {
     // Thunks
     createCryptoWallet,
@@ -9,13 +10,16 @@ import {
     deactivateWallet,
     createDepositRequest,
     createWithdrawalRequest,
+    getWithdrawalRequests,
     // Actions
     clearCreateWalletError,
     clearLoadUserWalletsError,
     clearDeactivateWalletError,
+    clearLoadWithdrawalRequestsError,
     clearValidationError,
     clearCreatedWallet,
     clearUserWallets,
+    clearWithdrawalRequests,
     clearWalletData,
     setValidationError,
     clearDepositRequest,
@@ -25,11 +29,14 @@ import {
     selectIsCreatingWallet,
     selectIsLoadingUserWallets,
     selectIsDeactivatingWallet,
+    selectIsLoadingWithdrawalRequests,
     selectCreatedWallet,
     selectUserWallets,
+    selectWithdrawalRequests,
     selectCreateWalletError,
     selectLoadUserWalletsError,
     selectDeactivateWalletError,
+    selectLoadWithdrawalRequestsError,
     selectValidationError,
     selectAvailableCryptoTypes,
     selectWalletErrors,
@@ -54,13 +61,16 @@ export const useWallet = () => {
     const isCreatingWallet = useSelector(selectIsCreatingWallet);
     const isLoadingUserWallets = useSelector(selectIsLoadingUserWallets);
     const isDeactivatingWallet = useSelector(selectIsDeactivatingWallet);
+    const isLoadingWithdrawalRequests = useSelector(selectIsLoadingWithdrawalRequests);
     const isCreatingDepositRequest = useSelector(selectIsCreatingDepositRequest);
     const isCreatingWithdrawalRequest = useSelector(selectIsCreatingWithdrawalRequest);
     const createdWallet = useSelector(selectCreatedWallet);
     const userWallets = useSelector(selectUserWallets);
+    const withdrawalRequests = useSelector(selectWithdrawalRequests);
     const createWalletError = useSelector(selectCreateWalletError);
     const loadUserWalletsError = useSelector(selectLoadUserWalletsError);
     const deactivateWalletError = useSelector(selectDeactivateWalletError);
+    const loadWithdrawalRequestsError = useSelector(selectLoadWithdrawalRequestsError);
     const validationError = useSelector(selectValidationError);
     const availableCryptoTypes = useSelector(selectAvailableCryptoTypes);
     const walletErrors = useSelector(selectWalletErrors);
@@ -139,6 +149,17 @@ export const useWallet = () => {
         [dispatch]
     );
 
+    /**
+     * Carga las solicitudes de retiro de un usuario
+     */
+    const loadWithdrawalRequests = useCallback(
+        async (usuarioId: number) => {
+            const result = await dispatch(getWithdrawalRequests(usuarioId) as any);
+            return result;
+        },
+        [dispatch]
+    );
+
     // ========== ACCIONES DE LIMPIEZA ==========
 
     /**
@@ -163,6 +184,13 @@ export const useWallet = () => {
     }, [dispatch]);
 
     /**
+     * Limpia el error de carga de solicitudes de retiro
+     */
+    const clearLoadWithdrawalRequestsErr = useCallback(() => {
+        dispatch(clearLoadWithdrawalRequestsError());
+    }, [dispatch]);
+
+    /**
      * Limpia el error de validación
      */
     const clearValidationErr = useCallback(() => {
@@ -181,6 +209,13 @@ export const useWallet = () => {
      */
     const clearWallets = useCallback(() => {
         dispatch(clearUserWallets());
+    }, [dispatch]);
+
+    /**
+     * Limpia las solicitudes de retiro cargadas
+     */
+    const clearWithdrawalRequestsList = useCallback(() => {
+        dispatch(clearWithdrawalRequests());
     }, [dispatch]);
 
     /**
@@ -320,14 +355,16 @@ export const useWallet = () => {
         isCreatingWallet,
         isLoadingUserWallets,
         isDeactivatingWallet,
+        isLoadingWithdrawalRequests,
         isCreatingDepositRequest,
         isCreatingWithdrawalRequest,
-        isLoading: isCreatingWallet || isLoadingUserWallets || isDeactivatingWallet || isCreatingDepositRequest || isCreatingWithdrawalRequest,
+        isLoading: isCreatingWallet || isLoadingUserWallets || isDeactivatingWallet || isLoadingWithdrawalRequests || isCreatingDepositRequest || isCreatingWithdrawalRequest,
         loading: walletLoading,
 
         // Datos
         createdWallet,
         userWallets,
+        withdrawalRequests,
         availableCryptoTypes,
         depositRequestResponse: depositRequestState.response,
         withdrawalRequestResponse: withdrawalRequestState.response,
@@ -336,6 +373,7 @@ export const useWallet = () => {
         createWalletError,
         loadUserWalletsError,
         deactivateWalletError,
+        loadWithdrawalRequestsError,
         validationError,
         depositRequestError: depositRequestState.error,
         withdrawalRequestError: withdrawalRequestState.error,
@@ -347,6 +385,7 @@ export const useWallet = () => {
         createWallet,
         loadCryptoTypes,
         loadUserWallets,
+        loadWithdrawalRequests,
         deleteWallet,
         createDeposit,
         createWithdrawal,
@@ -355,9 +394,11 @@ export const useWallet = () => {
         clearCreateError,
         clearLoadWalletsError,
         clearDeactivateError,
+        clearLoadWithdrawalRequestsError: clearLoadWithdrawalRequestsErr,
         clearValidationError: clearValidationErr,
         clearWallet,
         clearWallets,
+        clearWithdrawalRequests: clearWithdrawalRequestsList,
         clearAllWalletData,
         setValidationError: setValidationErr,
         resetWalletState,

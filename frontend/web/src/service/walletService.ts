@@ -1,12 +1,36 @@
+import axios from 'axios';
 import { apiBase } from './apiBase';
 import { type CreateCryptoWalletDto, TipoCrypto, type CryptoWalletDto, type SolicitudDepositoResponse, type SolicitudDepositoDto, type SolicitudRetiroDto, type SolicitudRetiroResponse } from '../types/walletTypes';
-import type { ApiResponseWrapper } from '../types/authTypes';
+
+// Tipo genérico para respuestas paginadas de Spring
+type PageResponse<T> = {
+    content: T[];
+    totalElements: number;
+    totalPages: number;
+    size: number;
+    number: number;
+    first: boolean;
+    last: boolean;
+    empty?: boolean;
+    numberOfElements?: number;
+    sort?: unknown;
+    pageable?: unknown;
+};
 
 /**
  * Servicio para la gestión de wallets de criptomonedas
  */
 class WalletService {
     private baseUrl = '/crypto-wallets';
+    private unwrapApiResponse<T>(res: unknown): T {
+        if (res && typeof res === 'object' && 'data' in (res as Record<string, unknown>)) {
+            const maybe = (res as { data?: unknown }).data;
+            if (maybe !== undefined) {
+                return maybe as T;
+            }
+        }
+        return res as T;
+    }
 
     /**
      * Crea un nuevo wallet crypto para un usuario
@@ -16,12 +40,12 @@ class WalletService {
      */
     async createWallet(usuarioId: number, createWalletData: CreateCryptoWalletDto): Promise<CryptoWalletDto> {
         try {
-            const response = await apiBase.post<CryptoWalletDto>(
+            const raw = await apiBase.post<CryptoWalletDto>(
                 `${this.baseUrl}/usuario/${usuarioId}`,
                 createWalletData
             );
-            
-            return response.data;
+            // Puede venir envuelto o no; desenvuelve si existe data, de lo contrario retorna el body tal cual
+            return this.unwrapApiResponse<CryptoWalletDto>(raw);
         } catch (error) {
             console.error('Error creating crypto wallet:', error);
             throw this.handleError(error);
@@ -36,12 +60,12 @@ class WalletService {
      */
     async createSolicitudDeposito(usuarioId: number, depositoData: SolicitudDepositoDto): Promise<SolicitudDepositoResponse> {
         try {
-            const response = await apiBase.post<SolicitudDepositoResponse>(
+            const raw = await apiBase.post<SolicitudDepositoResponse>(
                 `${this.baseUrl}/usuario/${usuarioId}/solicitud-deposito`,
                 depositoData
             );
-
-            return response.data;
+            // Puede venir envuelto o no
+            return this.unwrapApiResponse<SolicitudDepositoResponse>(raw);
         } catch (error) {
             console.error('Error creating deposit request:', error);
             throw this.handleError(error);
@@ -57,12 +81,12 @@ class WalletService {
     async createSolicitudRetiro(usuarioId: number, retiroData: SolicitudRetiroDto): Promise<SolicitudRetiroResponse> {
 
         try {
-            const response = await apiBase.post<SolicitudRetiroResponse>(
+            const raw = await apiBase.post<SolicitudRetiroResponse>(
                 `${this.baseUrl}/usuario/${usuarioId}/solicitud-retiro`,
                 retiroData
             );
-
-            return response.data;
+            // Puede venir envuelto o no
+            return this.unwrapApiResponse<SolicitudRetiroResponse>(raw);
         } catch (error) {
             console.error('Error creating withdrawal request:', error);
             throw this.handleError(error);
@@ -74,11 +98,12 @@ class WalletService {
      * @param usuarioId ID del usuario
      * @returns Promise con la lista de wallets del usuario
      */
-    async getWalletsByUsuario(usuarioId: number): Promise<ApiResponseWrapper<CryptoWalletDto[]>> {
+    async getWalletsByUsuario(usuarioId: number): Promise<CryptoWalletDto[]> {
         try {
-            const response = await apiBase.get<ApiResponseWrapper<CryptoWalletDto[]>>(
+            const response = await apiBase.get<CryptoWalletDto[]>(
                 `${this.baseUrl}/usuario/${usuarioId}`
             );
+            // Este endpoint SI usa wrapper { success, message, data }
             return response.data;
         } catch (error) {
             console.error('Error fetching user wallets:', error);
@@ -96,6 +121,24 @@ class WalletService {
             await apiBase.patch(`${this.baseUrl}/${walletId}/desactivar`);
         } catch (error) {
             console.error('Error deactivating wallet:', error);
+            throw this.handleError(error);
+        }
+    }
+
+    /**
+     * Obtiene las solicitudes de retiro de un usuario
+     * @param usuarioId ID del usuario
+     * @returns Promise con la lista de solicitudes de retiro
+     */
+    async getSolicitudesRetiro(usuarioId: number): Promise<PageResponse<unknown>> {
+        try {
+            const raw = await apiBase.get(
+                `${this.baseUrl}/usuario/${usuarioId}/solicitudes-retiro`
+            );
+            // Puede venir envuelto o no; si viene envuelto extrae data, en caso contrario devuelve el body
+            return this.unwrapApiResponse<PageResponse<unknown>>(raw);
+        } catch (error) {
+            console.error('Error fetching withdrawal requests:', error);
             throw this.handleError(error);
         }
     }
@@ -182,12 +225,19 @@ class WalletService {
      * @param error Error capturado
      * @returns Error procesado
      */
-    private handleError(error: any): Error {
-        if (error.response) {
-            // Error de respuesta del servidor
-            const status = error.response.status;
-            const message = error.response.data?.message || error.response.statusText;
-            
+    private handleError(error: unknown): Error {
+        if (axios.isAxiosError(error)) {
+            const status = error.response?.status;
+            let message: string | undefined;
+            const respData = error.response?.data as unknown;
+            if (respData && typeof respData === 'object' && 'message' in (respData as Record<string, unknown>)) {
+                const maybeMsg = (respData as Record<string, unknown>).message;
+                if (typeof maybeMsg === 'string') {
+                    message = maybeMsg;
+                }
+            }
+            message = message || error.response?.statusText || error.message;
+
             switch (status) {
                 case 400:
                     return new Error(`Datos inválidos: ${message}`);
@@ -196,21 +246,21 @@ class WalletService {
                 case 403:
                     return new Error('No tiene permisos para realizar esta acción.');
                 case 404:
-                    return new Error('Usuario no encontrado.');
+                    return new Error('Recurso no encontrado.');
                 case 409:
-                    return new Error('Ya existe un wallet para este tipo de criptomoneda.');
+                    return new Error('Conflicto en la operación.');
                 case 500:
                     return new Error('Error interno del servidor. Inténtelo más tarde.');
                 default:
-                    return new Error(`Error del servidor: ${message}`);
+                    return new Error(message || 'Error del servidor');
             }
-        } else if (error.request) {
-            // Error de red
-            return new Error('Error de conexión. Verifique su conexión a internet.');
-        } else {
-            // Error de configuración
-            return new Error(`Error: ${error.message}`);
         }
+
+        if (error instanceof Error) {
+            return new Error(error.message);
+        }
+
+        return new Error('Error desconocido');
     }
 }
 

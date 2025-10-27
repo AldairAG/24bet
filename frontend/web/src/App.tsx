@@ -20,6 +20,7 @@ import RetiroPage from './pages/usuario/transacciones/RetiroPage'
 import PerfilPage from './pages/usuario/perfil/PerfilPage'
 import HistorialApuestasPage from './pages/usuario/evento/HistorialApuestasPage'
 import DefaultPage from './pages/usuario/DefaultPage'
+import SoportePage from './pages/usuario/SoportePage'
 
 function App() {
 
@@ -46,6 +47,7 @@ function App() {
                 {/* Rutas de perfil */}
               </Route>
               <Route path={ROUTES.USER_HOME} element={<Home />} />
+              <Route path={ROUTES.USER_SOPORTE} element={<SoportePage />} />
               <Route path="*" element={<DefaultPage />} />
 
             </Route>

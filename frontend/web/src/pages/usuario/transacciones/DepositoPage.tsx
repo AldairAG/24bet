@@ -1,24 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useToast } from '../../../components/Toast';
-
-// Enums para métodos de pago y criptomonedas
-enum MetodoPago {
-  BITCOIN = 'BITCOIN',
-  ETHEREUM = 'ETHEREUM',
-  USDT = 'USDT',
-  USDC = 'USDC',
-  TRANSFERENCIA_CRYPTO = 'TRANSFERENCIA_CRYPTO',
-  CLAVE_INTERBANCARIA = 'CLAVE_INTERBANCARIA'
-}
-
-enum TipoCrypto {
-  BITCOIN = 'BTC',
-  ETHEREUM = 'ETH',
-  USDT = 'USDT',
-  USDC = 'USDC'
-}
+import { useWallet } from '../../../hooks/useWallet';
+import { useAuth } from '../../../hooks/useAuth';
+import { 
+  MetodoPago, 
+  TipoCrypto, 
+  type SolicitudDepositoDto 
+} from '../../../types/walletTypes';
 
 interface CriptomonedaInfo {
   id: string;
@@ -37,17 +27,9 @@ interface OpcionBancariaInfo {
   icono: string;
   color: string;
   beneficiario: string;
-  claveInterbancaria: string;
+  clabe: string;
   banco: string;
   moneda: string;
-}
-
-interface SolicitudDepositoDto {
-  monto: number;
-  metodoPago: MetodoPago;
-  tipoCrypto?: TipoCrypto;
-  direccionWallet?: string;
-  claveInterbancaria?: string;
   referencia?: string;
 }
 
@@ -62,24 +44,10 @@ const depositoValidationSchema = Yup.object().shape({
     .required('El método de pago es requerido'),
   tipoCrypto: Yup.string()
     .oneOf(Object.values(TipoCrypto), 'Selecciona una criptomoneda válida')
-    .when('metodoPago', {
-      is: (metodoPago: string) => metodoPago !== MetodoPago.CLAVE_INTERBANCARIA,
-      then: (schema) => schema.required('La criptomoneda es requerida'),
-      otherwise: (schema) => schema.notRequired()
-    }),
+    .required('La criptomoneda es requerida'),
   direccionWallet: Yup.string()
-    .when('metodoPago', {
-      is: (metodoPago: string) => metodoPago !== MetodoPago.CLAVE_INTERBANCARIA,
-      then: (schema) => schema.min(20, 'La dirección de wallet debe tener al menos 20 caracteres').required('La dirección de wallet es requerida'),
-      otherwise: (schema) => schema.notRequired()
-    }),
-  claveInterbancaria: Yup.string()
-    .when('metodoPago', {
-      is: MetodoPago.CLAVE_INTERBANCARIA,
-      then: (schema) => schema.required('La clave interbancaria es requerida'),
-      otherwise: (schema) => schema.notRequired()
-    }),
-  referencia: Yup.string().notRequired()
+    .min(20, 'La dirección de wallet debe tener al menos 20 caracteres')
+    .required('La dirección de wallet es requerida')
 });
 
 const criptomonedas: CriptomonedaInfo[] = [
@@ -123,15 +91,16 @@ const criptomonedas: CriptomonedaInfo[] = [
 
 const opcionesBancarias: OpcionBancariaInfo[] = [
   {
-    id: 'clave-interbancaria',
-    nombre: 'Clave Interbancaria',
-    tipo: 'CLABE',
-    icono: '🏦', // Icono de banco
+    id: 'transferencia-bancaria',
+    nombre: 'Transferencia Bancaria',
+    tipo: 'SPEI/CLABE',
+    icono: '🏦',
     color: '#1E40AF',
     beneficiario: '24BET',
-    claveInterbancaria: '646180110400000001',
+    clabe: '646180110400000001',
     banco: 'Banco Nacional de México',
-    moneda: 'MXN'
+    moneda: 'MXN',
+    referencia: 'DEP-24BET'
   }
 ];
 
@@ -141,37 +110,50 @@ const DepositoPage = () => {
   const [criptoSeleccionada, setCriptoSeleccionada] = useState<CriptomonedaInfo | null>(null);
   const [opcionBancariaSeleccionada, setOpcionBancariaSeleccionada] = useState<OpcionBancariaInfo | null>(null);
   const [qrVisible, setQrVisible] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
-  // Simulación de hooks de wallet y auth (pueden ser reemplazados por los reales)
-  const useWallet = () => ({
-    createDeposit: async (userId: number, depositData: SolicitudDepositoDto) => {
-      // Simulación de API call
-      console.log('Creando depósito:', { userId, depositData });
-      return Promise.resolve({ mensaje: 'Depósito creado exitosamente' });
-    },
-    isCreatingDepositRequest: isLoading,
-    depositRequestError: null,
-    depositRequestResponse: null,
-    clearDeposit: () => {}
-  });
+  // Hooks reales de wallet y autenticación
+  const { 
+    createDeposit, 
+    isCreatingDepositRequest, 
+    depositRequestError, 
+    depositRequestResponse,
+    clearDeposit 
+  } = useWallet();
+  
+  const { usuario } = useAuth();
 
-  const useAuth = () => ({
-    usuario: { id: 1, nombre: 'Usuario Demo' }
-  });
+  // Limpiar respuestas al desmontar o cuando cambie el estado
+  useEffect(() => {
+    return () => {
+      clearDeposit();
+    };
+  }, [clearDeposit]);
 
-  // Usar los hooks simulados
-  const walletHook = useWallet();
-  const authHook = useAuth();
+  // Mostrar notificación cuando hay respuesta exitosa
+  useEffect(() => {
+    if (depositRequestResponse) {
+      showToast(depositRequestResponse.mensaje || 'Solicitud de depósito creada exitosamente', 'success');
+      setModalVisible(false);
+      setCriptoSeleccionada(null);
+      formik.resetForm();
+      clearDeposit();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [depositRequestResponse, clearDeposit, showToast]);
+
+  // Mostrar notificación cuando hay error
+  useEffect(() => {
+    if (depositRequestError) {
+      showToast(depositRequestError, 'error');
+    }
+  }, [depositRequestError, showToast]);
 
   // Valores iniciales del formulario
   const initialValues: SolicitudDepositoDto = {
     monto: 0,
     metodoPago: MetodoPago.BITCOIN,
     tipoCrypto: TipoCrypto.BITCOIN,
-    direccionWallet: '',
-    claveInterbancaria: '',
-    referencia: ''
+    direccionWallet: ''
   };
 
   // Mapear criptomoneda a método de pago
@@ -194,23 +176,31 @@ const DepositoPage = () => {
     initialValues,
     validationSchema: depositoValidationSchema,
     onSubmit: async (values) => {
-      if (!authHook.usuario?.id) {
+      if (!usuario?.id) {
         showToast('Usuario no autenticado', 'error');
         return;
       }
 
-      setIsLoading(true);
       try {
-        await walletHook.createDeposit(authHook.usuario.id, values);
-        showToast('Solicitud de depósito creada exitosamente', 'success');
-        setModalVisible(false);
-        setCriptoSeleccionada(null);
-        formik.resetForm();
+        // Asegurar que tipoCrypto esté definido
+        if (!values.tipoCrypto) {
+          showToast('Debe seleccionar una criptomoneda', 'error');
+          return;
+        }
+        
+        // Crear solicitud de depósito con los datos del formulario
+        const depositData: SolicitudDepositoDto = {
+          monto: values.monto,
+          metodoPago: values.metodoPago,
+          tipoCrypto: values.tipoCrypto,
+          direccionWallet: values.direccionWallet
+        };
+        
+        await createDeposit(usuario.id, depositData);
+        // El éxito se maneja en el useEffect
       } catch (error) {
         console.error('Error al crear depósito:', error);
-        showToast('Error al crear el depósito', 'error');
-      } finally {
-        setIsLoading(false);
+        // El error se maneja en el useEffect
       }
     },
   });
@@ -224,9 +214,7 @@ const DepositoPage = () => {
       ...formik.values,
       tipoCrypto,
       metodoPago: getMetodoPagoFromCripto(tipoCrypto),
-      direccionWallet: cripto.wallet,
-      claveInterbancaria: '',
-      referencia: ''
+      direccionWallet: cripto.wallet
     });
     
     setModalVisible(true);
@@ -238,11 +226,9 @@ const DepositoPage = () => {
     
     formik.setValues({
       ...formik.values,
-      metodoPago: MetodoPago.CLAVE_INTERBANCARIA,
-      claveInterbancaria: opcionBancaria.claveInterbancaria,
-      tipoCrypto: undefined,
-      direccionWallet: '',
-      referencia: ''
+      metodoPago: MetodoPago.TRANSFERENCIA_BANCARIA,
+      tipoCrypto: TipoCrypto.USDT, // Valor por defecto requerido
+      direccionWallet: opcionBancaria.clabe
     });
     
     setModalVisible(true);
@@ -261,19 +247,21 @@ const DepositoPage = () => {
       try {
         await navigator.clipboard.writeText(criptoSeleccionada.wallet);
         showToast('Dirección copiada al portapapeles', 'success');
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
         showToast('Error al copiar dirección', 'error');
       }
     }
   };
 
-  const copiarClaveInterbancaria = async () => {
+  const copiarClabe = async () => {
     if (opcionBancariaSeleccionada) {
       try {
-        await navigator.clipboard.writeText(opcionBancariaSeleccionada.claveInterbancaria);
-        showToast('Clave interbancaria copiada al portapapeles', 'success');
+        await navigator.clipboard.writeText(opcionBancariaSeleccionada.clabe);
+        showToast('CLABE copiada al portapapeles', 'success');
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
-        showToast('Error al copiar clave interbancaria', 'error');
+        showToast('Error al copiar CLABE', 'error');
       }
     }
   };
@@ -292,7 +280,7 @@ const DepositoPage = () => {
             <h1 className="text-2xl font-bold text-gray-900">Realizar Depósito</h1>
           </div>
           <p className="text-gray-600 leading-relaxed">
-            Selecciona el método de depósito que prefieras: criptomonedas o transferencia bancaria. 
+            Selecciona la criptomoneda con la que deseas realizar tu depósito. 
             Asegúrate de seguir las instrucciones específicas para cada método de pago.
           </p>
         </div>
@@ -330,7 +318,7 @@ const DepositoPage = () => {
 
         {/* Lista de opciones bancarias */}
         <div className="mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Opciones bancarias disponibles</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Transferencia Bancaria</h2>
           <div className="grid md:grid-cols-2 gap-4">
             {opcionesBancarias.map((opcionBancaria) => (
               <div
@@ -407,7 +395,9 @@ const DepositoPage = () => {
                   </div>
                 )}
                 <h2 className="text-xl font-semibold text-gray-900">
-                  {criptoSeleccionada ? `Depositar ${criptoSeleccionada.nombre}` : `Depositar con ${opcionBancariaSeleccionada?.nombre}`}
+                  {criptoSeleccionada 
+                    ? `Depositar ${criptoSeleccionada.nombre}` 
+                    : `Depositar con ${opcionBancariaSeleccionada?.nombre}`}
                 </h2>
               </div>
               <button
@@ -449,7 +439,7 @@ const DepositoPage = () => {
                     <>
                       <div className="flex items-start">
                         <span className="bg-red-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center mr-3 mt-0.5">1</span>
-                        <p className="text-green-700 text-sm">Copia la clave interbancaria proporcionada</p>
+                        <p className="text-green-700 text-sm">Copia la CLABE proporcionada</p>
                       </div>
                       <div className="flex items-start">
                         <span className="bg-red-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center mr-3 mt-0.5">2</span>
@@ -461,7 +451,7 @@ const DepositoPage = () => {
                       </div>
                       <div className="flex items-start">
                         <span className="bg-red-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center mr-3 mt-0.5">4</span>
-                        <p className="text-green-700 text-sm">Sube el comprobante y confirma el depósito</p>
+                        <p className="text-green-700 text-sm">Confirma el depósito en este formulario</p>
                       </div>
                     </>
                   )}
@@ -472,7 +462,7 @@ const DepositoPage = () => {
               <div className="space-y-6">
                 {/* Monto */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-800 mb-3 flex items-center">
+                  <label className="flex text-sm font-semibold text-gray-800 mb-3 items-center">
                     <svg className="w-4 h-4 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                     </svg>
@@ -512,67 +502,63 @@ const DepositoPage = () => {
                   )}
                 </div>
 
-                {/* Método de pago - Solo para criptomonedas */}
-                {criptoSeleccionada && (
-                  <div>
-                    <label className="flex text-sm font-semibold text-gray-800 mb-3 items-center">
-                      <svg className="w-4 h-4 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                {/* Método de pago */}
+                <div>
+                  <label className="flex text-sm font-semibold text-gray-800 mb-3 items-center">
+                    <svg className="w-4 h-4 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                    Método de pago
+                  </label>
+                  <div className="relative">
+                    <select
+                      name="metodoPago"
+                      value={formik.values.metodoPago}
+                      onChange={formik.handleChange}
+                      className="w-full pl-4 pr-12 py-4 border-2 rounded-xl text-base text-gray-900 appearance-none bg-gray-50 border-gray-300 hover:bg-white hover:border-gray-400 focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all duration-300"
+                    >
+                      {Object.values(MetodoPago).map((metodo) => (
+                        <option key={metodo} value={metodo}>
+                          {metodo}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
-                      Método de pago
-                    </label>
-                    <div className="relative">
-                      <select
-                        name="metodoPago"
-                        value={formik.values.metodoPago}
-                        onChange={formik.handleChange}
-                        className="w-full pl-4 pr-12 py-4 border-2 rounded-xl text-base text-gray-900 appearance-none bg-gray-50 border-gray-300 hover:bg-white hover:border-gray-400 focus:ring-4 focus:ring-purple-100 focus:border-purple-500 focus:outline-none transition-all duration-300"
-                      >
-                        {Object.values(MetodoPago).filter(metodo => metodo !== MetodoPago.CLAVE_INTERBANCARIA).map((metodo) => (
-                          <option key={metodo} value={metodo}>
-                            {metodo}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </div>
                     </div>
                   </div>
-                )}
+                </div>
 
-                {/* Tipo de criptomoneda - Solo para criptomonedas */}
-                {criptoSeleccionada && (
-                  <div>
-                    <label className="flex text-sm font-semibold text-gray-800 mb-3 items-center">
-                      <svg className="w-4 h-4 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                {/* Tipo de criptomoneda */}
+                <div>
+                  <label className="flex text-sm font-semibold text-gray-800 mb-3 items-center">
+                    <svg className="w-4 h-4 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                    </svg>
+                    Criptomoneda
+                  </label>
+                  <div className="relative">
+                    <select
+                      name="tipoCrypto"
+                      value={formik.values.tipoCrypto}
+                      onChange={formik.handleChange}
+                      className="w-full pl-4 pr-12 py-4 border-2 rounded-xl text-base text-gray-900 appearance-none bg-gray-50 border-gray-300 hover:bg-white hover:border-gray-400 focus:ring-4 focus:ring-orange-100 focus:border-orange-500 focus:outline-none transition-all duration-300"
+                    >
+                      {Object.values(TipoCrypto).map((crypto) => (
+                        <option key={crypto} value={crypto}>
+                          {crypto}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
-                      Criptomoneda
-                    </label>
-                    <div className="relative">
-                      <select
-                        name="tipoCrypto"
-                        value={formik.values.tipoCrypto}
-                        onChange={formik.handleChange}
-                        className="w-full pl-4 pr-12 py-4 border-2 rounded-xl text-base text-gray-900 appearance-none bg-gray-50 border-gray-300 hover:bg-white hover:border-gray-400 focus:ring-4 focus:ring-orange-100 focus:border-orange-500 focus:outline-none transition-all duration-300"
-                      >
-                        {Object.values(TipoCrypto).map((crypto) => (
-                          <option key={crypto} value={crypto}>
-                            {crypto}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </div>
                     </div>
                   </div>
-                )}
+                </div>
               </div>
 
               {/* Código QR - Solo para criptomonedas */}
@@ -653,34 +639,34 @@ const DepositoPage = () => {
                 </div>
               )}
 
-              {/* Información bancaria - Solo para transferencia bancaria */}
+              {/* Información bancaria - Solo para transferencias bancarias */}
               {opcionBancariaSeleccionada && (
-                <div className="space-y-4">
-                  {/* Clave Interbancaria */}
+                <>
+                  {/* CLABE Interbancaria */}
                   <div>
                     <label className="flex text-sm font-semibold text-gray-800 mb-3 items-center">
-                      <svg className="w-4 h-4 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                       </svg>
-                      Clave Interbancaria (CLABE)
+                      CLABE Interbancaria
                     </label>
-                    <div className="flex items-center bg-gradient-to-r from-gray-50 to-blue-50 border-2 border-blue-200 rounded-xl p-4 group hover:from-gray-100 hover:to-blue-100 transition-all duration-300">
+                    <div className="flex items-center bg-gradient-to-r from-gray-50 to-green-50 border-2 border-green-200 rounded-xl p-4 group hover:from-gray-100 hover:to-green-100 transition-all duration-300">
                       <div className="flex-1 mr-4">
-                        <span className="block text-sm font-mono text-gray-800 break-all leading-relaxed bg-white px-3 py-2 rounded-lg border border-gray-200">
-                          {opcionBancariaSeleccionada.claveInterbancaria}
+                        <span className="block text-lg font-mono font-bold text-gray-800 break-all leading-relaxed bg-white px-3 py-2 rounded-lg border border-gray-200">
+                          {opcionBancariaSeleccionada.clabe}
                         </span>
                         <div className="flex items-center mt-2 text-xs text-gray-600">
                           <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
-                          Beneficiario: <span className="font-medium">{opcionBancariaSeleccionada.beneficiario}</span>
+                          Banco: <span className="font-medium">{opcionBancariaSeleccionada.banco}</span>
                         </div>
                       </div>
                       <button
                         type="button"
-                        onClick={copiarClaveInterbancaria}
-                        className="flex items-center justify-center w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-xl group-hover:shadow-blue-200"
-                        title="Copiar clave interbancaria"
+                        onClick={copiarClabe}
+                        className="flex items-center justify-center w-12 h-12 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-xl group-hover:shadow-green-200"
+                        title="Copiar CLABE"
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -689,46 +675,49 @@ const DepositoPage = () => {
                     </div>
                   </div>
 
-                  {/* Datos adicionales del banco */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                    <h4 className="text-sm font-semibold text-blue-800 mb-3">Datos del beneficiario:</h4>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-xs font-medium text-blue-600">Beneficiario:</span>
-                        <span className="text-xs font-semibold text-blue-900">{opcionBancariaSeleccionada.beneficiario}</span>
+                  {/* Datos bancarios */}
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-4">
+                    <h4 className="font-semibold text-green-800 mb-3 flex items-center">
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Datos del destinatario
+                    </h4>
+                    <div className="space-y-2 bg-white p-3 rounded-lg border border-green-200">
+                      <div className="flex justify-between items-center py-1 border-b border-gray-200">
+                        <span className="text-xs text-gray-600 font-medium">Beneficiario:</span>
+                        <span className="text-sm text-gray-900 font-semibold">{opcionBancariaSeleccionada.beneficiario}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-xs font-medium text-blue-600">Banco:</span>
-                        <span className="text-xs font-semibold text-blue-900">{opcionBancariaSeleccionada.banco}</span>
+                      <div className="flex justify-between items-center py-1 border-b border-gray-200">
+                        <span className="text-xs text-gray-600 font-medium">Banco:</span>
+                        <span className="text-sm text-gray-900 font-semibold">{opcionBancariaSeleccionada.banco}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-xs font-medium text-blue-600">Moneda:</span>
-                        <span className="text-xs font-semibold text-blue-900">{opcionBancariaSeleccionada.moneda}</span>
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-xs text-gray-600 font-medium">Moneda:</span>
+                        <span className="text-sm text-gray-900 font-semibold">{opcionBancariaSeleccionada.moneda}</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Campo para referencia de pago */}
+                  {/* Campo de referencia */}
                   <div>
                     <label className="flex text-sm font-semibold text-gray-800 mb-3 items-center">
-                      <svg className="w-4 h-4 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      <svg className="w-4 h-4 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
                       </svg>
-                      Referencia de pago (opcional)
+                      Referencia (Opcional)
                     </label>
                     <input
                       type="text"
                       name="referencia"
-                      value={formik.values.referencia || ''}
-                      onChange={formik.handleChange}
-                      className="w-full pl-4 pr-4 py-4 border-2 rounded-xl text-base text-gray-900 bg-gray-50 border-gray-300 hover:bg-white hover:border-gray-400 focus:ring-4 focus:ring-green-100 focus:border-green-500 focus:outline-none transition-all duration-300"
-                      placeholder="Ingresa tu referencia de pago (opcional)"
+                      placeholder="Referencia de tu transferencia"
+                      className="w-full px-4 py-3 border-2 rounded-xl text-base text-gray-900 bg-gray-50 border-gray-300 hover:bg-white hover:border-gray-400 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 focus:outline-none transition-all duration-300"
                     />
                     <p className="text-xs text-gray-500 mt-2">
-                      Esta referencia te ayudará a identificar tu depósito
+                      Si tu banco genera una referencia, ingrésala aquí para facilitar el seguimiento
                     </p>
                   </div>
-                </div>
+                </>
               )}
 
               {/* Información de la transacción */}
@@ -748,7 +737,7 @@ const DepositoPage = () => {
                       Monto:
                     </span>
                     <span className="text-base font-bold text-green-900">
-                      ${(formik.values.monto || 0).toFixed(2)} {criptoSeleccionada ? 'USD' : opcionBancariaSeleccionada?.moneda}
+                      ${(formik.values.monto || 0).toFixed(2)} USD
                     </span>
                   </div>
                   
@@ -767,28 +756,22 @@ const DepositoPage = () => {
                         <span className="text-sm font-semibold text-green-900">1-3 confirmaciones</span>
                       </div>
                     </>
-                  ) : (
+                  ) : opcionBancariaSeleccionada ? (
                     <>
                       <div className="flex justify-between items-center py-2 border-b border-green-200">
-                        <span className="text-sm font-medium text-green-700">Método de pago:</span>
-                        <span className="text-sm font-semibold text-green-900">{opcionBancariaSeleccionada?.nombre}</span>
+                        <span className="text-sm font-medium text-green-700">Banco:</span>
+                        <span className="text-sm font-semibold text-green-900">{opcionBancariaSeleccionada.banco}</span>
                       </div>
                       <div className="flex justify-between items-center py-2 border-b border-green-200">
                         <span className="text-sm font-medium text-green-700">Beneficiario:</span>
-                        <span className="text-sm font-semibold text-green-900">{opcionBancariaSeleccionada?.beneficiario}</span>
+                        <span className="text-sm font-semibold text-green-900">{opcionBancariaSeleccionada.beneficiario}</span>
                       </div>
                       <div className="flex justify-between items-center py-2 border-b border-green-200">
                         <span className="text-sm font-medium text-green-700">Tiempo estimado:</span>
                         <span className="text-sm font-semibold text-green-900">Inmediato</span>
                       </div>
-                      {formik.values.referencia && (
-                        <div className="flex justify-between items-center py-2 border-b border-green-200">
-                          <span className="text-sm font-medium text-green-700">Referencia:</span>
-                          <span className="text-sm font-semibold text-green-900">{formik.values.referencia}</span>
-                        </div>
-                      )}
                     </>
-                  )}
+                  ) : null}
                   
                   <div className="flex justify-between items-center py-2">
                     <span className="text-sm font-medium text-green-700">Comisión:</span>
@@ -816,14 +799,14 @@ const DepositoPage = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={isLoading || !formik.isValid || formik.values.monto < 10}
+                  disabled={isCreatingDepositRequest || !formik.isValid || formik.values.monto < 10}
                   className={`flex-1 px-6 py-4 rounded-xl font-semibold text-base transition-all duration-300 flex items-center justify-center ${
-                    isLoading || !formik.isValid || formik.values.monto < 10
+                    isCreatingDepositRequest || !formik.isValid || formik.values.monto < 10
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 shadow-lg hover:shadow-xl hover:scale-105'
                   }`}
                 >
-                  {isLoading ? (
+                  {isCreatingDepositRequest ? (
                     <>
                       <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

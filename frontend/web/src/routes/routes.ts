@@ -14,6 +14,7 @@ export const ROUTES = {
   USER_BET_HISTORY: `/c/historial-apuestas`,
   USER_RETIRO: `/c/retiro`,
   USER_HOME: `/c/home`,
+  USER_SOPORTE: `/c/soporte`,
 
   //////////////// ADMIN///////////////
   ADMIN_CONTAINER: '/a',

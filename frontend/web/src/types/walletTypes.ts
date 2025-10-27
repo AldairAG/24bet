@@ -42,6 +42,7 @@ export enum TipoCrypto {
     USDT = "USDT",
     USDC = "USDC",
     BUSD = "BUSD"
+    
 }
 
 export interface CreateCryptoWalletDto {
