@@ -17,11 +17,6 @@ export interface HeadToHeadResponseApi {
     score: ScoreApi;
 }
 
-
-export interface H2hApiResponse {
-
-}
-
 export interface StandingsApiResponse {
     rank: number;
     team: TeamApi;

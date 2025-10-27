@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
-import type { Evento, EventoDeportivoResponse, EventosPorLigaResponse, LigaPorDeporteDetalleResponse } from '../../types/EventosType';
+import type { Evento, EventoDeportivoResponse, EventoEnVivoResponse, EventosPorLigaResponse, LigaPorDeporteDetalleResponse } from '../../types/EventosType';
 import { eventosService } from '../../service/EventosService';
 import type { RootState } from '../index';
 
@@ -13,7 +13,7 @@ export interface EventosState {
     isLoadingEventosFuturos: boolean;
 
     // Datos
-    eventosEnVivo: Evento[];
+    eventosEnVivo: EventoEnVivoResponse[];
     eventosFuturos: EventosPorLigaResponse[];
     ligasPorDeporte: LigaPorDeporteDetalleResponse[];
     eventoDetail: Evento | null;
@@ -144,7 +144,7 @@ export const getEventosFuturos = createAsyncThunk<
  * @return {Promise<EventosEnVivoResponse[]>} Lista de eventos en vivo
  */
 export const getEventosEnVivoPorDeporte = createAsyncThunk<
-    Evento[], // Tipo de retorno: array
+    EventoEnVivoResponse[], // Tipo de retorno: array
     string, // Parámetro: deporte
     { rejectValue: string } // Tipo del error
 >(
@@ -152,7 +152,7 @@ export const getEventosEnVivoPorDeporte = createAsyncThunk<
     async (deporte, { rejectWithValue }) => {
         try {
             const eventos = await eventosService.getEventosEnVivoPorDeporte(deporte);
-            return eventos.data;
+            return eventos;
         } catch (error) {
             console.error('❌ Error en thunk:', error);
             const errorMessage = error instanceof Error ? error.message : 'Error al cargar eventos en vivo';

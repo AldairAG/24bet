@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -68,5 +69,15 @@ public interface EventoDeportivoRepository extends JpaRepository<EventoDeportivo
      * Buscar evento por nombre
      */
     EventoDeportivo findByNombre(String nombre);
+
+    /**
+     * Buscar eventos en vivo por el nombre del deporte de la liga
+     */
+    List<EventoDeportivo> findByLigaDeporteNombreAndEnVivoTrue(String nombreDeporte);
+
+    /**
+     * Buscar eventos más próximos por el nombre del deporte de la liga
+     */
+    List<EventoDeportivo> findByLigaDeporteNombreAndFechaEventoAfter(String nombreDeporte, LocalDateTime fecha);
 
 }

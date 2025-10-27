@@ -8,10 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com._bet.dto.apiSports.entidades.Fixture;
+import com._bet.dto.apiSports.entidades.League;
 import com._bet.dto.apiSports.entidades.Fixture.Status;
 import com._bet.dto.apiSports.entidades.Odds.Bet;
 import com._bet.dto.apiSports.entidades.Odds.Value;
+import com._bet.dto.apiSports.response.EventsByLeagueResponse.Goals;
+import com._bet.dto.apiSports.response.EventsByLeagueResponse.Score;
 import com._bet.dto.response.EventoDeportivoResponse;
+import com._bet.dto.response.EventoEnVivoResponse;
 import com._bet.entity.eventoEntity.EventoDeportivo;
 import com._bet.repository.EventoDeportivoRepository;
 
@@ -103,9 +107,62 @@ public class EventoService {
                 return response;
         }
 
-        public List<EventoDeportivoResponse> obtenerEventosEnVivoPorDeporte(String nombreDeporte) {
-                // Lógica para obtener eventos en vivo por deporte
-                return new ArrayList<>();
+        public List<EventoEnVivoResponse> obtenerEventosEnVivoPorDeporte(String nombreDeporte) {
+                List<EventoDeportivo> eventos = eventoDeportivoRepository
+                                .findByLigaDeporteNombreAndEnVivoTrue(nombreDeporte);
+
+                return eventos.stream()
+                                .map(this::convertirEventoEnVivoResponses)
+                                .collect(Collectors.toList());
+        }
+
+        private EventoEnVivoResponse convertirEventoEnVivoResponses(EventoDeportivo evento) {
+
+                Fixture fixture = Fixture.builder()
+                                .id(evento.getApiSportsId())
+                                .date(evento.getFechaEvento().toString())
+                                .status(Fixture.Status.builder()
+                                                .longStatus(evento.getEstado().getLargo())
+                                                .shortStatus(evento.getEstado().getCorto())
+                                                .build())
+                                .build();
+
+                League league = League.builder()
+                                .id(evento.getLiga().getApiSportsId())
+                                .name(evento.getLiga().getNombre())
+                                .logo(evento.getLiga().getLogoUrl())
+                                .build();
+
+                Goals goals = Goals.builder()
+                                .home(evento.getGoles().getLocales())
+                                .away(evento.getGoles().getVisitantes())
+                                .build();
+
+                Score score = Score.builder()
+                                .halftime(goals)
+                                .fulltime(goals)
+                                .extratime(goals)
+                                .penalty(goals)
+                                .build();
+
+                
+
+                EventoEnVivoResponse response = new EventoEnVivoResponse();
+                response.setFixture(fixture);
+                response.setLeague(league);
+                response.setGoals(goals);
+                response.setScore(score);
+
+                return response;
+        }
+
+        public List<EventoDeportivoResponse> obtenerEventosMasProximosPorDeporte(String nombreDeporte) {
+                List<EventoDeportivo> eventos = eventoDeportivoRepository
+                                .findByLigaDeporteNombreAndEnVivoTrue(nombreDeporte);
+
+                return eventos.stream()
+                                .map(this::convertirEventoAResponse)
+                                .collect(Collectors.toList());
         }
 
 }

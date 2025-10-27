@@ -5,7 +5,7 @@ import { getEventosByIds } from '../../service/apiSportService';
 import { type EventoResponseApi } from '../../types/sportApiTypes';
 
 const EventosEnVivo: React.FC = () => {
-  const [deporte, setDeporte] = useState('soccer');
+  const [deporte, setDeporte] = useState('Soccer');
   const [eventos, setEventos] = useState<EventoResponseApi[]>([]);
   // const [isLoadingEventosEnVivo, setIsLoadingEventosEnVivo] = useState(false);
   const { isLoadingEventosEnVivo, eventosEnVivo, loadEventosEnVivoError, loadEventosEnVivoPorDeporte } = useEventos();
@@ -37,7 +37,7 @@ const EventosEnVivo: React.FC = () => {
     if (eventosEnVivo.length === 0) {
       return <div className="p-4 text-center text-white">No hay eventos en vivo disponibles.</div>;
     }
-    return eventos.map((evento) => (
+    return eventosEnVivo.map((evento) => (
       <EventoItem
         key={evento.fixture.id}
         evento={evento}

@@ -2,6 +2,7 @@ package com._bet.controller;
 
 import com._bet.controller.AuthController.ApiResponseWrapper;
 import com._bet.dto.response.EventoDeportivoResponse;
+import com._bet.dto.response.EventoEnVivoResponse;
 import com._bet.entity.datosMaestros.Deporte;
 import com._bet.entity.datosMaestros.Liga;
 import com._bet.repository.DeporteRepository;
@@ -117,11 +118,11 @@ public class EventosController {
      * @return Lista de eventos del deporte
      */
     @GetMapping("/eventos-en-vivo-por-deporte/{nombreDeporte}")
-    public ResponseEntity<ApiResponseWrapper<List<EventoDeportivoResponse>>> getEventosEnVivo
+    public ResponseEntity<ApiResponseWrapper<List<EventoEnVivoResponse>>> getEventosEnVivo
     (@PathVariable String nombreDeporte) {
         try {
-            
-            return ResponseEntity.ok(new ApiResponseWrapper<>(true, "Eventos obtenidos exitosamente", new ArrayList<>()));
+            List<EventoEnVivoResponse> eventoResponses = eventoService.obtenerEventosEnVivoPorDeporte(nombreDeporte);
+            return ResponseEntity.ok(new ApiResponseWrapper<>(true, "Eventos obtenidos exitosamente", eventoResponses));
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -138,8 +139,9 @@ public class EventosController {
     public ResponseEntity<ApiResponseWrapper<List<EventoDeportivoResponse>>> getEventosMasProximosPorDeporte
     (@PathVariable String nombreDeporte) {
         try {
-            
-            return ResponseEntity.ok(new ApiResponseWrapper<>(true, "Eventos obtenidos exitosamente", new ArrayList<>()));
+            List<EventoDeportivoResponse> eventoResponses = eventoService.obtenerEventosMasProximosPorDeporte(nombreDeporte);
+
+            return ResponseEntity.ok(new ApiResponseWrapper<>(true, "Eventos obtenidos exitosamente", eventoResponses));
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

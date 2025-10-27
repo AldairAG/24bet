@@ -214,11 +214,7 @@ const Home = () => {
         </section>
 
         {/* Partidos en vivo */}
-        <EventosEnVivo 
-          eventos={eventosEnVivoData}
-          onBetClick={handleQuickBet}
-          isBetSelected={existeApuestaEnBoleto}
-        />
+        <EventosEnVivo />
 
         {/* Próximos Eventos */}
         <EventoProximo 

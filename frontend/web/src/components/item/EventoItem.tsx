@@ -1,8 +1,8 @@
 import React from 'react';
-import type { EventoResponseApi } from '../../types/sportApiTypes';
+import type { EventoEnVivoResponse } from '../../types/EventosType';
 
 export interface EventoItemProps {
-  evento: EventoResponseApi;
+  evento: EventoEnVivoResponse;
   isLive: boolean;
 }
 

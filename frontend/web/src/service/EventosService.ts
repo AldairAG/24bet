@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { apiBase } from '../../src/service/apiBase';
-import type { Evento, EventoDeportivoResponse, EventosEnVivoResponse, EventosPorLigaResponse, LigaPorDeporteDetalleResponse } from '../../src/types/EventosType';
+import type { Evento, EventoDeportivoResponse, EventoEnVivoResponse, EventosEnVivoResponse, EventosPorLigaResponse, LigaPorDeporteDetalleResponse } from '../../src/types/EventosType';
 import type { ApiResponseWrapper } from '../types/authTypes';
 
 /**
@@ -10,16 +10,15 @@ import type { ApiResponseWrapper } from '../types/authTypes';
 class EventosService {
     private baseUrl = '/eventos';
 
-
     /**
      * Obtiene todos los eventos en vivo de un deporte
      * GET /24bet/eventos/en-vivo/{deporte}
      * @param deporte Nombre del deporte (e.g., "Soccer", "Basketball")
      * @returns Promise con la lista de eventos deportivos en vivo
      */
-    async getEventosEnVivoPorDeporte(deporte: string): Promise<ApiResponseWrapper<Evento[]>> {
+    async getEventosEnVivoPorDeporte(deporte: string): Promise<EventoEnVivoResponse[]> {
         try {
-            const response = await apiBase.get<ApiResponseWrapper<Evento[]>>(
+            const response = await apiBase.get<EventoEnVivoResponse[]>(
                 `${this.baseUrl}/eventos-en-vivo-por-deporte/${deporte}`
             );
             return response.data;

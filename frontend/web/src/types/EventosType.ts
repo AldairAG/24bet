@@ -1,3 +1,5 @@
+import type { GoalsApi, LeagueApi, ScoreApi, TeamsApi } from "./sportApiTypes";
+
 /**
  * DTO básico para liga
  */
@@ -11,6 +13,16 @@ export interface LigaBasica {
     logoUrl: string;
     badgeUrl: string;
     activa: boolean;
+}
+/**
+ * DTO para respuesta de evento en vivo
+ */
+export interface EventoEnVivoResponse {
+    fixture: Fixture;
+    league: LeagueApi;
+    teams: TeamsApi;
+    goals: GoalsApi;
+    score: ScoreApi;
 }
 
 /**

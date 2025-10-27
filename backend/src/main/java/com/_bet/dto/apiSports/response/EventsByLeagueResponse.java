@@ -6,6 +6,7 @@ import com._bet.dto.apiSports.entidades.Team;
 import com._bet.dto.apiSports.entidades.Venue;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import lombok.Builder;
 import lombok.Data;
 
 @Data
@@ -42,6 +43,7 @@ public class EventsByLeagueResponse {
     }
 
     @Data
+    @Builder
     public static class Goals {
         @JsonProperty("home")
         private Integer home;
@@ -50,6 +52,7 @@ public class EventsByLeagueResponse {
     }
 
     @Data
+    @Builder
     public static class Score {
         @JsonProperty("halftime")
         private Goals halftime;
