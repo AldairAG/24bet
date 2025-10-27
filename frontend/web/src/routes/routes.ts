@@ -22,4 +22,5 @@ export const ROUTES = {
   ADMIN_PETICIONES: 'peticiones', // Ruta relativa para anidación
   ADMIN_USUARIOS: 'usuarios', // Ruta relativa para anidación
   ADMIN_USUARIOS_EDITAR: 'usuarios/editar', // Ruta relativa para anidación
+  ADMIN_EVENTOS: 'eventos', // Ruta relativa para anidación
 }
