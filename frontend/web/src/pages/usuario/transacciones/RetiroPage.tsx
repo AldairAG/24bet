@@ -193,11 +193,12 @@ const criptomonedas: Record<TipoCrypto, CriptomonedaConfig> = {
 const walletValidationSchema = Yup.object().shape({
   nombre: Yup.string()
     .min(3, 'El nombre debe tener al menos 3 caracteres')
-    .max(50, 'El nombre no puede tener más de 50 caracteres')
-    .required('El nombre es obligatorio'),
+    .max(20, 'El nombre no puede tener más de 20 caracteres')
+    .required('El nombre es obligatorio')
+    .matches(/^[A-Za-z0-9]+$/, 'El nombre solo puede contener letras o números (sin espacios ni caracteres especiales)'),
   direccion: Yup.string()
     .min(10, 'La dirección debe tener al menos 10 caracteres')
-    .max(200, 'La dirección no puede tener más de 200 caracteres')
+    .max(255, 'La dirección no puede tener más de 255 caracteres')
     .required('La dirección es obligatoria'),
   criptomoneda: Yup.string()
     .oneOf(Object.values(TipoCrypto), 'Selecciona una criptomoneda válida')
@@ -862,7 +863,7 @@ const RetiroPage = () => {
                       {solicitud.direccionWallet ? (
                         <>
                           <p className="text-sm text-gray-600 mb-1">Wallet:</p>
-                          <p className="text-sm font-mono text-gray-500">
+                          <p className="text-sm font-mono text-gray-500 break-all">
                             {solicitud.direccionWallet}
                           </p>
                         </>
@@ -976,6 +977,9 @@ const RetiroPage = () => {
                   onBlur={formikWallet.handleBlur}
                   className="w-full px-4 py-3 border-2 rounded-xl text-gray-900 bg-gray-50 border-gray-300 hover:bg-white hover:border-gray-400 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 focus:outline-none transition-all duration-300"
                   placeholder="Ej: Mi wallet principal"
+                  maxLength={20}
+                  pattern="^[A-Za-z0-9]+$"
+                  title="Máximo 20 caracteres, solo letras o números"
                 />
                 {formikWallet.touched.nombre && formikWallet.errors.nombre && (
                   <p className="text-red-600 text-sm mt-1">{formikWallet.errors.nombre}</p>
@@ -1039,6 +1043,7 @@ const RetiroPage = () => {
                   rows={3}
                   className="w-full px-4 py-3 border-2 rounded-xl text-gray-900 bg-gray-50 border-gray-300 hover:bg-white hover:border-gray-400 focus:ring-4 focus:ring-green-100 focus:border-green-500 focus:outline-none transition-all duration-300 font-mono text-sm"
                   placeholder="Ingresa la dirección de tu wallet"
+                  maxLength={255}
                 />
                 {formikWallet.touched.direccion && formikWallet.errors.direccion && (
                   <p className="text-red-600 text-sm mt-1">{formikWallet.errors.direccion}</p>

@@ -96,23 +96,23 @@ const BoletoButtom: React.FC = () => {
   const renderCarritoContent = () => (
     <div className="space-y-4">
       {/* Header del carrito */}
-      <div className="bg-red-600 text-white p-4 rounded-lg">
+      <div className="bg-slate-50 text-slate-800 p-4 rounded-lg border border-slate-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="bg-white text-red-600 p-2 rounded-lg">
+            <div className="bg-slate-100 text-slate-700 p-2 rounded-lg">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.1 5A1 1 0 006.9 19H19" />
               </svg>
             </div>
             <div>
               <h3 className="font-semibold">Carrito de Apuestas</h3>
-              <p className="text-sm text-red-200">
+              <p className="text-sm text-slate-500">
                 {cantidadApuestas} {cantidadApuestas === 1 ? 'apuesta' : 'apuestas'} seleccionadas
               </p>
             </div>
           </div>
           {cantidadApuestas > 0 && (
-            <div className="bg-white text-red-600 px-3 py-1 rounded-full font-bold">
+            <div className="bg-slate-100 text-slate-700 px-3 py-1 rounded-full font-semibold">
               {cantidadApuestas}
             </div>
           )}
@@ -127,8 +127,8 @@ const BoletoButtom: React.FC = () => {
               onClick={() => setBetMode('INDIVIDUAL')}
               className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
                 betMode === 'INDIVIDUAL'
-                  ? 'bg-white text-red-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               Apuestas Individuales
@@ -138,10 +138,10 @@ const BoletoButtom: React.FC = () => {
               disabled={!esParlayValido}
               className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${
                 betMode === 'PARLAY' && esParlayValido
-                  ? 'bg-white text-red-600 shadow-sm'
+                  ? 'bg-white text-slate-900 shadow-sm'
                   : esParlayValido
-                  ? 'text-gray-600 hover:text-gray-900'
-                  : 'text-gray-400 cursor-not-allowed'
+                  ? 'text-slate-600 hover:text-slate-900'
+                  : 'text-slate-400 cursor-not-allowed'
               }`}
             >
               Parlay
@@ -170,21 +170,21 @@ const BoletoButtom: React.FC = () => {
         // Modo Parlay
         <div className="space-y-2">
           {/* Header del Parlay */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 rounded-lg">
+          <div className="bg-slate-800 text-white p-3 rounded-lg">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <div className="bg-white text-blue-600 p-1.5 rounded">
+                <div className="bg-white text-slate-800 p-1.5 rounded">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.1a4 4 0 000-5.657z" />
                   </svg>
                 </div>
                 <div>
                   <h3 className="font-semibold text-sm">Parlay {boleto.length}x</h3>
-                  <p className="text-xs text-blue-100">Todas deben ganar</p>
+                  <p className="text-xs text-slate-200">Todas deben ganar</p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-xs text-blue-100">Cuota total</p>
+                <p className="text-xs text-slate-200">Cuota total</p>
                 <p className="font-bold">{boleto.reduce((acc, bet) => acc * bet.odd, 1).toFixed(2)}</p>
               </div>
             </div>
@@ -201,7 +201,7 @@ const BoletoButtom: React.FC = () => {
                     <p className="text-xs text-gray-600 truncate">{apuesta.descripcion}</p>
                   </div>
                   <div className="flex items-center space-x-3 ml-3">
-                    <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-semibold">
+                    <span className="bg-slate-100 text-slate-800 px-2 py-1 rounded text-xs font-semibold">
                       {apuesta.odd.toFixed(2)}
                     </span>
                     <button
@@ -236,7 +236,7 @@ const BoletoButtom: React.FC = () => {
                         editarMontoApuesta(apuesta.id, apuesta.eventoId, monto / boleto.length);
                       });
                     }}
-                    className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900 placeholder-slate-400 bg-white caret-slate-900"
                     placeholder="0.00"
                     min="1"
                     max="10000"
@@ -275,7 +275,7 @@ const BoletoButtom: React.FC = () => {
                       <span className="bg-gray-100 text-gray-800 px-1.5 py-0.5 rounded text-xs">
                         {apuesta.tipoApuesta}
                       </span>
-                      <span className="bg-red-100 text-red-800 px-1.5 py-0.5 rounded text-xs font-semibold">
+                      <span className="bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded text-xs font-semibold">
                         {apuesta.odd.toFixed(2)}
                       </span>
                     </div>
@@ -303,7 +303,7 @@ const BoletoButtom: React.FC = () => {
                         type="number"
                         value={montoActual}
                         onChange={(e) => handleMontoChange(apuesta, e.target.value)}
-                        className="w-full pl-6 pr-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        className="w-full pl-6 pr-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-red-500 focus:border-red-500 text-slate-900 placeholder-slate-400 bg-white caret-slate-900"
                         placeholder="0.00"
                         min="1"
                         max="10000"
@@ -426,38 +426,73 @@ const BoletoButtom: React.FC = () => {
   return (
     <>
       {/* Contenedor fijo inferior que no bloquea interacción fuera del panel */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 flex justify-center pointer-events-none px-2 pb-4 md:pb-6">
-        {/* Panel expandido */}
-        {isExpanded && (
-          <div className="pointer-events-auto relative w-full max-w-4xl bg-white rounded-t-2xl shadow-xl border border-gray-200 overflow-hidden">
-            {/* Handler visual */}
-            <div className="w-full flex justify-center pt-2">
-              <div className="h-1.5 w-12 bg-gray-300 rounded-full"></div>
-            </div>
-
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Sistema de Apuestas</h2>
-              <button
-                onClick={() => setIsExpanded(false)}
-                className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
-                aria-label="Cerrar"
-              >
+      <div className="fixed bottom-0 left-0 right-0 z-40 flex justify-center pointer-events-none px-3 pb-4 md:pb-6">
+        {/* Panel único con ancho consistente y transición de altura */}
+        <div
+          className={`pointer-events-auto w-full max-w-4xl bg-white rounded-t-2xl border border-slate-200 shadow-xl overflow-hidden transition-all duration-300 ${
+            isExpanded ? 'max-h-[72vh]' : 'max-h-[72px]'
+          }`}
+        >
+          {/* Header resumen (siempre visible) */}
+          <button
+            onClick={() => setIsExpanded((v) => !v)}
+            className="w-full flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 bg-white hover:bg-slate-50 transition-colors"
+          >
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="bg-slate-100 text-slate-700 p-2 rounded-md">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
-              </button>
+              </div>
+              <div className="text-left">
+                <div className="font-semibold text-sm text-slate-800 tracking-wide">Boleto</div>
+                <div className="text-xs text-slate-500">
+                  {cantidadApuestas} {cantidadApuestas === 1 ? 'apuesta' : 'apuestas'}
+                </div>
+              </div>
+              <div className="bg-slate-100 text-slate-700 px-2 py-1 rounded-full text-xs font-semibold min-w-[24px] text-center">
+                {cantidadApuestas}
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <div className="font-bold text-base sm:text-lg text-slate-900">${totalApostar.toFixed(2)}</div>
+                <div className="text-xs text-slate-500">Total</div>
+              </div>
+              <svg
+                className={`w-5 h-5 text-slate-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </button>
+
+          {/* Contenido expandible */}
+          <div
+            className={`transition-all duration-300 overflow-y-auto ${
+              isExpanded ? 'max-h-[64vh]' : 'max-h-0'
+            }`}
+          >
+            {/* Separador y título formal */}
+            <div className="px-4 sm:px-6 border-t border-slate-200 pt-4 sm:pt-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg sm:text-xl font-semibold text-slate-900">Sistema de Apuestas</h2>
+                <div className="text-xs text-slate-500">{new Date().toLocaleDateString()}</div>
+              </div>
             </div>
 
             {/* Notificación */}
             {notification && (
               <div
-                className={`m-4 p-3 rounded-lg ${
+                className={`mx-4 sm:mx-6 mt-4 p-3 rounded-lg ${
                   notification.type === 'success'
-                    ? 'bg-green-100 border border-green-400 text-green-700'
+                    ? 'bg-green-50 border border-green-200 text-green-700'
                     : notification.type === 'error'
-                    ? 'bg-red-100 border border-red-400 text-red-700'
-                    : 'bg-yellow-100 border border-yellow-400 text-yellow-700'
+                    ? 'bg-red-50 border border-red-200 text-red-700'
+                    : 'bg-yellow-50 border border-yellow-200 text-yellow-700'
                 }`}
               >
                 <div className="flex items-center">
@@ -476,20 +511,20 @@ const BoletoButtom: React.FC = () => {
             )}
 
             {/* Tabs */}
-            <div className="px-4 sm:px-6">
-              <div className="border-b border-gray-200 mb-4 sm:mb-6">
+            <div className="px-4 sm:px-6 mt-4">
+              <div className="border-b border-slate-200 mb-4 sm:mb-6">
                 <nav className="flex space-x-8">
                   <button
                     onClick={() => setActiveTab('CARRITO')}
                     className={`pb-4 px-1 border-b-2 font-medium text-sm ${
                       activeTab === 'CARRITO'
-                        ? 'border-red-500 text-red-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        ? 'border-slate-900 text-slate-900'
+                        : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
                     }`}
                   >
                     Carrito
                     {cantidadApuestas > 0 && (
-                      <span className="ml-2 bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs">
+                      <span className="ml-2 bg-slate-100 text-slate-700 px-2 py-1 rounded-full text-xs">
                         {cantidadApuestas}
                       </span>
                     )}
@@ -498,8 +533,8 @@ const BoletoButtom: React.FC = () => {
                     onClick={() => setActiveTab('HISTORIAL')}
                     className={`pb-4 px-1 border-b-2 font-medium text-sm ${
                       activeTab === 'HISTORIAL'
-                        ? 'border-red-500 text-red-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        ? 'border-slate-900 text-slate-900'
+                        : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
                     }`}
                   >
                     Historial
@@ -509,46 +544,11 @@ const BoletoButtom: React.FC = () => {
             </div>
 
             {/* Contenido */}
-            <div className="px-4 sm:px-6 pb-4 max-h-[70vh] overflow-y-auto">
+            <div className="px-4 sm:px-6 pb-4">
               {activeTab === 'CARRITO' ? renderCarritoContent() : renderHistorialContent()}
             </div>
           </div>
-        )}
-
-        {/* Barra flotante (contraído) */}
-        {!isExpanded && (
-          <button
-            onClick={() => setIsExpanded(true)}
-            className="pointer-events-auto bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-lg transition-all duration-300 flex items-center justify-between min-w-[320px] max-w-[400px] border border-red-500 transform hover:scale-105"
-          >
-            {/* Lado izquierdo - Información del boleto */}
-            <div className="flex items-center space-x-4 px-5">
-              <div className="bg-white text-red-600 p-2 rounded-md">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-              </div>
-              <div className="text-left">
-                <div className="font-semibold text-sm">BOLETO</div>
-                <div className="text-xs text-red-200">
-                  {cantidadApuestas} {cantidadApuestas === 1 ? 'apuesta' : 'apuestas'}
-                </div>
-              </div>
-              <div className="bg-white text-red-600 px-2 py-1 rounded-full text-xs font-bold min-w-[24px] text-center">
-                {cantidadApuestas}
-              </div>
-            </div>
-
-            {/* Separador visual */}
-            <div className="h-8 w-px bg-red-500"></div>
-
-            {/* Lado derecho - Total */}
-            <div className="px-6 py-4 text-right">
-              <div className="font-bold text-lg text-white">${totalApostar.toFixed(2)}</div>
-              <div className="text-xs text-red-200">Total</div>
-            </div>
-          </button>
-        )}
+        </div>
       </div>
     </>
   );
