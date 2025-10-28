@@ -5,8 +5,6 @@ import java.util.List;
 import com._bet.dto.apiSports.entidades.Fixture;
 import com._bet.dto.apiSports.entidades.League;
 import com._bet.dto.apiSports.entidades.OddStatus;
-import com._bet.dto.apiSports.entidades.Odds;
-import com._bet.dto.apiSports.response.EventsByLeagueResponse.Teams;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;

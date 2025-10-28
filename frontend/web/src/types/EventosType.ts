@@ -17,12 +17,13 @@ export interface LigaBasica {
 /**
  * DTO para respuesta de evento en vivo
  */
-export interface EventoEnVivoResponse {
+export interface EventoConOddsResponse {
     fixture: Fixture;
     league: LeagueApi;
     teams: TeamsApi;
     goals: GoalsApi;
     score: ScoreApi;
+    odds: Bet[];
 }
 
 /**

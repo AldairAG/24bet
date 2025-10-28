@@ -35,6 +35,7 @@ public class EventsByLeagueResponse {
     }
 
     @Data
+    @Builder
     public static class Teams {
         @JsonProperty("home")
         private Team home;

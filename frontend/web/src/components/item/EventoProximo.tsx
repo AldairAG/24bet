@@ -1,25 +1,34 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import EventoItem from './EventoItem';
-import type { EventoItemProps } from './EventoItem';
+import { useEventos } from '../../hooks/useEventos';
 
-interface EventoProximoProps {
-  eventos: Omit<EventoItemProps, 'onBetClick' | 'isBetSelected'>[];
-  onBetClick: (
-    eventoId: number,
-    eventoName: string,
-    tipoApuesta: string,
-    descripcion: string,
-    odd: number,
-    valueId: number
-  ) => void;
-  isBetSelected: (valueId: number, eventoId: number) => boolean;
-}
+const EventoProximo: React.FC = () => {
 
-const EventoProximo: React.FC<EventoProximoProps> = ({
-  eventos,
-  onBetClick,
-  isBetSelected
-}) => {
+  const { eventosFuturosPorDeporte, isLoadingEventosFuturosPorDeporte, loadEventoDetailError, loadEventosFuturosPorDeporte } = useEventos();
+ 
+  useEffect(() => {
+    loadEventosFuturosPorDeporte('Soccer');
+  }, [loadEventosFuturosPorDeporte]);
+
+  const renderEventosFuturos = () => {
+    if (isLoadingEventosFuturosPorDeporte) {
+      return <div className="p-4 text-center text-white">Cargando eventos próximos...</div>;
+    }
+    if (loadEventoDetailError) {
+      return <div className="p-4 text-center text-red-500">Error: {loadEventoDetailError}</div>;
+    }
+    if (eventosFuturosPorDeporte.length === 0) {
+      return <div className="p-4 text-center text-white">No hay eventos próximos disponibles.</div>;
+    }
+    return eventosFuturosPorDeporte.map((evento) => (
+      <EventoItem
+        key={evento.fixture.id}
+        evento={evento}
+        isLive={false}
+      />
+    ));
+  };
+
   return (
     <section className="px-3 pb-4">
       {/* Header Próximo */}
@@ -75,14 +84,7 @@ const EventoProximo: React.FC<EventoProximoProps> = ({
 
       {/* Lista de partidos próximos */}
       <div className="bg-gray-700 text-white">
-        {eventos.map((evento) => (
-          <EventoItem
-            key={evento.id}
-            {...evento}
-            onBetClick={onBetClick}
-            isBetSelected={isBetSelected}
-          />
-        ))}
+        {renderEventosFuturos()}
       </div>
     </section>
   );

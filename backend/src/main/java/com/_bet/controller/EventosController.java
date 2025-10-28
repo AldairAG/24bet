@@ -1,8 +1,8 @@
 package com._bet.controller;
 
 import com._bet.controller.AuthController.ApiResponseWrapper;
+import com._bet.dto.response.EventoConOddsResponse;
 import com._bet.dto.response.EventoDeportivoResponse;
-import com._bet.dto.response.EventoEnVivoResponse;
 import com._bet.entity.datosMaestros.Deporte;
 import com._bet.entity.datosMaestros.Liga;
 import com._bet.repository.DeporteRepository;
@@ -14,7 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -118,10 +117,10 @@ public class EventosController {
      * @return Lista de eventos del deporte
      */
     @GetMapping("/eventos-en-vivo-por-deporte/{nombreDeporte}")
-    public ResponseEntity<ApiResponseWrapper<List<EventoEnVivoResponse>>> getEventosEnVivo
+    public ResponseEntity<ApiResponseWrapper<List<EventoConOddsResponse>>> getEventosEnVivo
     (@PathVariable String nombreDeporte) {
         try {
-            List<EventoEnVivoResponse> eventoResponses = eventoService.obtenerEventosEnVivoPorDeporte(nombreDeporte);
+            List<EventoConOddsResponse> eventoResponses = eventoService.obtenerEventosEnVivoPorDeporte(nombreDeporte);
             return ResponseEntity.ok(new ApiResponseWrapper<>(true, "Eventos obtenidos exitosamente", eventoResponses));
 
         } catch (Exception e) {
@@ -136,10 +135,10 @@ public class EventosController {
      * @return Lista de eventos del deporte
      */
     @GetMapping("/eventos-mas-proximos-por-deporte/{nombreDeporte}")
-    public ResponseEntity<ApiResponseWrapper<List<EventoDeportivoResponse>>> getEventosMasProximosPorDeporte
+    public ResponseEntity<ApiResponseWrapper<List<EventoConOddsResponse>>> getEventosMasProximosPorDeporte
     (@PathVariable String nombreDeporte) {
         try {
-            List<EventoDeportivoResponse> eventoResponses = eventoService.obtenerEventosMasProximosPorDeporte(nombreDeporte);
+            List<EventoConOddsResponse> eventoResponses = eventoService.obtenerEventosMasProximosPorDeporte(nombreDeporte);
 
             return ResponseEntity.ok(new ApiResponseWrapper<>(true, "Eventos obtenidos exitosamente", eventoResponses));
 

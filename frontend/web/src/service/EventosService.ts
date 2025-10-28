@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { apiBase } from '../../src/service/apiBase';
-import type { Evento, EventoDeportivoResponse, EventoEnVivoResponse, EventosEnVivoResponse, EventosPorLigaResponse, LigaPorDeporteDetalleResponse } from '../../src/types/EventosType';
+import type { Evento, EventoConOddsResponse, LigaPorDeporteDetalleResponse } from '../../src/types/EventosType';
 import type { ApiResponseWrapper } from '../types/authTypes';
 
 /**
@@ -16,9 +16,9 @@ class EventosService {
      * @param deporte Nombre del deporte (e.g., "Soccer", "Basketball")
      * @returns Promise con la lista de eventos deportivos en vivo
      */
-    async getEventosEnVivoPorDeporte(deporte: string): Promise<EventoEnVivoResponse[]> {
+    async getEventosEnVivoPorDeporte(deporte: string): Promise<EventoConOddsResponse[]> {
         try {
-            const response = await apiBase.get<EventoEnVivoResponse[]>(
+            const response = await apiBase.get<EventoConOddsResponse[]>(
                 `${this.baseUrl}/eventos-en-vivo-por-deporte/${deporte}`
             );
             return response.data;
@@ -33,9 +33,9 @@ class EventosService {
      * GET /24bet/eventos/en-vivo
      * @returns Promise con la lista de eventos deportivos en vivo
      */
-    async getEventosEnVivo(): Promise<EventosEnVivoResponse> {
+    async getEventosEnVivo(): Promise<EventoConOddsResponse[]> {
         try {
-            const response = await apiBase.get<EventosEnVivoResponse>(
+            const response = await apiBase.get<EventoConOddsResponse[]>(
                 `${this.baseUrl}/en-vivo`
             );
 
@@ -47,10 +47,10 @@ class EventosService {
     }
 
     /**
- * Obtiene un evento por su nombre
- * GET /24bet/eventos/nombre/{nombre}
- * @param nombre Nombre del evento
- */
+     * Obtiene un evento por su nombre
+     * GET /24bet/eventos/nombre/{nombre}
+     * @param nombre Nombre del evento
+     */
     async getEventoPorNombre(nombre: string): Promise<ApiResponseWrapper<Evento>> {
         try {
             const response = await apiBase.get<Evento>(
@@ -80,14 +80,31 @@ class EventosService {
     }
 
     /**
+     * Obtiene todos los eventos futuros por nombre de la liga
+     * GET /24bet/eventos/futuros
+     * @returns Promise con la lista de eventos futuros
+     */
+    async getEventosFuturosByLigaName(ligaNombre: string): Promise<EventoConOddsResponse[]> {
+        try {
+            const response = await apiBase.get<EventoConOddsResponse[]>(
+                `${this.baseUrl}/eventos-por-liga/${ligaNombre}`
+            );
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching future events:', error);
+            throw this.handleError(error);
+        }
+    }
+
+    /**
      * Obtiene todos los eventos futuros
      * GET /24bet/eventos/futuros
      * @returns Promise con la lista de eventos futuros
      */
-    async getEventosFuturos(ligaNombre: string): Promise<EventosPorLigaResponse[]> {
+    async getEventosFuturosPorDeporte(deporte: string): Promise<EventoConOddsResponse[]> {
         try {
-            const response = await apiBase.get<EventosPorLigaResponse[]>(
-                `${this.baseUrl}/eventos-por-liga/${ligaNombre}`
+            const response = await apiBase.get<EventoConOddsResponse[]>(
+                `${this.baseUrl}/eventos-mas-proximos-por-deporte/${deporte}`
             );
             return response.data;
         } catch (error) {
@@ -130,169 +147,6 @@ class EventosService {
             // Error de configuración
             return new Error(`Error: ${error.message}`);
         }
-    }
-
-    /**
-     * Valida si un evento está en vivo
-     * @param evento Evento a validar
-     * @returns true si el evento está en vivo
-     * @deprecated
-     */
-    validateEventoEnVivo(evento: EventoDeportivoResponse): boolean {
-        // Si tiene la propiedad enVivo, usarla
-        if (evento.enVivo !== undefined) {
-            return evento.enVivo && evento.activo;
-        }
-
-        // Si no tiene enVivo, determinar basándose en el estado
-        // Estados que indican que el evento está en vivo:
-        // "1H" = Primera mitad, "2H" = Segunda mitad, "HT" = Medio tiempo, "ET" = Tiempo extra, etc.
-        const estadosEnVivo = ['1H', '2H', 'HT', 'ET', 'P', 'LIVE', 'IN PLAY'];
-        const estadoUpper = evento.estado?.toUpperCase() || '';
-
-        const estaEnVivo = estadosEnVivo.some(estado =>
-            estadoUpper.includes(estado) || estado.includes(estadoUpper)
-        );
-
-        console.log(`🏁 Validando evento ${evento.id} (${evento.nombre}):`, {
-            estado: evento.estado,
-            activo: evento.activo,
-            enVivo: evento.enVivo,
-            calculadoEnVivo: estaEnVivo,
-            resultado: estaEnVivo && evento.activo
-        });
-
-        return estaEnVivo && evento.activo;
-    }
-
-    /**
-     * Filtra eventos que están realmente en vivo
-     * @param eventos Lista de eventos
-     * @returns Eventos filtrados que están en vivo
-     */
-    filterEventosEnVivo(eventos: EventosEnVivoResponse): EventosEnVivoResponse {
-        return eventos.filter(evento => this.validateEventoEnVivo(evento));
-    }
-
-    /**
-     * Ordena eventos por fecha de evento
-     * @param eventos Lista de eventos
-     * @param orden Orden: 'asc' para ascendente, 'desc' para descendente
-     * @returns Eventos ordenados por fecha
-     */
-    sortEventosByFecha(eventos: EventosEnVivoResponse, orden: 'asc' | 'desc' = 'asc'): EventosEnVivoResponse {
-        return [...eventos].sort((a, b) => {
-            const fechaA = new Date(a.fechaEvento).getTime();
-            const fechaB = new Date(b.fechaEvento).getTime();
-
-            return orden === 'asc' ? fechaA - fechaB : fechaB - fechaA;
-        });
-    }
-
-    /**
-     * Filtra eventos por liga específica
-     * @param eventos Lista de eventos
-     * @param ligaNombre Nombre de la liga a filtrar
-     * @returns Eventos filtrados por liga
-     */
-    filterEventosByLiga(eventos: EventosEnVivoResponse, ligaNombre: string): EventosEnVivoResponse {
-        return eventos.filter(evento =>
-            evento.liga.nombre.toLowerCase().includes(ligaNombre.toLowerCase()) ||
-            evento.liga.nombreAlternativo?.toLowerCase().includes(ligaNombre.toLowerCase())
-        );
-    }
-
-    /**
-     * Filtra eventos por deporte
-     * @param eventos Lista de eventos
-     * @param deporte Nombre del deporte a filtrar
-     * @returns Eventos filtrados por deporte
-     */
-    filterEventosByDeporte(eventos: EventosEnVivoResponse, deporte: string): EventosEnVivoResponse {
-        return eventos.filter(evento =>
-            evento.liga.deporte.toLowerCase() === deporte.toLowerCase()
-        );
-    }
-
-    /**
-     * Filtra eventos por país
-     * @param eventos Lista de eventos
-     * @param pais Nombre del país a filtrar
-     * @returns Eventos filtrados por país
-     */
-    filterEventosByPais(eventos: EventosEnVivoResponse, pais: string): EventosEnVivoResponse {
-        return eventos.filter(evento =>
-            (evento.pais && evento.pais.toLowerCase() === pais.toLowerCase()) ||
-            (evento.liga.pais && evento.liga.pais.toLowerCase() === pais.toLowerCase())
-        );
-    }
-
-    /**
-     * Busca eventos por nombre (equipo local, visitante o nombre del evento)
-     * @param eventos Lista de eventos
-     * @param termino Término de búsqueda
-     * @returns Eventos que coinciden con el término de búsqueda
-     */
-    searchEventos(eventos: EventosEnVivoResponse, termino: string): EventosEnVivoResponse {
-        const terminoLower = termino.toLowerCase();
-
-        return eventos.filter(evento =>
-            evento.nombre.toLowerCase().includes(terminoLower) ||
-            (evento.equipoLocal?.nombre && evento.equipoLocal.nombre.toLowerCase().includes(terminoLower)) ||
-            (evento.equipoVisitante?.nombre && evento.equipoVisitante.nombre.toLowerCase().includes(terminoLower)) ||
-            evento.liga.nombre.toLowerCase().includes(terminoLower)
-        );
-    }
-
-    /**
-     * Obtiene eventos únicos por liga
-     * @param eventos Lista de eventos
-     * @returns Map con eventos agrupados por liga
-     */
-    groupEventosByLiga(eventos: EventosEnVivoResponse): Map<string, EventosEnVivoResponse> {
-        const eventosPorLiga = new Map<string, EventosEnVivoResponse>();
-
-        eventos.forEach(evento => {
-            const ligaNombre = evento.liga.nombre;
-
-            if (!eventosPorLiga.has(ligaNombre)) {
-                eventosPorLiga.set(ligaNombre, []);
-            }
-
-            eventosPorLiga.get(ligaNombre)!.push(evento);
-        });
-
-        return eventosPorLiga;
-    }
-
-    /**
-     * Formatea el tiempo de partido para mostrar en UI
-     * @param tiempoPartido Tiempo actual del partido
-     * @returns Tiempo formateado para mostrar
-     */
-    formatTiempoPartido(tiempoPartido?: string): string {
-        if (!tiempoPartido || tiempoPartido.trim() === '') {
-            return 'En vivo';
-        }
-
-        // Si es un número, agregar comillas simples para indicar minutos
-        if (/^\d+$/.test(tiempoPartido)) {
-            return `${tiempoPartido}'`;
-        }
-
-        return tiempoPartido;
-    }
-
-    /**
-     * Formatea el resultado del partido
-     * @param evento Evento deportivo
-     * @returns String con el resultado formateado
-     */
-    formatResultado(evento: EventoDeportivoResponse): string {
-        const local = evento.resultadoLocal || 0;
-        const visitante = evento.resultadoVisitante || 0;
-
-        return `${local} - ${visitante}`;
     }
 }
 

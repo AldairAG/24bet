@@ -2,9 +2,11 @@ package com._bet.dto.apiSports.entidades;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class Team {
     @JsonProperty("id")
     private int id;
