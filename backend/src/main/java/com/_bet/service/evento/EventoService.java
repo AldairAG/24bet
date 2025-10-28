@@ -1,5 +1,6 @@
 package com._bet.service.evento;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -9,13 +10,15 @@ import org.springframework.stereotype.Service;
 
 import com._bet.dto.apiSports.entidades.Fixture;
 import com._bet.dto.apiSports.entidades.League;
+import com._bet.dto.apiSports.entidades.Team;
 import com._bet.dto.apiSports.entidades.Fixture.Status;
 import com._bet.dto.apiSports.entidades.Odds.Bet;
 import com._bet.dto.apiSports.entidades.Odds.Value;
 import com._bet.dto.apiSports.response.EventsByLeagueResponse.Goals;
 import com._bet.dto.apiSports.response.EventsByLeagueResponse.Score;
+import com._bet.dto.apiSports.response.EventsByLeagueResponse.Teams;
+import com._bet.dto.response.EventoConOddsResponse;
 import com._bet.dto.response.EventoDeportivoResponse;
-import com._bet.dto.response.EventoEnVivoResponse;
 import com._bet.entity.eventoEntity.EventoDeportivo;
 import com._bet.repository.EventoDeportivoRepository;
 
@@ -107,7 +110,7 @@ public class EventoService {
                 return response;
         }
 
-        public List<EventoEnVivoResponse> obtenerEventosEnVivoPorDeporte(String nombreDeporte) {
+        public List<EventoConOddsResponse> obtenerEventosEnVivoPorDeporte(String nombreDeporte) {
                 List<EventoDeportivo> eventos = eventoDeportivoRepository
                                 .findByLigaDeporteNombreAndEnVivoTrue(nombreDeporte);
 
@@ -116,7 +119,7 @@ public class EventoService {
                                 .collect(Collectors.toList());
         }
 
-        private EventoEnVivoResponse convertirEventoEnVivoResponses(EventoDeportivo evento) {
+        private EventoConOddsResponse convertirEventoEnVivoResponses(EventoDeportivo evento) {
 
                 Fixture fixture = Fixture.builder()
                                 .id(evento.getApiSportsId())
@@ -145,23 +148,67 @@ public class EventoService {
                                 .penalty(goals)
                                 .build();
 
-                
+                Team homeTeam = Team.builder()
+                                .id(evento.getEquipoLocal().getId().intValue())
+                                .name(evento.getEquipoLocal().getNombre())
+                                .code(evento.getEquipoLocal().getCode())
+                                .country(evento.getEquipoLocal().getPais())
+                                .logo(evento.getEquipoLocal().getBadgeUrl())
+                                .build();
 
-                EventoEnVivoResponse response = new EventoEnVivoResponse();
+                Team awayTeam = Team.builder()
+                                .id(evento.getEquipoVisitante().getId().intValue())
+                                .name(evento.getEquipoVisitante().getNombre())
+                                .code(evento.getEquipoVisitante().getCode())
+                                .country(evento.getEquipoVisitante().getPais())
+                                .logo(evento.getEquipoVisitante().getBadgeUrl())
+                                .build();
+
+                Teams teams = Teams.builder()
+                                .home(homeTeam)
+                                .away(awayTeam)
+                                .build();
+
+                List<Bet> odds = evento.getOdds().stream()
+                                .<Bet>map(momio -> {
+                                        List<Value> values = momio.getValores().stream()
+                                                        .map(valor -> Value.builder()
+                                                                        .id(valor.getId())
+                                                                        .value(valor.getValor())
+                                                                        .odd(valor.getOdd())
+                                                                        .build())
+                                                        .collect(Collectors.toList());
+
+                                        Bet bet = Bet.builder()
+                                                        .id(Integer.parseInt(momio.getId().toString()))
+                                                        .name(momio.getTipoApuesta())
+                                                        .values(values)
+                                                        .build();
+
+                                        return bet;
+
+                                }).toList();
+
+                EventoConOddsResponse response = new EventoConOddsResponse();
                 response.setFixture(fixture);
                 response.setLeague(league);
                 response.setGoals(goals);
                 response.setScore(score);
+                response.setTeams(teams);
+                response.setOdds(odds);
 
                 return response;
         }
 
-        public List<EventoDeportivoResponse> obtenerEventosMasProximosPorDeporte(String nombreDeporte) {
+        public List<EventoConOddsResponse> obtenerEventosMasProximosPorDeporte(String nombreDeporte) {
                 List<EventoDeportivo> eventos = eventoDeportivoRepository
-                                .findByLigaDeporteNombreAndEnVivoTrue(nombreDeporte);
+                                .findByLigaDeporteNombreAndFechaEventoBetweenOrEnVivoTrue(
+                                                nombreDeporte,
+                                                LocalDateTime.now(),
+                                                LocalDateTime.now().plusDays(3));
 
                 return eventos.stream()
-                                .map(this::convertirEventoAResponse)
+                                .map(this::convertirEventoEnVivoResponses)
                                 .collect(Collectors.toList());
         }
 

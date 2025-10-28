@@ -1,8 +1,8 @@
 import React from 'react';
-import type { EventoEnVivoResponse } from '../../types/EventosType';
+import type { EventoConOddsResponse } from '../../types/EventosType';
 
 export interface EventoItemProps {
-  evento: EventoEnVivoResponse;
+  evento: EventoConOddsResponse;
   isLive: boolean;
 }
 
@@ -11,9 +11,13 @@ const EventoItem: React.FC<EventoItemProps> = ({
   isLive
 }) => {
 
-  const handleBetClick = () => {
+  const handleBetClick = (betId: number) => {
   };
-  
+
+  const isBetSelected = (betId: number, eventoId: number): boolean => {
+    return false;
+  };
+
   return (
     <div className="border-b border-gray-600 p-3">
       {/* Header del evento */}
@@ -47,7 +51,7 @@ const EventoItem: React.FC<EventoItemProps> = ({
           <div className="flex items-center space-x-2 mb-1">
             <span className="w-2 h-2 bg-red-500 rounded-full"></span>
             <span className="text-sm">{evento?.teams.home.name}</span>
-            {isLive && evento?.goals.home !==undefined && (
+            {isLive && evento?.goals.home !== undefined && (
               <span className="text-sm font-bold">{evento?.goals.home}</span>
             )}
           </div>
@@ -59,30 +63,28 @@ const EventoItem: React.FC<EventoItemProps> = ({
             )}
           </div>
         </div>
-        
+
         {/* Botones de apuestas */}
         <div className="flex space-x-2 text-xs">
-{/*           {bettingOptions.slice(0, 5).map((option) => (
-            <button
-              key={option.id}
-              onClick={() => handleBetClick(option)}
-              className={`px-2 py-1 rounded text-center transition-colors duration-200 ${
-                isBetSelected(option.id, id)
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-600 hover:bg-gray-500 text-white'
-              }`}
-            >
-              <p className={`font-bold ${option.odd > 2 ? 'text-green-400' : 'text-white'}`}>
-                {option.odd > 2 ? '+' : ''}{((option.odd - 1) * 100).toFixed(0)}
-              </p>
-              <p>{option.label}</p>
-            </button>
-          ))}
-          {bettingOptions.length > 5 && (
-            <div className="text-gray-400 px-2 py-1">
-              <span>⋯</span>
-            </div>
-          )} */}
+          {evento?.odds
+            .filter(option => option.name === 'Match Winner' || option.name === 'Full Time Result')
+            .slice(0, 3)
+            .map((option) => (
+              option.values.map((value) => (
+                <button
+                  key={value.id}
+                  onClick={() => handleBetClick(value.id)}
+                  className={`px-2 py-1 rounded text-center transition-colors duration-200 ${isBetSelected(value.id, evento.fixture.id)
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-600 hover:bg-gray-500 text-white'
+                    }`}
+                >
+                  <p className={`font-bold ${value.odd > 2 ? 'text-green-400' : 'text-white'}`}>
+                    {value.odd > 2 ? '+' : ''}{((value.odd - 1) * 100).toFixed(0)}
+                  </p>
+                  <p>{value.value }</p>
+                </button>
+              ))))}
         </div>
       </div>
     </div>

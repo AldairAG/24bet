@@ -1,31 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import EventoItem from './EventoItem';
 import useEventos from '../../hooks/useEventos';
-import { getEventosByIds } from '../../service/apiSportService';
-import { type EventoResponseApi } from '../../types/sportApiTypes';
 
 const EventosEnVivo: React.FC = () => {
   const [deporte, setDeporte] = useState('Soccer');
-  const [eventos, setEventos] = useState<EventoResponseApi[]>([]);
   // const [isLoadingEventosEnVivo, setIsLoadingEventosEnVivo] = useState(false);
   const { isLoadingEventosEnVivo, eventosEnVivo, loadEventosEnVivoError, loadEventosEnVivoPorDeporte } = useEventos();
 
   useEffect(() => {
     loadEventosEnVivoPorDeporte(deporte);
   }, [loadEventosEnVivoPorDeporte, deporte]);
-
-  useEffect(() => {
-    const cargarEventosEnVivoDesdeAPI = async () => {
-      const result = await getEventosByIds(eventosEnVivo.map(e => e.fixture.id));
-      setEventos(result);
-    }
-
-    if (eventosEnVivo.length > 0) {
-      cargarEventosEnVivoDesdeAPI();
-    } else {
-      setEventos([]);
-    }
-  }, [eventosEnVivo]);
 
   const renderEventos = () => {
     if (isLoadingEventosEnVivo) {

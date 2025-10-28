@@ -19,57 +19,6 @@ const deportes = [
   { name: "Carreras de Autos", icon: "🏎️" ,id:"Auto Racing"},
 ];
 
-// Datos mock para eventos en vivo
-const eventosEnVivoData: Omit<EventoItemProps, 'onBetClick' | 'isBetSelected'>[] = [
-  {
-    id: 1,
-    homeTeam: { name: "Águilas UAGro", score: 3 },
-    awayTeam: { name: "Colegio Once Mexico", score: 1 },
-    isLive: true,
-    time: "68'",
-    league: "México Liga TDP • México",
-    country: "México",
-    countryFlag: "🇲🇽",
-    hasFavorite: true,
-    bettingOptions: [
-      { id: 101, label: "Más de 6.5", odd: 2.25, description: "Total de Goles" },
-      { id: 102, label: "Menos de 6.5", odd: 1.55, description: "Total de Goles" }
-    ]
-  },
-  {
-    id: 2,
-    homeTeam: { name: "Lechuzas FC", score: 2 },
-    awayTeam: { name: "Centro De Formacion Chiapas Futbol", score: 3 },
-    isLive: true,
-    time: "70'",
-    league: "México Liga TDP • México",
-    country: "México",
-    countryFlag: "🇲🇽",
-    hasFavorite: true,
-    bettingOptions: [
-      { id: 201, label: "Más de 4.5", odd: 1.42, description: "Total de Goles" },
-      { id: 202, label: "Menos de 4.5", odd: 2.60, description: "Total de Goles" }
-    ]
-  },
-  {
-    id: 3,
-    homeTeam: { name: "Alamos F.C.", score: 1 },
-    awayTeam: { name: "C.H. Futbol Club", score: 0 },
-    isLive: true,
-    time: "31'",
-    league: "México Liga TDP • México",
-    country: "México",
-    countryFlag: "🇲🇽",
-    hasFavorite: true,
-    bettingOptions: [
-      { id: 301, label: "Alamos F.C.", odd: 2.25, description: "1X2" },
-      { id: 302, label: "Empate", odd: 2.85, description: "1X2" },
-      { id: 303, label: "C.H. Futbol", odd: 3.10, description: "1X2" },
-      { id: 304, label: "Más de 1.5", odd: 1.50, description: "Total Goles" },
-      { id: 305, label: "Menos de 1.5", odd: 2.35, description: "Total Goles" }
-    ]
-  }
-];
 
 // Datos mock para eventos próximos
 const eventosProximosData: Omit<EventoItemProps, 'onBetClick' | 'isBetSelected'>[] = [
@@ -217,11 +166,7 @@ const Home = () => {
         <EventosEnVivo />
 
         {/* Próximos Eventos */}
-        <EventoProximo 
-          eventos={eventosProximosData}
-          onBetClick={handleQuickBet}
-          isBetSelected={existeApuestaEnBoleto}
-        />
+        <EventoProximo />
       </main>
     </div>
   );

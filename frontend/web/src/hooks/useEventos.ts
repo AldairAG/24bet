@@ -3,41 +3,38 @@ import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     // Thunks,
-    getEventosFuturos,
+    getEventosFuturosPorDeporte,
+    getEventosFuturosPorLiga,
+    getEventosEnVivoPorDeporte,
+    getLigasPorDeporte,
     getEventoDetail,
     // Actions
     clearLoadEventosEnVivoError,
     clearEventosEnVivo,
     clearEventosData,
-    setFiltroDeporte,
-    setFiltroPais,
-    setTerminoBusqueda,
-    clearFiltros,
-    setOrdenamiento,
-    toggleDireccionOrdenamiento,
     // Selectors
-    selectEventosState,
+    //eventos en vivo
     selectIsLoadingEventosEnVivo,
     selectEventosEnVivo,
     selectLoadEventosEnVivoError,
-    selectIsLoadingEventosFuturos,
-    selectEventosFuturos,
-    selectLoadEventosFuturosError,
-    selectFiltros,
-    selectOrdenamiento,
-    selectUltimaActualizacion,
-    selectEventosErrors,
-    selectEventosLoading,
+    //eventos futuros por deporte
+    selectIsLoadingEventosFuturosPorDeporte,
+    selectEventosFuturosPorDeporte,
+    selectLoadEventosFuturosPorDeporteError,
+    // eventos futuros por liga
+    selectIsLoadingEventosFuturosPorLiga,
+    selectEventosFuturosPorLiga,
+    selectLoadEventosFuturosPorLigaError,
+    //ligas por deporte
     selectLigasPorDeporte,
     selectIsLoadingLigasPorDeporte,
     selectLoadLigasPorDeporteError,
+    //evento detail
+    selectEventoDetail,
     selectIsLoadingEventoDetail,
     selectLoadEventoDetailError,
-    selectEventoDetail,
     // Types
 
-    getLigasPorDeporte,
-    getEventosEnVivoPorDeporte,
 } from '../store/slices/EventosSlice';
 
 /**
@@ -48,21 +45,23 @@ export const useEventos = () => {
     const dispatch = useDispatch();
 
     // ========== SELECTORES ==========
-    const eventosState = useSelector(selectEventosState);
-    const isLoadingEventosEnVivo = useSelector(selectIsLoadingEventosEnVivo);
+    //eventos en vivo
     const eventosEnVivo = useSelector(selectEventosEnVivo);
+    const isLoadingEventosEnVivo = useSelector(selectIsLoadingEventosEnVivo);
     const loadEventosEnVivoError = useSelector(selectLoadEventosEnVivoError);
-    const isLoadingEventosFuturos = useSelector(selectIsLoadingEventosFuturos);
-    const eventosFuturos = useSelector(selectEventosFuturos);
-    const loadEventosFuturosError = useSelector(selectLoadEventosFuturosError);
-    const filtros = useSelector(selectFiltros);
-    const ordenamiento = useSelector(selectOrdenamiento);
-    const ultimaActualizacion = useSelector(selectUltimaActualizacion);
-    const eventosErrors = useSelector(selectEventosErrors);
-    const eventosLoading = useSelector(selectEventosLoading);
+    //eventos futuros por deporte
+    const isLoadingEventosFuturosPorDeporte = useSelector(selectIsLoadingEventosFuturosPorDeporte);
+    const eventosFuturosPorDeporte = useSelector(selectEventosFuturosPorDeporte);
+    const loadEventosFuturosPorDeporteError = useSelector(selectLoadEventosFuturosPorDeporteError);
+    //eventos futuros por liga
+    const eventosFuturosPorLiga = useSelector(selectEventosFuturosPorLiga);
+    const isLoadingEventosFuturosPorLiga = useSelector(selectIsLoadingEventosFuturosPorLiga);
+    const loadEventosFuturosPorLigaError = useSelector(selectLoadEventosFuturosPorLigaError);
+    //ligas por deporte
     const ligasPorDeporte = useSelector(selectLigasPorDeporte);
     const isLoadingLigasPorDeporte = useSelector(selectIsLoadingLigasPorDeporte);
     const loadLigasPorDeporteError = useSelector(selectLoadLigasPorDeporteError);
+    //evento detail
     const eventoDetail = useSelector(selectEventoDetail);
     const isLoadingEventoDetail = useSelector(selectIsLoadingEventoDetail);
     const loadEventoDetailError = useSelector(selectLoadEventoDetailError);
@@ -88,8 +87,24 @@ export const useEventos = () => {
     /**
      * Carga eventos futuros desde el servidor
      */
-    const loadEventosFuturos = useCallback(async (ligaNombre: string) => {
-        const result = await dispatch(getEventosFuturos(ligaNombre) as any);
+    const loadEventosFuturosPorLiga = useCallback(async (ligaNombre: string) => {
+        const result = await dispatch(getEventosFuturosPorLiga(ligaNombre) as any);
+        return result;
+    }, [dispatch]);
+
+    /**
+     * Carga todos los eventos en vivo desde el servidor
+     */
+    const loadEventosEnVivoPorDeporte = useCallback(async (deporte: string) => {
+        const result = await dispatch(getEventosEnVivoPorDeporte(deporte) as any);
+        return result;
+    }, [dispatch]);
+
+    /**
+     * Carga eventos futuros por deporte desde el servidor
+     */
+    const loadEventosFuturosPorDeporte = useCallback(async (deporte: string) => {
+        const result = await dispatch(getEventosFuturosPorDeporte(deporte) as any);
         return result;
     }, [dispatch]);
 
@@ -400,93 +415,6 @@ export const useEventos = () => {
         }
     };
 
-    // ========== OBJETO PARA MANEJO DE EVENTOS FUTUROS ==========
-
-    /**
-     * Objeto especializado para gestionar eventos futuros
-     * Proporciona funcionalidades para cargar y filtrar eventos futuros
-     */
-    const eventosFuturosManager = {
-        /**
-         * Carga eventos futuros desde el servidor
-         */
-        cargarEventosFuturos: async (ligaNombre: string) => {
-            return await loadEventosFuturos(ligaNombre);
-        },
-
-        /**
-         * Obtiene los eventos futuros actualmente cargados
-         */
-        obtenerEventosFuturos: () => eventosFuturos,
-
-        /**
-         * Verifica si hay eventos futuros cargados
-         */
-        hayEventosFuturos: () => Array.isArray(eventosFuturos) && eventosFuturos.length > 0,
-
-        /**
-         * Filtra eventos futuros por liga específica
-         */
-        filtrarPorLiga: () => {
-            return eventosFuturos
-        },
-
-        /**
-         * Agrupa eventos futuros por fecha
-         */
-        agruparPorFecha: () => {
-            if (!Array.isArray(eventosFuturos)) return {};
-
-            const eventosPorFecha: { [fecha: string]: typeof eventosFuturos } = {};
-
-            eventosFuturos.forEach(evento => {
-                const fecha = new Date(evento.fixture.date).toDateString();
-                if (!eventosPorFecha[fecha]) {
-                    eventosPorFecha[fecha] = [];
-                }
-                eventosPorFecha[fecha].push(evento);
-            });
-
-            return eventosPorFecha;
-        },
-
-        /**
-         * Verifica si está cargando eventos futuros
-         */
-        estaCargando: () => isLoadingEventosFuturos,
-
-        /**
-         * Obtiene el error de carga actual
-         */
-        obtenerError: () => loadEventosFuturosError,
-
-        /**
-         * Verifica si hay errores
-         */
-        hayError: () => !!loadEventosFuturosError,
-
-        /**
-         * Ordena eventos por fecha
-         */
-        ordenarPorFecha: (direccion: 'asc' | 'desc' = 'asc') => {
-            if (!Array.isArray(eventosFuturos)) return [];
-
-            return [...eventosFuturos].sort((a, b) => {
-                const fechaA = new Date(a.fixture.date).getTime();
-                const fechaB = new Date(b.fixture.date).getTime();
-                return direccion === 'asc' ? fechaA - fechaB : fechaB - fechaA;
-            });
-        },
-    };
-
-    /**
-     * Carga todos los eventos en vivo desde el servidor
-     */
-    const loadEventosEnVivoPorDeporte = useCallback(async (deporte: string) => {
-        const result = await dispatch(getEventosEnVivoPorDeporte(deporte) as any);
-        return result;
-    }, [dispatch]);
-
     /**
      * Recarga los eventos en vivo (útil para actualizaciones periódicas)
      */
@@ -517,125 +445,37 @@ export const useEventos = () => {
         dispatch(clearEventosData());
     }, [dispatch]);
 
-    // ========== ACCIONES DE FILTRADO ==========
-
-    /**
-     * Establece filtro por deporte
-     */
-    const setDeporteFilter = useCallback((deporte?: string) => {
-        dispatch(setFiltroDeporte(deporte));
-    }, [dispatch]);
-
-    /**
-     * Establece filtro por país
-     */
-    const setPaisFilter = useCallback((pais?: string) => {
-        dispatch(setFiltroPais(pais));
-    }, [dispatch]);
-
-    /**
-     * Establece término de búsqueda
-     */
-    const setSearchTerm = useCallback((termino?: string) => {
-        dispatch(setTerminoBusqueda(termino));
-    }, [dispatch]);
-
-    /**
-     * Limpia todos los filtros activos
-     */
-    const clearAllFilters = useCallback(() => {
-        dispatch(clearFiltros());
-    }, [dispatch]);
-
-    // ========== ACCIONES DE ORDENAMIENTO ==========
-
-    /**
-     * Establece el ordenamiento de eventos
-     */
-    const setSorting = useCallback((campo: 'fecha' | 'nombre', direccion: 'asc' | 'desc') => {
-        dispatch(setOrdenamiento({ campo, direccion }));
-    }, [dispatch]);
-
-    /**
-     * Cambia la dirección del ordenamiento actual
-     */
-    const toggleSortDirection = useCallback(() => {
-        dispatch(toggleDireccionOrdenamiento());
-    }, [dispatch]);
-
-    /**
-     * Ordena por fecha (ascendente/descendente)
-     */
-    const sortByFecha = useCallback((direccion: 'asc' | 'desc' = 'asc') => {
-        dispatch(setOrdenamiento({ campo: 'fecha', direccion }));
-    }, [dispatch]);
-
-    /**
-     * Ordena por nombre del evento (ascendente/descendente)
-     */
-    const sortByNombre = useCallback((direccion: 'asc' | 'desc' = 'asc') => {
-        dispatch(setOrdenamiento({ campo: 'nombre', direccion }));
-    }, [dispatch]);
-
-    // ========== FUNCIONES DE VALIDACIÓN ==========
-
-    /**
-     * Verifica si hay eventos cargados
-     */
-    const hasEventos = useCallback((): boolean => {
-        return Array.isArray(eventosEnVivo) && eventosEnVivo.length > 0;
-    }, [eventosEnVivo]);
-
-    /**
-     * Verifica si hay filtros activos
-     */
-    const hasActiveFilters = useCallback((): boolean => {
-        return !!(filtros?.deporte || filtros?.pais || filtros?.terminoBusqueda);
-    }, [filtros]);
-
-    /**
-     * Verifica si hay errores activos
-     */
-    const hasErrors = useCallback((): boolean => {
-        return eventosErrors?.hasErrors ?? false;
-    }, [eventosErrors]);
-
-    /**
-     * Obtiene todos los errores activos
-     */
-    const getAllErrors = useCallback((): string[] => {
-        const errors: string[] = [];
-        if (loadEventosEnVivoError) errors.push(loadEventosEnVivoError);
-        return errors;
-    }, [loadEventosEnVivoError]);
-
-    // ========== FUNCIONES AUXILIARES ==========
-
-    /**
-     * Resetea todos los estados a su valor inicial
-     */
-    const resetEventosState = useCallback(() => {
-        dispatch(clearEventosData());
-    }, [dispatch]);
-
-    // ========== EFECTOS ==========
-
-    /**
-     * Carga automáticamente eventos al inicializar el hook (opcional)
-     */
-    const autoLoadEventos = useCallback((shouldAutoLoad: boolean = false) => {
-        const eventosLength = Array.isArray(eventosEnVivo) ? eventosEnVivo.length : 0;
-        if (shouldAutoLoad && eventosLength === 0 && !isLoadingEventosEnVivo) {
-           //loadEventosEnVivoPorDeporte(deporte);
-        }
-    }, [eventosEnVivo, isLoadingEventosEnVivo, loadEventosEnVivoPorDeporte]);
-
     // ========== VALORES DE RETORNO ==========
     return {
-        // Estado completo
-        eventosState,
+        //eventos en vivo
+        eventosEnVivo,
+        isLoadingEventosEnVivo,
+        loadEventosEnVivoError,
+        loadEventosEnVivoPorDeporte,
+
+        //eventos futuros por deporte
+        eventosFuturosPorDeporte,
+        isLoadingEventosFuturosPorDeporte,
+        loadEventosFuturosPorDeporteError,
+        loadEventosFuturosPorDeporte,
+
+        //eventos futuros por liga
+        eventosFuturosPorLiga,
+        isLoadingEventosFuturosPorLiga,
+        loadEventosFuturosPorLigaError,
+        loadEventosFuturosPorLiga,
+
+        //ligas por deporte
         ligasPorDeporte,
+        isLoadingLigasPorDeporte,
+        loadLigasPorDeporteError,
+        loadLigasPorDeporte,
+
+        //evento detail
         eventoDetail,
+        isLoadingEventoDetail,
+        loadEventoDetailError,
+        loadEventoPorNombre,
 
         // Objeto especializado para ligas
         ligasManager,
@@ -643,64 +483,14 @@ export const useEventos = () => {
         // Objeto especializado para países
         paisesManager,
 
-        // Objeto especializado para eventos futuros
-        eventosFuturosManager,
-
-        // Estados de carga
-        isLoadingEventosEnVivo,
-        isLoadingEventosFuturos,
-        isLoading: eventosLoading.isLoading,
-        loading: eventosLoading,
-        isLoadingLigasPorDeporte,
-        isLoadingEventoDetail,
-
-        // Datos principales
-        eventosEnVivo,
-        eventosFuturos,
-
-        // Estados de configuración
-        filtros,
-        ordenamiento,
-        ultimaActualizacion,
-
-        // Errores
-        loadEventosEnVivoError,
-        loadEventosFuturosError,
-        loadLigasPorDeporteError,
-        loadEventoDetailError,
-        errors: eventosErrors,
-        hasErrors: hasErrors(),
-        allErrors: getAllErrors(),
-
         // Acciones principales
         reloadEventosEnVivoPorDeporte,
-        loadEventosFuturos,
-        loadLigasPorDeporte,
-        loadEventoPorNombre,
-        loadEventosEnVivoPorDeporte,
 
         // Acciones de limpieza
         clearLoadError,
         clearEventos,
         clearAllEventosData,
-        resetEventosState,
 
-        // Acciones de filtrado
-        setDeporteFilter,
-        setPaisFilter,
-        setSearchTerm,
-        clearAllFilters,
-
-        // Acciones de ordenamiento
-        setSorting,
-        toggleSortDirection,
-        sortByFecha,
-        sortByNombre,
-
-        hasEventos: hasEventos(),
-        hasActiveFilters: hasActiveFilters(),
-        
-        autoLoadEventos,
     };
 };
 
