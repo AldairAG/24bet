@@ -1,9 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../routes/routes";
-import { useApuesta } from "../../hooks/useApuesta";
 import EventosEnVivo from "../../components/item/EventosEnVivo";
 import EventoProximo from "../../components/item/EventoProximo";
-import type { EventoItemProps } from "../../components/item/EventoItem";
 
 const deportes = [
   { name: "Historial", icon: "📊", id: "Historial" },
@@ -19,81 +17,11 @@ const deportes = [
   { name: "Carreras de Autos", icon: "🏎️" ,id:"Auto Racing"},
 ];
 
-
-// Datos mock para eventos próximos
-const eventosProximosData: Omit<EventoItemProps, 'onBetClick' | 'isBetSelected'>[] = [
-  {
-    id: 4,
-    homeTeam: { name: "Miami FC" },
-    awayTeam: { name: "Rhode Island FC" },
-    isLive: false,
-    time: "19/09 • 17:00",
-    league: "USL Championship • Estados Unidos",
-    country: "Estados Unidos",
-    countryFlag: "🇺🇸",
-    hasVideo: true,
-    hasFavorite: true,
-    bettingOptions: [
-      { id: 401, label: "Miami FC", odd: 2.50, description: "1X2" },
-      { id: 402, label: "Empate", odd: 3.33, description: "1X2" },
-      { id: 403, label: "Rhode Island", odd: 2.50, description: "1X2" },
-      { id: 404, label: "Más de 2.5", odd: 1.89, description: "Total Goles" },
-      { id: 405, label: "Menos de 2.5", odd: 2.25, description: "Total Goles" }
-    ]
-  },
-  {
-    id: 5,
-    homeTeam: { name: "Bucaramanga" },
-    awayTeam: { name: "Deportes Tolima" },
-    isLive: false,
-    time: "19/09 • 17:00",
-    league: "Primera A • Colombia",
-    country: "Colombia",
-    countryFlag: "🇨🇴",
-    hasFavorite: true,
-    bettingOptions: [
-      { id: 501, label: "Bucaramanga", odd: 2.25, description: "1X2" },
-      { id: 502, label: "Empate", odd: 3.00, description: "1X2" },
-      { id: 503, label: "Deportes Tolima", odd: 3.40, description: "1X2" },
-      { id: 504, label: "Más de 1.5", odd: 1.21, description: "Total Goles" },
-      { id: 505, label: "Menos de 1.5", odd: 3.45, description: "Total Goles" }
-    ]
-  }
-];
-
 const Home = () => {
   const navigate = useNavigate();
-  const { agregarApuestaAlBoleto, existeApuestaEnBoleto, puedeAgregarApuesta } = useApuesta();
-
   const onclickDeporte = (deporteId: string) => {
     console.log("Deporte seleccionado:", deporteId);
     navigate(`${ROUTES.USER_DEPORTE(deporteId)}`);
-  };
-
-  // Función para manejar apuestas rápidas desde la Home
-  const handleQuickBet = (eventoId: number, eventoName: string, tipoApuesta: string, descripcion: string, odd: number, valueId: number) => {
-    if (existeApuestaEnBoleto(valueId, eventoId)) {
-      return; // Ya existe la apuesta
-    }
-
-    const nuevaApuesta = {
-      id: valueId,
-      eventoId: eventoId,
-      monto: 10, // Monto por defecto
-      odd: odd,
-      tipoApuesta: tipoApuesta,
-      eventoName: eventoName,
-      descripcion: descripcion
-    };
-    
-    // Validar antes de agregar
-    const validacion = puedeAgregarApuesta(nuevaApuesta);
-    if (!validacion.valido) {
-      alert(validacion.mensaje);
-      return;
-    }
-    
-    agregarApuestaAlBoleto(nuevaApuesta);
   };
 
   return (

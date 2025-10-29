@@ -14,8 +14,7 @@ interface DateGroup {
 }
 
 const LigaPage = () => {
-  const { deporte, liga, evento } = useParams();
-  const navigate = useNavigate();
+  const {liga, evento } = useParams();
 
   const {
     eventosFuturosPorLiga,
@@ -31,10 +30,6 @@ const LigaPage = () => {
       loadEventosFuturosPorLiga(liga);
     }
   }, [liga, loadEventosFuturosPorLiga]);
-
-  const handleLigaClick = (eventoName: string) => {
-    navigate(`${ROUTES.USER_EVENTO(deporte!, liga!, eventoName)}`);
-  };
 
   // Procesar eventos para obtener los próximos 5 y agrupar por fechas
   const { proximosEventos, eventosPorFecha } = useMemo(() => {
@@ -95,14 +90,6 @@ const LigaPage = () => {
         newSet.add(dateKey);
       }
       return newSet;
-    });
-  };
-
-  const formatEventTime = (timestamp: number) => {
-    const fecha = new Date(timestamp * 1000); // timestamp en segundos
-    return fecha.toLocaleTimeString('es-ES', {
-      hour: '2-digit',
-      minute: '2-digit'
     });
   };
 

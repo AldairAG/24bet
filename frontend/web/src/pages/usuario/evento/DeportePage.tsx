@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { Outlet, useParams } from "react-router-dom"
 import useEventos from "../../../hooks/useEventos";
 import Accordion from "../../../components/Accordion";
