@@ -96,6 +96,10 @@ export const useEventos = () => {
      * Carga todos los eventos en vivo desde el servidor
      */
     const loadEventosEnVivoPorDeporte = useCallback(async (deporte: string) => {
+        if (eventosFuturosPorDeporte.length > 0) {
+            // Si ya hay eventos cargados, no hacer nada
+            return;
+        }
         const result = await dispatch(getEventosEnVivoPorDeporte(deporte) as any);
         return result;
     }, [dispatch]);

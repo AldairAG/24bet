@@ -1,9 +1,11 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Outlet, useParams } from "react-router-dom"
 import useEventos from "../../../hooks/useEventos";
 import Accordion from "../../../components/Accordion";
 import Breadcrumb from "../../../components/navigation/Breadcrumb";
 import type { LigaPorDeporteDetalleResponse } from "../../../types/EventosType";
+import EventoItem from "../../../components/item/EventoItem";
+
 
 const DeportePage = () => {
   const { deporte, liga } = useParams();
@@ -11,14 +13,19 @@ const DeportePage = () => {
     ligasPorDeporte,
     loadLigasPorDeporte,
     loadLigasPorDeporteError,
-    isLoadingLigasPorDeporte
+    isLoadingLigasPorDeporte, 
+    isLoadingEventosEnVivo, 
+    eventosEnVivo, 
+    loadEventosEnVivoError, 
+    loadEventosEnVivoPorDeporte
   } = useEventos()
 
   useEffect(() => {
     if (deporte) {
       loadLigasPorDeporte(deporte);
+      loadEventosEnVivoPorDeporte(deporte);
     }
-  }, [deporte, loadLigasPorDeporte]);
+  }, [deporte, loadLigasPorDeporte, loadEventosEnVivoPorDeporte]);
 
   // Agrupar y ordenar ligas por país
   const ligasAgrupadasPorPais = useMemo(() => {
@@ -43,7 +50,32 @@ const DeportePage = () => {
 
     return grupos;
   }, [ligasPorDeporte]);
-
+  
+  const renderEventos = () => {
+    if (isLoadingEventosEnVivo) {
+      return <div className="p-4 text-center text-black">Cargando eventos en vivo...</div>;
+    }
+    if (loadEventosEnVivoError) {
+      return <div className="p-4 text-center text-red-500">Error: {loadEventosEnVivoError}</div>;
+    }
+    if (eventosEnVivo.length === 0) {
+      return <div className="p-4 text-center text-black">No hay eventos en vivo disponibles.</div>;
+    }
+    return (
+      <div className="overflow-hidden">
+      <div className="flex gap-4 pb-4">
+        {eventosEnVivo.map((evento) => (
+          <EventoItem
+            key={evento.fixture.id}
+            evento={evento}
+            isLive={true}
+            variante="detailed"
+          />
+        ))}
+      </div>
+      </div>
+    );
+  }
   // Obtener países ordenados con prioridad para países famosos y México
   const paisesOrdenados = useMemo(() => {
     // Países prioritarios (más famosos + México)
@@ -117,6 +149,11 @@ const DeportePage = () => {
             <p className="text-gray-600 mt-1">
               {paisesOrdenados.length} países • {ligasPorDeporte?.length || 0} ligas disponibles
             </p>
+          </div>
+
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4 font-bold ">Eventos en vivo</h2>
+            {renderEventos()}
           </div>
 
       {paisesOrdenados.length > 0 ? (
