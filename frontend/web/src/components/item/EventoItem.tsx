@@ -3,13 +3,13 @@ import type { EventoConOddsResponse } from '../../types/EventosType';
 
 export interface EventoItemProps {
   evento: EventoConOddsResponse;
-  isLive: boolean;
+  isLive?: boolean;
   variante?: 'default' | 'detailed';
 }
 
 const EventoItem: React.FC<EventoItemProps> = ({
   evento,
-  isLive,
+  isLive = false,
   variante = 'default'
 }) => {
 

@@ -3,6 +3,7 @@ package com._bet.service.evento;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,32 +35,12 @@ public class EventoService {
          * @param nombreLiga Nombre de la liga
          * @return Lista de eventos deportivos
          */
-        public List<EventoDeportivoResponse> obtenerEventosPorLiga(String nombreLiga) {
+        public List<EventoConOddsResponse> obtenerEventosPorLiga(String nombreLiga) {
                 List<EventoDeportivo> eventos = eventoDeportivoRepository.findByLigaNombreAndLigaActivaTrue(nombreLiga);
-                List<EventoDeportivoResponse> eventoResponses = new ArrayList<>();
 
-                for (EventoDeportivo eventoDeportivo : eventos) {
-                        Status status = Status.builder()
-                                        .longStatus(eventoDeportivo.getEstado().getLargo())
-                                        .shortStatus(eventoDeportivo.getEstado().getCorto())
-                                        .build();
-
-                        Fixture fixture = Fixture.builder()
-                                        .id(eventoDeportivo.getApiSportsId())
-                                        .date(eventoDeportivo.getFechaEvento().toString())
-                                        .status(status)
-                                        .build();
-
-                        EventoDeportivoResponse eventoResponse = EventoDeportivoResponse.builder()
-                                        .fixture(fixture)
-                                        .nombreEvento(eventoDeportivo.getNombre())
-                                        .build();
-
-                        eventoResponses.add(eventoResponse);
-                }
-
-                return eventoResponses;
-
+                return eventos.stream()
+                                .map(this::convertirEventoEnVivoResponses)
+                                .collect(Collectors.toList());
         }
 
         public EventoDeportivoResponse findEventoByNombre(String nombreEvento) {
@@ -153,7 +134,7 @@ public class EventoService {
                                 .name(evento.getEquipoLocal().getNombre())
                                 .code(evento.getEquipoLocal().getCode())
                                 .country(evento.getEquipoLocal().getPais())
-                                .logo(evento.getEquipoLocal().getBadgeUrl())
+                                .logo(evento.getEquipoLocal().getLogoUrl())
                                 .build();
 
                 Team awayTeam = Team.builder()
@@ -161,7 +142,7 @@ public class EventoService {
                                 .name(evento.getEquipoVisitante().getNombre())
                                 .code(evento.getEquipoVisitante().getCode())
                                 .country(evento.getEquipoVisitante().getPais())
-                                .logo(evento.getEquipoVisitante().getBadgeUrl())
+                                .logo(evento.getEquipoVisitante().getLogoUrl())
                                 .build();
 
                 Teams teams = Teams.builder()
@@ -170,24 +151,25 @@ public class EventoService {
                                 .build();
 
                 List<Bet> odds = evento.getOdds().stream()
-                                .<Bet>map(momio -> {
-                                        List<Value> values = momio.getValores().stream()
-                                                        .map(valor -> Value.builder()
-                                                                        .id(valor.getId())
-                                                                        .value(valor.getValor())
-                                                                        .odd(valor.getOdd())
-                                                                        .build())
-                                                        .collect(Collectors.toList());
+                                                .filter(momio -> "Match Winner".equals(momio.getTipoApuesta()))
+                                                .<Bet>map(momio -> {
+                                                                List<Value> values = momio.getValores().stream()
+                                                                                                .map(valor -> Value.builder()
+                                                                                                                                .id(valor.getId())
+                                                                                                                                .value(valor.getValor())
+                                                                                                                                .odd(valor.getOdd())
+                                                                                                                                .build())
+                                                                                                .collect(Collectors.toList());
 
-                                        Bet bet = Bet.builder()
-                                                        .id(Integer.parseInt(momio.getId().toString()))
-                                                        .name(momio.getTipoApuesta())
-                                                        .values(values)
-                                                        .build();
+                                                                Bet bet = Bet.builder()
+                                                                                                .id(Integer.parseInt(momio.getId().toString()))
+                                                                                                .name(momio.getTipoApuesta())
+                                                                                                .values(values)
+                                                                                                .build();
 
-                                        return bet;
+                                                                return bet;
 
-                                }).toList();
+                                                }).toList();
 
                 EventoConOddsResponse response = new EventoConOddsResponse();
                 response.setFixture(fixture);

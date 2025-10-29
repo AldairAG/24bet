@@ -1,35 +1,36 @@
 import { Outlet, useNavigate, useParams } from "react-router-dom"
 import useEventos from "../../../hooks/useEventos";
 import { useEffect, useMemo, useState } from "react";
-import type { EventosPorLigaResponse } from "../../../types/EventosType";
+import type { EventoConOddsResponse } from "../../../types/EventosType";
 import { ROUTES } from "../../../routes/routes";
 import Breadcrumb from "../../../components/navigation/Breadcrumb";
+import EventoItem from "../../../components/item/EventoItem";
 
 interface DateGroup {
   date: string;
   displayDate: string;
-  events: EventosPorLigaResponse[];
+  events: EventoConOddsResponse[];
   isExpanded: boolean;
 }
 
 const LigaPage = () => {
-  const {deporte, liga, evento } = useParams();
+  const { deporte, liga, evento } = useParams();
   const navigate = useNavigate();
-  
+
   const {
-    eventosFuturos,
-    loadEventosFuturosError,
-    isLoadingEventosFuturos,
-    loadEventosFuturos
+    eventosFuturosPorLiga,
+    loadEventosFuturosPorLigaError,
+    isLoadingEventosFuturosPorLiga,
+    loadEventosFuturosPorLiga
   } = useEventos();
 
   const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (liga) {
-      loadEventosFuturos(liga);
+      loadEventosFuturosPorLiga(liga);
     }
-  }, [liga, loadEventosFuturos]);
+  }, [liga, loadEventosFuturosPorLiga]);
 
   const handleLigaClick = (eventoName: string) => {
     navigate(`${ROUTES.USER_EVENTO(deporte!, liga!, eventoName)}`);
@@ -37,13 +38,13 @@ const LigaPage = () => {
 
   // Procesar eventos para obtener los próximos 5 y agrupar por fechas
   const { proximosEventos, eventosPorFecha } = useMemo(() => {
-    if (!eventosFuturos || eventosFuturos.length === 0) {
+    if (!eventosFuturosPorLiga || eventosFuturosPorLiga.length === 0) {
       return { proximosEventos: [], eventosPorFecha: [] };
     }
 
-    // Ordenar eventos por fecha usando timestamp
-    const eventosOrdenados = [...eventosFuturos].sort((a, b) => 
-      a.fixture.timestamp - b.fixture.timestamp
+    // Ordenar eventos por fecha (timestamps ya están en UTC)
+    const eventosOrdenados = [...eventosFuturosPorLiga].sort((a, b) =>
+      new Date(a.fixture.date).getTime() - new Date(b.fixture.date).getTime()
     );
 
     // Obtener los próximos 5 eventos
@@ -52,10 +53,10 @@ const LigaPage = () => {
     // Agrupar todos los eventos por fecha
     const gruposPorFecha = eventosOrdenados.reduce((grupos, evento) => {
       // Crear fecha desde timestamp
-      const fechaEvento = new Date(evento.fixture.timestamp * 1000); // timestamp está en segundos
+      const fechaEvento = new Date(evento.fixture.date); // timestamp está en segundos
       // Obtener fecha local en formato YYYY-MM-DD
-      const fechaKey = fechaEvento.getFullYear() + '-' + 
-        String(fechaEvento.getMonth() + 1).padStart(2, '0') + '-' + 
+      const fechaKey = fechaEvento.getFullYear() + '-' +
+        String(fechaEvento.getMonth() + 1).padStart(2, '0') + '-' +
         String(fechaEvento.getDate()).padStart(2, '0');
       const fechaDisplay = fechaEvento.toLocaleDateString('es-ES', {
         weekday: 'long',
@@ -78,12 +79,12 @@ const LigaPage = () => {
     }, {} as Record<string, DateGroup>);
 
     // Convertir a array y ordenar por fecha
-    const fechasOrdenadas = Object.values(gruposPorFecha).sort((a, b) => 
+    const fechasOrdenadas = Object.values(gruposPorFecha).sort((a, b) =>
       new Date(a.date).getTime() - new Date(b.date).getTime()
     );
 
     return { proximosEventos: proximos, eventosPorFecha: fechasOrdenadas };
-  }, [eventosFuturos, expandedDates]);
+  }, [eventosFuturosPorLiga, expandedDates]);
 
   const toggleDateExpansion = (dateKey: string) => {
     setExpandedDates(prev => {
@@ -105,15 +106,7 @@ const LigaPage = () => {
     });
   };
 
-  const formatEventDate = (timestamp: number) => {
-    const fecha = new Date(timestamp * 1000); // timestamp en segundos
-    return fecha.toLocaleDateString('es-ES', {
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  if (isLoadingEventosFuturos) {
+  if (isLoadingEventosFuturosPorLiga) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -124,20 +117,20 @@ const LigaPage = () => {
     );
   }
 
-  if (loadEventosFuturosError) {
+  if (loadEventosFuturosPorLigaError) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
             <strong className="font-bold">Error: </strong>
-            <span className="block sm:inline">{loadEventosFuturosError}</span>
+            <span className="block sm:inline">{loadEventosFuturosPorLigaError}</span>
           </div>
         </div>
       </div>
     );
   }
 
-  if (eventosFuturos.length === 0) {
+  if (eventosFuturosPorLiga.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -156,18 +149,18 @@ const LigaPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          <Breadcrumb />
-          
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {liga}
-            </h1>
-            <p className="text-gray-600">
-              {eventosFuturos.length} eventos programados
-            </p>
-          </div>
+
+        <Breadcrumb />
+
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            {liga}
+          </h1>
+          <p className="text-gray-600">
+            {eventosFuturosPorLiga.length} eventos programados
+          </p>
+        </div>
 
         {/* Próximos 5 eventos */}
         <div className="mb-12">
@@ -177,46 +170,18 @@ const LigaPage = () => {
             </span>
             Siguientes 5 eventos
           </h2>
-          
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {proximosEventos.map((evento) => (
-              <div 
-                key={evento.fixture.id} 
-                className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 p-6"
-                onClick={() => handleLigaClick(evento.nombreEvento)}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                    {formatEventDate(evento.fixture.timestamp)}
-                  </span>
-                  <span className="text-sm font-medium text-gray-600">
-                    {formatEventTime(evento.fixture.timestamp)}
-                  </span>
-                </div>
-                
-                <div className="space-y-3">
-                  <h3 className="font-semibold text-gray-900 text-lg leading-tight">
-                    {evento.nombreEvento}
-                  </h3>
-                  
-                  <div className="flex items-center justify-center text-sm">
-                    <div className="text-center">
-                      <div className="text-gray-600 text-xs mb-2">Estado del evento</div>
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {evento.fixture.status.long}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="pt-3 border-t border-gray-200">
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <span>ID: {evento.fixture.id}</span>
-                      <span>Estado: {evento.fixture.status.short}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 overflow-auto">
+            <div className="flex gap-2">
+              {proximosEventos.map((evento) => (
+                <EventoItem
+                  key={evento.fixture.id}
+                  evento={evento}
+                  isLive={evento.fixture.status.short !== 'NS'}
+                  variante="detailed"
+                />
+              ))}
+            </div>
           </div>
         </div>
 
@@ -228,7 +193,7 @@ const LigaPage = () => {
             </span>
             Todos los eventos por fecha
           </h2>
-          
+
           <div className="space-y-2">
             {eventosPorFecha.map((grupo) => (
               <div key={grupo.date} className="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -247,9 +212,8 @@ const LigaPage = () => {
                       </span>
                     </div>
                     <svg
-                      className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${
-                        expandedDates.has(grupo.date) ? 'transform rotate-180' : ''
-                      }`}
+                      className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${expandedDates.has(grupo.date) ? 'transform rotate-180' : ''
+                        }`}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -263,42 +227,12 @@ const LigaPage = () => {
                 {expandedDates.has(grupo.date) && (
                   <div className="px-6 pb-4">
                     <div className="border-t border-gray-200 pt-4">
-                      <div className="grid gap-4 md:grid-cols-2">
+                      <div className="grid gap-4">
                         {grupo.events.map((evento) => (
-                          <div 
+                          <EventoItem
                             key={evento.fixture.id}
-                            onClick={() => handleLigaClick(evento.nombreEvento)}
-                            className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors duration-200"
-                          >
-                            <div className="flex items-center justify-between mb-3">
-                              <span className="text-sm font-medium text-blue-600">
-                                {formatEventTime(evento.fixture.timestamp)}
-                              </span>
-                              <span className="text-xs text-gray-500">
-                                {evento.fixture.status.short}
-                              </span>
-                            </div>
-                            
-                            <h4 className="font-medium text-gray-900 mb-3">
-                              {evento.nombreEvento}
-                            </h4>
-                            
-                            <div className="flex items-center justify-center text-sm mb-3">
-                              <div className="text-center">
-                                <div className="text-gray-600 text-xs mb-1">Estado</div>
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                  {evento.fixture.status.long}
-                                </span>
-                              </div>
-                            </div>
-                            
-                            <div className="mt-3 pt-3 border-t border-gray-100">
-                              <div className="flex justify-between text-xs text-gray-500">
-                                <span>ID: {evento.fixture.id}</span>
-                                <span>Timestamp: {evento.fixture.timestamp}</span>
-                              </div>
-                            </div>
-                          </div>
+                            evento={evento}
+                          />
                         ))}
                       </div>
                     </div>

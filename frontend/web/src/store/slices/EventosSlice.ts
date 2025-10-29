@@ -276,7 +276,7 @@ const eventosSlice = createSlice({
             })
             .addCase(getEventosFuturosPorLiga.fulfilled, (state, action) => {
                 state.isLoadingEventosFuturosPorLiga = false;
-                state.eventosFuturosPorDeporte = action.payload;
+                state.eventosFuturosPorLiga= action.payload;
                 state.loadEventosFuturosPorLigaError = null;
                 state.ultimaActualizacion = new Date().toISOString();
             })
