@@ -115,6 +115,7 @@ public class EventoService {
                                 .id(evento.getLiga().getApiSportsId())
                                 .name(evento.getLiga().getNombre())
                                 .logo(evento.getLiga().getLogoUrl())
+                                .country(evento.getLiga().getPais().getName())
                                 .build();
 
                 Goals goals = Goals.builder()

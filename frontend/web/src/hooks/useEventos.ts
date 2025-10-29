@@ -419,6 +419,12 @@ export const useEventos = () => {
         }
     };
 
+    const obtenerBanderaPorNombrePais = (nombrePais: string): string => {
+        if (!nombrePais) return '';
+        const pais = paisesManager.obtenerTodosLosPaises().find(p => p.name.toLowerCase() === nombrePais.toLowerCase());
+        return pais ? pais.flagUrl : '';
+    }
+
     /**
      * Recarga los eventos en vivo (útil para actualizaciones periódicas)
      */
@@ -489,6 +495,7 @@ export const useEventos = () => {
 
         // Acciones principales
         reloadEventosEnVivoPorDeporte,
+        obtenerBanderaPorNombrePais,
 
         // Acciones de limpieza
         clearLoadError,

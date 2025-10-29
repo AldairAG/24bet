@@ -16,5 +16,5 @@ public class League {
     private String type;
     @JsonProperty("logo")
     private String logo;
-
+    private String country;
 }

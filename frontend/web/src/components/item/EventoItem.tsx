@@ -1,5 +1,7 @@
 import React from 'react';
 import type { EventoConOddsResponse } from '../../types/EventosType';
+import { IsoAFechaMesDia, IsoAHora } from '../../utils/formatHelper';
+import useEventos from '../../hooks/useEventos';
 
 export interface EventoItemProps {
   evento: EventoConOddsResponse;
@@ -12,6 +14,7 @@ const EventoItem: React.FC<EventoItemProps> = ({
   isLive = false,
   variante = 'default'
 }) => {
+  const { obtenerBanderaPorNombrePais } = useEventos();
 
   const handleBetClick = (_betId: number) => {
     // Referencia vacía para evitar warnings de variable no usada mientras se integra con el store
@@ -24,39 +27,75 @@ const EventoItem: React.FC<EventoItemProps> = ({
     return false;
   };
 
+  const renderStatusIndicator = () => {
+    if (!isLive) return null;
+
+    if (evento?.fixture.status.short === 'ET') {
+      return (
+        <>
+          <span className="w-1 h-4 bg-yellow-500" >
+            <span className="sr-only">Medio tiempo</span>
+          </span>
+        </>
+      );
+    }
+    const minutosTranscurridos = Math.floor((Date.now() - (evento?.fixture.timestamp * 1000)) / 60000);
+
+    return (
+      <>
+        <span className="text-[10px] text-red-500 font-bold ml-1">
+          {minutosTranscurridos}'
+        </span>
+      </>
+    );
+  }
+
   if (variante === 'detailed') {
     const showScore = isLive && evento?.goals?.home !== undefined && evento?.goals?.away !== undefined;
     return (
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow w-80">
+      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow min-w-100 h-45">
         {/* Header del evento (misma línea: identificador, en vivo/fecha, liga/país) */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2 overflow-hidden">
-            {/* Identificador del deporte */}
-            <span className="bg-red-500 text-white px-2 py-0.5 rounded text-[10px] font-bold leading-5">SOP</span>
             {/* En vivo / fecha */}
             {isLive ? (
               <>
                 <span className="bg-green-600 text-white px-2 py-0.5 rounded text-[10px] font-bold leading-5">EN VIVO</span>
-                <span className="text-[11px] text-gray-600">{evento?.fixture.date}</span>
+                <span className="text-[11px] text-gray-600">
+                  {IsoAFechaMesDia(evento?.fixture.date)}
+                  <span className='font-bold text-center'> · </span>
+                  {IsoAHora(evento?.fixture.date)}
+                </span>
               </>
             ) : (
-              <span className="text-[11px] text-gray-600">{evento?.fixture.date}</span>
+              <span className="text-[11px] text-gray-600">
+                {IsoAFechaMesDia(evento?.fixture.date)}
+                <span className='font-bold text-center'> · </span>
+                {IsoAHora(evento?.fixture.date)}
+              </span>
             )}
             {/* Liga y país */}
-            <span className="text-[11px] text-gray-600 truncate max-w-[160px]">{evento?.league.name} {evento?.league.country}</span>
+            <div className="w-px h-3 bg-gray-300" />
+            <div className="flex items-center gap-1 min-w-0">
+              <img
+                src={obtenerBanderaPorNombrePais(evento?.league.country)}
+                alt={`${evento?.league.country} flag`}
+                className="w-3 h-2 object-cover "
+                loading="lazy"
+              />
+              <span className="text-[11px] text-gray-600 truncate max-w-[140px]">{evento?.league.name}</span>
+            </div>
           </div>
           {/* Indicador visual cuando está en vivo */}
           {isLive && (
             <div className="flex items-center space-x-1" aria-hidden>
-              <div className="w-1 h-4 bg-red-500" />
-              <div className="w-1 h-4 bg-red-400" />
-              <div className="w-1 h-4 bg-red-300" />
+              {renderStatusIndicator()}
             </div>
           )}
         </div>
 
         {/* Cuerpo compacto: equipos en horizontal con marcador o VS, y abajo los botones */}
-        <div className="space-y-3">
+        <div className="space-y-6">
           {/* Equipos */}
           <div className="flex items-center justify-between gap-3">
             {/* Local */}
@@ -131,16 +170,33 @@ const EventoItem: React.FC<EventoItemProps> = ({
       {/* Header del evento */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center space-x-2">
-          <span className="bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">SOP</span>
-          {isLive ? (
-            <>
-              <span className="bg-green-500 text-white px-2 py-1 rounded text-xs font-bold">EN VIVO</span>
-              <span className="text-xs text-gray-300">{evento?.fixture.date}</span>
-            </>
-          ) : (
-            <span className="text-xs text-gray-300">{evento?.fixture.date}</span>
-          )}
-          <span className="text-xs text-gray-300">{evento?.league.name} {evento?.league.country}</span>
+           {/* En vivo / fecha */}
+            {isLive ? (
+              <>
+                <span className="bg-green-600 text-white px-2 py-0.5 rounded text-[10px] font-bold leading-5">EN VIVO</span>
+                <span className="text-[11px] text-gray-600">
+                  {IsoAFechaMesDia(evento?.fixture.date)}
+                  <span className='font-bold text-center'> · </span>
+                  {IsoAHora(evento?.fixture.date)}
+                </span>
+              </>
+            ) : (
+              <span className="text-[11px] text-gray-600">
+                {IsoAFechaMesDia(evento?.fixture.date)}
+                <span className='font-bold text-center'> · </span>
+                {IsoAHora(evento?.fixture.date)}
+              </span>
+            )}
+          <div className="w-px h-3 bg-gray-300" />
+            <div className="flex items-center gap-1 min-w-0">
+              <img
+                src={obtenerBanderaPorNombrePais(evento?.league.country)}
+                alt={`${evento?.league.country} flag`}
+                className="w-3 h-2 object-cover "
+                loading="lazy"
+              />
+              <span className="text-[11px] text-gray-600 truncate max-w-[140px]">{evento?.league.name}</span>
+            </div>
         </div>
         {isLive && (
           <div className="flex items-center space-x-2">
@@ -157,14 +213,24 @@ const EventoItem: React.FC<EventoItemProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <div className="flex items-center space-x-2 mb-1">
-            <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+            <img
+              src={evento?.teams.home.logo}
+              alt={`${evento?.teams.home.name} logo`}
+              className="w-4 h-4 object-contain"
+              loading="lazy"
+            />
             <span className="text-sm">{evento?.teams.home.name}</span>
             {isLive && evento?.goals.home !== undefined && (
               <span className="text-sm font-bold">{evento?.goals.home}</span>
             )}
           </div>
           <div className="flex items-center space-x-2">
-            <span className="w-2 h-2 bg-black rounded-full"></span>
+            <img
+              src={evento?.teams.away.logo}
+              alt={`${evento?.teams.away.name} logo`}
+              className="w-4 h-4 object-contain"
+              loading="lazy"
+            />            
             <span className="text-sm">{evento?.teams.away.name}</span>
             {isLive && evento?.goals.away !== undefined && (
               <span className="text-sm font-bold">{evento?.goals.away}</span>
@@ -190,7 +256,7 @@ const EventoItem: React.FC<EventoItemProps> = ({
                   <p className={`font-bold ${value.odd > 2 ? 'text-green-400' : 'text-white'}`}>
                     {value.odd > 2 ? '+' : ''}{((value.odd - 1) * 100).toFixed(0)}
                   </p>
-                  <p>{value.value }</p>
+                  <p>{value.value}</p>
                 </button>
               ))))}
         </div>
