@@ -62,8 +62,8 @@ const DeportePage = () => {
       return <div className="p-4 text-center text-black">No hay eventos en vivo disponibles.</div>;
     }
     return (
-      <div className="overflow-hidden">
-      <div className="flex gap-4 pb-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 overflow-auto">
+      <div className="flex gap-2">
         {eventosEnVivo.map((evento) => (
           <EventoItem
             key={evento.fixture.id}

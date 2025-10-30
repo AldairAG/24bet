@@ -1,112 +1,86 @@
-import { useState } from 'react';
-
-interface SolicitudDeposito {
-  id: number;
-  comprobantePago: string;
-  direccionWallet: string;
-  estado: string;
-  fechaActualizacion: string;
-  fechaProcesamiento: string;
-  fechaSolicitud: string;
-  monto: number;
-  tipoCrypto: string;
-  usuarioId: number;
-  metodoPago: 'transferencia' | 'crypto';
-}
-
-interface SolicitudRetiro {
-  id: number;
-  banco: string;
-  comision: number;
-  cuentaDestino: string;
-  estado: string;
-  fechaActualizacion: string;
-  fechaProcesamiento: string;
-  fechaSolicitud: string;
-  metodoRetiro: string;
-  monto: number;
-  montoNeto: number;
-  numeroCuenta: string;
-  referenciaTransaccion: string;
-  tipoCrypto: string;
-  titularCuenta: string;
-  usuarioId: number;
-}
+import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../store';
+import useWallet from '../../hooks/useWallet';
 
 const AdminPeticiones = () => {
   const [activeTab, setActiveTab] = useState<'deposito' | 'retiro'>('deposito');
   const [filtroMetodoPago, setFiltroMetodoPago] = useState<'todos' | 'transferencia' | 'crypto'>('todos');
 
-  // Datos de ejemplo - estos vendrían de una API
-  const solicitudesDeposito: SolicitudDeposito[] = [
-    {
-      id: 1,
-      comprobantePago: "comprobante_001.pdf",
-      direccionWallet: "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
-      estado: "Pendiente",
-      fechaActualizacion: "2024-01-15 14:30:00",
-      fechaProcesamiento: "",
-      fechaSolicitud: "2024-01-15 10:00:00",
-      monto: 500,
-      tipoCrypto: "BTC",
-      usuarioId: 123,
-      metodoPago: 'crypto'
-    },
-    {
-      id: 2,
-      comprobantePago: "transferencia_002.pdf",
-      direccionWallet: "N/A",
-      estado: "Pendiente",
-      fechaActualizacion: "2024-01-15 15:00:00",
-      fechaProcesamiento: "",
-      fechaSolicitud: "2024-01-15 11:30:00",
-      monto: 750,
-      tipoCrypto: "USD",
-      usuarioId: 124,
-      metodoPago: 'transferencia'
-    },
-    {
-      id: 3,
-      comprobantePago: "comprobante_003.pdf",
-      direccionWallet: "3FUpjxWpEBrGX6VmY8a7gK9jKbMbPvHhJ2",
-      estado: "Pendiente",
-      fechaActualizacion: "2024-01-15 16:15:00",
-      fechaProcesamiento: "",
-      fechaSolicitud: "2024-01-15 12:45:00",
-      monto: 1200,
-      tipoCrypto: "ETH",
-      usuarioId: 125,
-      metodoPago: 'crypto'
+  const {
+    // datos admin
+    adminDepositsPending,
+    adminWithdrawalsPending,
+    adminLoading,
+    adminErrors,
+    // thunks
+    loadAdminPendingDeposits,
+    loadAdminPendingWithdrawals,
+    approveDepositAdmin,
+    rejectDepositAdmin,
+    approveWithdrawalAdmin,
+    rejectWithdrawalAdmin,
+  } = useWallet();
+
+  const adminId = useSelector((state: RootState) => state.auth.user?.id ?? state.auth.usuario?.id);
+
+  const getMetodoTipo = useCallback((metodoPago?: string): 'transferencia' | 'crypto' | 'desconocido' => {
+    if (!metodoPago) return 'desconocido';
+    const m = metodoPago.toUpperCase();
+    if (m.includes('TRANSFERENCIA')) return 'transferencia';
+    // Cualquier otro (BITCOIN, ETHEREUM, USDT, USDC, CRYPTO) lo tratamos como crypto
+    return 'crypto';
+  }, []);
+
+  const solicitudesDepositoFiltradas = useMemo(() => {
+    const list = adminDepositsPending || [];
+    if (filtroMetodoPago === 'todos') return list;
+    return list.filter((s) => getMetodoTipo((s as { metodoPago?: string }).metodoPago) === filtroMetodoPago);
+  }, [adminDepositsPending, filtroMetodoPago, getMetodoTipo]);
+
+  // Extrae el id de usuario de forma segura considerando posibles variantes del backend
+  const getUsuarioIdSafe = useCallback((s: unknown): number | string => {
+    if (s && typeof s === 'object') {
+      const obj = s as Record<string, unknown>;
+      const direct = obj['usuarioId'];
+      if (typeof direct === 'number') return direct;
+      const alt1 = obj['idUsuario'];
+      if (typeof alt1 === 'number') return alt1;
+      const alt2 = obj['userId'];
+      if (typeof alt2 === 'number') return alt2;
+      const alt3 = obj['usuarioID'];
+      if (typeof alt3 === 'number') return alt3;
+      const usuario = obj['usuario'];
+      if (usuario && typeof usuario === 'object') {
+        const uid = (usuario as { id?: unknown }).id;
+        if (typeof uid === 'number') return uid;
+      }
     }
-    // Más datos de ejemplo...
-  ];
+    return '-';
+  }, []);
 
-  // Filtrar solicitudes de depósito por método de pago
-  const solicitudesDepositoFiltradas = filtroMetodoPago === 'todos' 
-    ? solicitudesDeposito 
-    : solicitudesDeposito.filter(solicitud => solicitud.metodoPago === filtroMetodoPago);
+  const handleAprobar = async (solicitudId: number) => {
+    if (!adminId) return;
+    const observaciones = window.prompt('Observaciones (opcional):') || undefined;
+    await approveDepositAdmin({ solicitudId, adminId, observaciones });
+    // La lista se actualiza en el slice filtrando el aprobado
+  };
 
-  const solicitudesRetiro: SolicitudRetiro[] = [
-    {
-      id: 1,
-      banco: "Banco Nacional",
-      comision: 15.50,
-      cuentaDestino: "Cuenta Ahorros",
-      estado: "Procesado",
-      fechaActualizacion: "2024-01-15 16:00:00",
-      fechaProcesamiento: "2024-01-15 15:45:00",
-      fechaSolicitud: "2024-01-15 09:00:00",
-      metodoRetiro: "Transferencia Bancaria",
-      monto: 1000,
-      montoNeto: 984.50,
-      numeroCuenta: "****1234",
-      referenciaTransaccion: "REF123456789",
-      tipoCrypto: "USDT",
-      titularCuenta: "Juan Pérez",
-      usuarioId: 456
-    },
-    // Más datos de ejemplo...
-  ];
+  const handleDenegar = async (solicitudId: number) => {
+    if (!adminId) return;
+    const motivo = window.prompt('Motivo del rechazo:');
+    if (!motivo) return;
+    await rejectDepositAdmin({ solicitudId, adminId, motivo });
+  };
+
+  useEffect(() => {
+    if (activeTab === 'deposito') {
+      loadAdminPendingDeposits();
+    }
+    if (activeTab === 'retiro') {
+      loadAdminPendingWithdrawals();
+    }
+  }, [activeTab, loadAdminPendingDeposits, loadAdminPendingWithdrawals]);
 
   return (
     <div className="w-full">
@@ -155,7 +129,7 @@ const AdminPeticiones = () => {
                   id="filtro-metodo"
                   value={filtroMetodoPago}
                   onChange={(e) => setFiltroMetodoPago(e.target.value as 'todos' | 'transferencia' | 'crypto')}
-                  className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  className="border border-gray-300 text-gray-900 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
                 >
                   <option value="todos">Todos</option>
                   <option value="transferencia">Transferencia</option>
@@ -177,52 +151,69 @@ const AdminPeticiones = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {solicitudesDepositoFiltradas.map((solicitud) => (
+                  {solicitudesDepositoFiltradas.map((solicitud) => {
+                    const extra = solicitud as unknown as {
+                      direccionWallet?: string;
+                      tipoCrypto?: string;
+                      fechaSolicitud?: string;
+                      fechaCreacion?: string;
+                    };
+                    const metodo = getMetodoTipo((solicitud as { metodoPago?: string }).metodoPago);
+                    const fecha = extra.fechaSolicitud || extra.fechaCreacion || '';
+                    return (
                     <tr key={solicitud.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {solicitud.usuarioId}
+                        {getUsuarioIdSafe(solicitud)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         ${solicitud.monto.toLocaleString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {new Date(solicitud.fechaSolicitud).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                        {fecha ? new Date(fecha).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {solicitud.tipoCrypto}
+                        {extra.tipoCrypto || '-'}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
-                        {solicitud.metodoPago === 'crypto' ? solicitud.direccionWallet : 'N/A'}
+                        {metodo === 'crypto' ? (extra.direccionWallet || 'N/A') : 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          solicitud.metodoPago === 'crypto' 
+                          metodo === 'crypto' 
                             ? 'bg-blue-100 text-blue-800' 
-                            : 'bg-green-100 text-green-800'
+                            : metodo === 'transferencia' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'
                         }`}>
-                          {solicitud.metodoPago === 'crypto' ? 'Crypto' : 'Transferencia'}
+                          {metodo === 'crypto' ? 'Crypto' : metodo === 'transferencia' ? 'Transferencia' : 'Desconocido'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <div className="flex space-x-2">
                           <button 
                             className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200"
-                            onClick={() => console.log('Aprobar solicitud', solicitud.id)}
+                            disabled={adminLoading.approvingDeposit}
+                            onClick={() => handleAprobar(solicitud.id)}
                           >
-                            Aprobar
+                            {adminLoading.approvingDeposit ? 'Aprobando…' : 'Aprobar'}
                           </button>
                           <button 
                             className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200"
-                            onClick={() => console.log('Denegar solicitud', solicitud.id)}
+                            disabled={adminLoading.rejectingDeposit}
+                            onClick={() => handleDenegar(solicitud.id)}
                           >
-                            Denegar
+                            {adminLoading.rejectingDeposit ? 'Denegando…' : 'Denegar'}
                           </button>
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  );})}
                 </tbody>
               </table>
+              {adminErrors.depositsError && (
+                <div className="text-sm text-red-600 mt-3">{adminErrors.depositsError}</div>
+              )}
+              {adminLoading.loadingDeposits && (
+                <div className="text-sm text-gray-600 mt-3">Cargando depósitos pendientes…</div>
+              )}
             </div>
           </div>
         </div>
@@ -240,48 +231,89 @@ const AdminPeticiones = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hora</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Crypto</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wallet</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destino</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {solicitudesRetiro.map((solicitud) => (
-                    <tr key={solicitud.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {solicitud.usuarioId}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ${solicitud.monto.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {new Date(solicitud.fechaSolicitud).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {solicitud.tipoCrypto}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
-                        {solicitud.numeroCuenta}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <div className="flex space-x-2">
-                          <button 
-                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200"
-                            onClick={() => console.log('Aprobar retiro', solicitud.id)}
-                          >
-                            Aprobar
-                          </button>
-                          <button 
-                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200"
-                            onClick={() => console.log('Denegar retiro', solicitud.id)}
-                          >
-                            Denegar
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {adminWithdrawalsPending?.map((solicitud) => {
+                    const extra = solicitud as unknown as {
+                      direccionWallet?: string;
+                      numeroCuenta?: string;
+                      banco?: string;
+                      tipoCrypto?: string;
+                      fechaSolicitud?: string;
+                      fechaCreacion?: string;
+                    };
+                    const fecha = extra.fechaSolicitud || extra.fechaCreacion || '';
+                    const destino = extra.direccionWallet || extra.numeroCuenta || '';
+
+                    const handleApprove = async () => {
+                      if (!adminId) return;
+                      const referenciaTransaccion = window.prompt('Referencia de transacción (requerida para aprobar):');
+                      if (!referenciaTransaccion) return;
+                      const observaciones = window.prompt('Observaciones (opcional):') || undefined;
+                      await approveWithdrawalAdmin({
+                        solicitudId: solicitud.id,
+                        adminId,
+                        referenciaTransaccion,
+                        observaciones,
+                      });
+                    };
+
+                    const handleReject = async () => {
+                      if (!adminId) return;
+                      const motivo = window.prompt('Motivo del rechazo:');
+                      if (!motivo) return;
+                      await rejectWithdrawalAdmin({ solicitudId: solicitud.id, adminId, motivo });
+                    };
+
+                    return (
+                      <tr key={solicitud.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {getUsuarioIdSafe(solicitud)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          ${solicitud.monto.toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {fecha ? new Date(fecha).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : ''}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {extra.tipoCrypto || ''}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate" title={destino}>
+                          {destino}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <div className="flex space-x-2">
+                            <button
+                              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200"
+                              disabled={adminLoading.approvingWithdrawal}
+                              onClick={handleApprove}
+                            >
+                              {adminLoading.approvingWithdrawal ? 'Aprobando…' : 'Aprobar'}
+                            </button>
+                            <button
+                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200"
+                              disabled={adminLoading.rejectingWithdrawal}
+                              onClick={handleReject}
+                            >
+                              {adminLoading.rejectingWithdrawal ? 'Denegando…' : 'Denegar'}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
+              {adminErrors.withdrawalsError && (
+                <div className="text-sm text-red-600 mt-3">{adminErrors.withdrawalsError}</div>
+              )}
+              {adminLoading.loadingWithdrawals && (
+                <div className="text-sm text-gray-600 mt-3">Cargando retiros pendientes…</div>
+              )}
             </div>
           </div>
         </div>

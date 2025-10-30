@@ -1,3 +1,12 @@
+import type { 
+    AdminAprobarSolicitudDto,
+    AdminRechazarSolicitudDto,
+    AdminAprobarRetiroDto,
+    SolicitudDepositoAdmin,
+    SolicitudRetiroAdmin,
+    EstadisticasTransaccionesDto,
+    DashboardAdminDto
+} from '../types/walletTypes';
 import axios from 'axios';
 import { apiBase } from './apiBase';
 import { type CreateCryptoWalletDto, TipoCrypto, type CryptoWalletDto, type SolicitudDepositoResponse, type SolicitudDepositoDto, type SolicitudRetiroDto, type SolicitudRetiroResponse } from '../types/walletTypes';
@@ -22,6 +31,7 @@ type PageResponse<T> = {
  */
 class WalletService {
     private baseUrl = '/crypto-wallets';
+    private adminBaseUrl = '/admin/solicitudes';
     private unwrapApiResponse<T>(res: unknown): T {
         if (res && typeof res === 'object' && 'data' in (res as Record<string, unknown>)) {
             const maybe = (res as { data?: unknown }).data;
@@ -30,6 +40,112 @@ class WalletService {
             }
         }
         return res as T;
+    }
+
+    // ========== ADMINISTRACIÓN: Solicitudes de Depósito/Retiro ==========
+
+    /**
+     * Lista de solicitudes de depósito pendientes (ADMIN)
+     */
+    async getAdminDepositosPendientes(): Promise<SolicitudDepositoAdmin[]> {
+        try {
+            const raw = await apiBase.get(`${this.adminBaseUrl}/depositos/pendientes`);
+            return this.unwrapApiResponse<SolicitudDepositoAdmin[]>(raw);
+        } catch (error) {
+            console.error('Error fetching pending deposits (admin):', error);
+            throw this.handleError(error);
+        }
+    }
+
+    /**
+     * Lista de solicitudes de retiro pendientes (ADMIN)
+     */
+    async getAdminRetirosPendientes(): Promise<SolicitudRetiroAdmin[]> {
+        try {
+            const raw = await apiBase.get(`${this.adminBaseUrl}/retiros/pendientes`);
+            return this.unwrapApiResponse<SolicitudRetiroAdmin[]>(raw);
+        } catch (error) {
+            console.error('Error fetching pending withdrawals (admin):', error);
+            throw this.handleError(error);
+        }
+    }
+
+    /**
+     * Aprueba una solicitud de DEPÓSITO (ADMIN)
+     */
+    async aprobarAdminDeposito(solicitudId: number, dto: AdminAprobarSolicitudDto): Promise<SolicitudDepositoAdmin> {
+        try {
+            const raw = await apiBase.post(`${this.adminBaseUrl}/depositos/${solicitudId}/aprobar`, dto);
+            return this.unwrapApiResponse<SolicitudDepositoAdmin>(raw);
+        } catch (error) {
+            console.error('Error approving deposit (admin):', error);
+            throw this.handleError(error);
+        }
+    }
+
+    /**
+     * Rechaza una solicitud de DEPÓSITO (ADMIN)
+     */
+    async rechazarAdminDeposito(solicitudId: number, dto: AdminRechazarSolicitudDto): Promise<SolicitudDepositoAdmin> {
+        try {
+            const raw = await apiBase.post(`${this.adminBaseUrl}/depositos/${solicitudId}/rechazar`, dto);
+            return this.unwrapApiResponse<SolicitudDepositoAdmin>(raw);
+        } catch (error) {
+            console.error('Error rejecting deposit (admin):', error);
+            throw this.handleError(error);
+        }
+    }
+
+    /**
+     * Aprueba una solicitud de RETIRO (ADMIN)
+     */
+    async aprobarAdminRetiro(solicitudId: number, dto: AdminAprobarRetiroDto): Promise<SolicitudRetiroAdmin> {
+        try {
+            const raw = await apiBase.post(`${this.adminBaseUrl}/retiros/${solicitudId}/aprobar`, dto);
+            return this.unwrapApiResponse<SolicitudRetiroAdmin>(raw);
+        } catch (error) {
+            console.error('Error approving withdrawal (admin):', error);
+            throw this.handleError(error);
+        }
+    }
+
+    /**
+     * Rechaza una solicitud de RETIRO (ADMIN)
+     */
+    async rechazarAdminRetiro(solicitudId: number, dto: AdminRechazarSolicitudDto): Promise<SolicitudRetiroAdmin> {
+        try {
+            const raw = await apiBase.post(`${this.adminBaseUrl}/retiros/${solicitudId}/rechazar`, dto);
+            return this.unwrapApiResponse<SolicitudRetiroAdmin>(raw);
+        } catch (error) {
+            console.error('Error rejecting withdrawal (admin):', error);
+            throw this.handleError(error);
+        }
+    }
+
+    /**
+     * Obtiene estadísticas de transacciones (ADMIN)
+     */
+    async getAdminEstadisticas(): Promise<EstadisticasTransaccionesDto> {
+        try {
+            const raw = await apiBase.get(`${this.adminBaseUrl}/estadisticas`);
+            return this.unwrapApiResponse<EstadisticasTransaccionesDto>(raw);
+        } catch (error) {
+            console.error('Error fetching admin stats:', error);
+            throw this.handleError(error);
+        }
+    }
+
+    /**
+     * Obtiene dashboard de administración (ADMIN)
+     */
+    async getAdminDashboard(): Promise<DashboardAdminDto> {
+        try {
+            const raw = await apiBase.get(`${this.adminBaseUrl}/dashboard`);
+            return this.unwrapApiResponse<DashboardAdminDto>(raw);
+        } catch (error) {
+            console.error('Error fetching admin dashboard:', error);
+            throw this.handleError(error);
+        }
     }
 
     /**

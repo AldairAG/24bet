@@ -1,5 +1,19 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
-import { type CreateCryptoWalletDto , type CryptoWalletDto, type SolicitudDepositoResponse, type SolicitudRetiroDto, type SolicitudRetiroResponse, type SolicitudDepositoDto } from '../../types/walletTypes';
+import { 
+    type CreateCryptoWalletDto,
+    type CryptoWalletDto,
+    type SolicitudDepositoResponse,
+    type SolicitudRetiroDto,
+    type SolicitudRetiroResponse,
+    type SolicitudDepositoDto,
+    type SolicitudDepositoAdmin,
+    type SolicitudRetiroAdmin,
+    type AdminAprobarSolicitudDto,
+    type AdminRechazarSolicitudDto,
+    type AdminAprobarRetiroDto,
+    type EstadisticasTransaccionesDto,
+    type DashboardAdminDto
+} from '../../types/walletTypes';
 import { walletService } from '../../service/walletService';
 import { TipoCrypto } from '../../types/walletTypes';
 
@@ -23,7 +37,7 @@ interface WalletState {
     createdWallet: CryptoWalletDto | null;
     userWallets: CryptoWalletDto[];
     availableCryptoTypes: TipoCrypto[];
-    withdrawalRequests: any[];
+    withdrawalRequests: unknown[];
 
     // Errores
     createWalletError: string | null;
@@ -33,6 +47,32 @@ interface WalletState {
 
     // Estados de validación
     validationError: string | null;
+
+    // ===== ADMIN: estados de carga =====
+    isLoadingAdminDepositsPending: boolean;
+    isLoadingAdminWithdrawalsPending: boolean;
+    isApprovingAdminDeposit: boolean;
+    isRejectingAdminDeposit: boolean;
+    isApprovingAdminWithdrawal: boolean;
+    isRejectingAdminWithdrawal: boolean;
+    isLoadingAdminStats: boolean;
+    isLoadingAdminDashboard: boolean;
+
+    // ===== ADMIN: datos =====
+    adminDepositsPending: SolicitudDepositoAdmin[];
+    adminWithdrawalsPending: SolicitudRetiroAdmin[];
+    adminStats: EstadisticasTransaccionesDto | null;
+    adminDashboard: DashboardAdminDto | null;
+
+    // ===== ADMIN: errores =====
+    adminDepositsError: string | null;
+    adminWithdrawalsError: string | null;
+    approveAdminDepositError: string | null;
+    rejectAdminDepositError: string | null;
+    approveAdminWithdrawalError: string | null;
+    rejectAdminWithdrawalError: string | null;
+    adminStatsError: string | null;
+    adminDashboardError: string | null;
 }
 
 const initialState: WalletState = {
@@ -57,6 +97,32 @@ const initialState: WalletState = {
     deactivateWalletError: null,
     loadWithdrawalRequestsError: null,
     validationError: null,
+
+    // ===== ADMIN: estados =====
+    isLoadingAdminDepositsPending: false,
+    isLoadingAdminWithdrawalsPending: false,
+    isApprovingAdminDeposit: false,
+    isRejectingAdminDeposit: false,
+    isApprovingAdminWithdrawal: false,
+    isRejectingAdminWithdrawal: false,
+    isLoadingAdminStats: false,
+    isLoadingAdminDashboard: false,
+
+    // ===== ADMIN: datos =====
+    adminDepositsPending: [],
+    adminWithdrawalsPending: [],
+    adminStats: null,
+    adminDashboard: null,
+
+    // ===== ADMIN: errores =====
+    adminDepositsError: null,
+    adminWithdrawalsError: null,
+    approveAdminDepositError: null,
+    rejectAdminDepositError: null,
+    approveAdminWithdrawalError: null,
+    rejectAdminWithdrawalError: null,
+    adminStatsError: null,
+    adminDashboardError: null,
 };
 
 // ========== THUNKS ASÍNCRONOS ==========
@@ -190,7 +256,7 @@ export const deactivateWallet = createAsyncThunk<
  * Thunk para obtener las solicitudes de retiro de un usuario
  */
 export const getWithdrawalRequests = createAsyncThunk<
-    any, // Tipo de retorno
+    unknown, // Tipo de retorno
     number, // Tipo de parámetros: usuarioId
     { rejectValue: string } // Tipo del error
 >(
@@ -202,6 +268,144 @@ export const getWithdrawalRequests = createAsyncThunk<
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Error al cargar solicitudes de retiro';
             return rejectWithValue(errorMessage);
+        }
+    }
+);
+
+// ===== ADMIN: THUNKS =====
+
+export const loadAdminDepositsPending = createAsyncThunk<
+    SolicitudDepositoAdmin[],
+    void,
+    { rejectValue: string }
+>(
+    'wallet/admin/loadDepositsPending',
+    async (_, { rejectWithValue }) => {
+        try {
+            const list = await walletService.getAdminDepositosPendientes();
+            return list || [];
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : 'Error al cargar depósitos pendientes (admin)';
+            return rejectWithValue(msg);
+        }
+    }
+);
+
+export const loadAdminWithdrawalsPending = createAsyncThunk<
+    SolicitudRetiroAdmin[],
+    void,
+    { rejectValue: string }
+>(
+    'wallet/admin/loadWithdrawalsPending',
+    async (_, { rejectWithValue }) => {
+        try {
+            const list = await walletService.getAdminRetirosPendientes();
+            return list || [];
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : 'Error al cargar retiros pendientes (admin)';
+            return rejectWithValue(msg);
+        }
+    }
+);
+
+export const approveAdminDeposit = createAsyncThunk<
+    SolicitudDepositoAdmin,
+    { solicitudId: number } & AdminAprobarSolicitudDto,
+    { rejectValue: string }
+>(
+    'wallet/admin/approveDeposit',
+    async ({ solicitudId, adminId, observaciones }, { rejectWithValue }) => {
+        try {
+            const res = await walletService.aprobarAdminDeposito(solicitudId, { adminId, observaciones });
+            return res;
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : 'Error al aprobar depósito (admin)';
+            return rejectWithValue(msg);
+        }
+    }
+);
+
+export const rejectAdminDeposit = createAsyncThunk<
+    SolicitudDepositoAdmin,
+    { solicitudId: number } & AdminRechazarSolicitudDto,
+    { rejectValue: string }
+>(
+    'wallet/admin/rejectDeposit',
+    async ({ solicitudId, adminId, motivo }, { rejectWithValue }) => {
+        try {
+            const res = await walletService.rechazarAdminDeposito(solicitudId, { adminId, motivo });
+            return res;
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : 'Error al rechazar depósito (admin)';
+            return rejectWithValue(msg);
+        }
+    }
+);
+
+export const approveAdminWithdrawal = createAsyncThunk<
+    SolicitudRetiroAdmin,
+    { solicitudId: number } & AdminAprobarRetiroDto,
+    { rejectValue: string }
+>(
+    'wallet/admin/approveWithdrawal',
+    async ({ solicitudId, adminId, observaciones, referenciaTransaccion }, { rejectWithValue }) => {
+        try {
+            const res = await walletService.aprobarAdminRetiro(solicitudId, { adminId, observaciones, referenciaTransaccion });
+            return res;
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : 'Error al aprobar retiro (admin)';
+            return rejectWithValue(msg);
+        }
+    }
+);
+
+export const rejectAdminWithdrawal = createAsyncThunk<
+    SolicitudRetiroAdmin,
+    { solicitudId: number } & AdminRechazarSolicitudDto,
+    { rejectValue: string }
+>(
+    'wallet/admin/rejectWithdrawal',
+    async ({ solicitudId, adminId, motivo }, { rejectWithValue }) => {
+        try {
+            const res = await walletService.rechazarAdminRetiro(solicitudId, { adminId, motivo });
+            return res;
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : 'Error al rechazar retiro (admin)';
+            return rejectWithValue(msg);
+        }
+    }
+);
+
+export const loadAdminStats = createAsyncThunk<
+    EstadisticasTransaccionesDto,
+    void,
+    { rejectValue: string }
+>(
+    'wallet/admin/loadStats',
+    async (_, { rejectWithValue }) => {
+        try {
+            const stats = await walletService.getAdminEstadisticas();
+            return stats;
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : 'Error al cargar estadísticas (admin)';
+            return rejectWithValue(msg);
+        }
+    }
+);
+
+export const loadAdminDashboard = createAsyncThunk<
+    DashboardAdminDto,
+    void,
+    { rejectValue: string }
+>(
+    'wallet/admin/loadDashboard',
+    async (_, { rejectWithValue }) => {
+        try {
+            const dash = await walletService.getAdminDashboard();
+            return dash;
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : 'Error al cargar dashboard (admin)';
+            return rejectWithValue(msg);
         }
     }
 );
@@ -275,6 +479,17 @@ const walletSlice = createSlice({
         setValidationError: (state, action: PayloadAction<string>) => {
             state.validationError = action.payload;
         },
+        // ===== ADMIN: clearers =====
+        clearAdminDepositsError: (state) => { state.adminDepositsError = null; },
+        clearAdminWithdrawalsError: (state) => { state.adminWithdrawalsError = null; },
+        clearAdminOperationErrors: (state) => {
+            state.approveAdminDepositError = null;
+            state.rejectAdminDepositError = null;
+            state.approveAdminWithdrawalError = null;
+            state.rejectAdminWithdrawalError = null;
+        },
+        clearAdminStatsError: (state) => { state.adminStatsError = null; },
+        clearAdminDashboardError: (state) => { state.adminDashboardError = null; },
     },
     extraReducers: (builder) => {
         // ========== CREATE CRYPTO WALLET ==========
@@ -301,7 +516,7 @@ const walletSlice = createSlice({
             .addCase(loadAvailableCryptoTypes.fulfilled, (state, action) => {
                 state.availableCryptoTypes = action.payload;
             })
-            .addCase(loadAvailableCryptoTypes.rejected, (state, action) => {
+            .addCase(loadAvailableCryptoTypes.rejected, (state) => {
                 // En caso de error, usar los tipos por defecto
                 state.availableCryptoTypes = Object.values(TipoCrypto);
             });
@@ -382,14 +597,143 @@ const walletSlice = createSlice({
             })
             .addCase(getWithdrawalRequests.fulfilled, (state, action) => {
                 state.isLoadingWithdrawalRequests = false;
-                // El backend retorna Page<SolicitudRetiro>, extraemos el array de content
-                state.withdrawalRequests = action.payload?.content || action.payload || [];
+                // El backend puede retornar Page<SolicitudRetiro> o un array directo; normalizamos
+                const data = action.payload as { content?: unknown[] } | unknown[] | null | undefined;
+                let list: unknown[] = [];
+                if (Array.isArray(data)) {
+                    list = data;
+                } else if (data && typeof data === 'object' && 'content' in data) {
+                    const c = (data as { content?: unknown[] }).content;
+                    list = Array.isArray(c) ? c : [];
+                }
+                state.withdrawalRequests = list;
                 state.loadWithdrawalRequestsError = null;
             })
             .addCase(getWithdrawalRequests.rejected, (state, action) => {
                 state.isLoadingWithdrawalRequests = false;
                 state.loadWithdrawalRequestsError = action.payload || 'Error al cargar solicitudes de retiro';
                 state.withdrawalRequests = [];
+            });
+
+        // ===== ADMIN: pending deposits =====
+        builder
+            .addCase(loadAdminDepositsPending.pending, (state) => {
+                state.isLoadingAdminDepositsPending = true;
+                state.adminDepositsError = null;
+            })
+            .addCase(loadAdminDepositsPending.fulfilled, (state, action) => {
+                state.isLoadingAdminDepositsPending = false;
+                state.adminDepositsPending = action.payload;
+                state.adminDepositsError = null;
+            })
+            .addCase(loadAdminDepositsPending.rejected, (state, action) => {
+                state.isLoadingAdminDepositsPending = false;
+                state.adminDepositsPending = [];
+                state.adminDepositsError = action.payload || 'Error al cargar depósitos pendientes (admin)';
+            });
+
+        // ===== ADMIN: pending withdrawals =====
+        builder
+            .addCase(loadAdminWithdrawalsPending.pending, (state) => {
+                state.isLoadingAdminWithdrawalsPending = true;
+                state.adminWithdrawalsError = null;
+            })
+            .addCase(loadAdminWithdrawalsPending.fulfilled, (state, action) => {
+                state.isLoadingAdminWithdrawalsPending = false;
+                state.adminWithdrawalsPending = action.payload;
+                state.adminWithdrawalsError = null;
+            })
+            .addCase(loadAdminWithdrawalsPending.rejected, (state, action) => {
+                state.isLoadingAdminWithdrawalsPending = false;
+                state.adminWithdrawalsPending = [];
+                state.adminWithdrawalsError = action.payload || 'Error al cargar retiros pendientes (admin)';
+            });
+
+        // ===== ADMIN: approve/reject deposit =====
+        builder
+            .addCase(approveAdminDeposit.pending, (state) => {
+                state.isApprovingAdminDeposit = true;
+                state.approveAdminDepositError = null;
+            })
+            .addCase(approveAdminDeposit.fulfilled, (state, action) => {
+                state.isApprovingAdminDeposit = false;
+                // Actualizar lista local si existe
+                state.adminDepositsPending = state.adminDepositsPending.filter(d => d.id !== action.payload.id);
+            })
+            .addCase(approveAdminDeposit.rejected, (state, action) => {
+                state.isApprovingAdminDeposit = false;
+                state.approveAdminDepositError = action.payload || 'Error al aprobar depósito (admin)';
+            })
+            .addCase(rejectAdminDeposit.pending, (state) => {
+                state.isRejectingAdminDeposit = true;
+                state.rejectAdminDepositError = null;
+            })
+            .addCase(rejectAdminDeposit.fulfilled, (state, action) => {
+                state.isRejectingAdminDeposit = false;
+                state.adminDepositsPending = state.adminDepositsPending.filter(d => d.id !== action.payload.id);
+            })
+            .addCase(rejectAdminDeposit.rejected, (state, action) => {
+                state.isRejectingAdminDeposit = false;
+                state.rejectAdminDepositError = action.payload || 'Error al rechazar depósito (admin)';
+            });
+
+        // ===== ADMIN: approve/reject withdrawal =====
+        builder
+            .addCase(approveAdminWithdrawal.pending, (state) => {
+                state.isApprovingAdminWithdrawal = true;
+                state.approveAdminWithdrawalError = null;
+            })
+            .addCase(approveAdminWithdrawal.fulfilled, (state, action) => {
+                state.isApprovingAdminWithdrawal = false;
+                state.adminWithdrawalsPending = state.adminWithdrawalsPending.filter(r => r.id !== action.payload.id);
+            })
+            .addCase(approveAdminWithdrawal.rejected, (state, action) => {
+                state.isApprovingAdminWithdrawal = false;
+                state.approveAdminWithdrawalError = action.payload || 'Error al aprobar retiro (admin)';
+            })
+            .addCase(rejectAdminWithdrawal.pending, (state) => {
+                state.isRejectingAdminWithdrawal = true;
+                state.rejectAdminWithdrawalError = null;
+            })
+            .addCase(rejectAdminWithdrawal.fulfilled, (state, action) => {
+                state.isRejectingAdminWithdrawal = false;
+                state.adminWithdrawalsPending = state.adminWithdrawalsPending.filter(r => r.id !== action.payload.id);
+            })
+            .addCase(rejectAdminWithdrawal.rejected, (state, action) => {
+                state.isRejectingAdminWithdrawal = false;
+                state.rejectAdminWithdrawalError = action.payload || 'Error al rechazar retiro (admin)';
+            });
+
+        // ===== ADMIN: stats =====
+        builder
+            .addCase(loadAdminStats.pending, (state) => {
+                state.isLoadingAdminStats = true;
+                state.adminStatsError = null;
+            })
+            .addCase(loadAdminStats.fulfilled, (state, action) => {
+                state.isLoadingAdminStats = false;
+                state.adminStats = action.payload;
+            })
+            .addCase(loadAdminStats.rejected, (state, action) => {
+                state.isLoadingAdminStats = false;
+                state.adminStatsError = action.payload || 'Error al cargar estadísticas (admin)';
+                state.adminStats = null;
+            });
+
+        // ===== ADMIN: dashboard =====
+        builder
+            .addCase(loadAdminDashboard.pending, (state) => {
+                state.isLoadingAdminDashboard = true;
+                state.adminDashboardError = null;
+            })
+            .addCase(loadAdminDashboard.fulfilled, (state, action) => {
+                state.isLoadingAdminDashboard = false;
+                state.adminDashboard = action.payload;
+            })
+            .addCase(loadAdminDashboard.rejected, (state, action) => {
+                state.isLoadingAdminDashboard = false;
+                state.adminDashboardError = action.payload || 'Error al cargar dashboard (admin)';
+                state.adminDashboard = null;
             });
     },
 });
@@ -409,7 +753,13 @@ export const {
     clearWalletData,
     setValidationError,
     clearDepositRequest,
-    clearWithdrawalRequest
+    clearWithdrawalRequest,
+    // Admin clearers
+    clearAdminDepositsError,
+    clearAdminWithdrawalsError,
+    clearAdminOperationErrors,
+    clearAdminStatsError,
+    clearAdminDashboardError,
 } = walletSlice.actions;
 
 // Selectors
@@ -462,6 +812,34 @@ export const selectWalletLoading = (state: { wallet: WalletState }) => ({
     isLoadingWithdrawalRequests: state.wallet.isLoadingWithdrawalRequests,
     isCreatingDepositRequest: state.wallet.isCreatingDepositRequest,
     isCreatingWithdrawalRequest: state.wallet.isCreatingWithdrawalRequest,
+});
+
+// ===== ADMIN: Selectores =====
+export const selectAdminDepositsPending = (state: { wallet: WalletState }) => state.wallet.adminDepositsPending;
+export const selectAdminWithdrawalsPending = (state: { wallet: WalletState }) => state.wallet.adminWithdrawalsPending;
+export const selectAdminStats = (state: { wallet: WalletState }) => state.wallet.adminStats;
+export const selectAdminDashboard = (state: { wallet: WalletState }) => state.wallet.adminDashboard;
+
+export const selectAdminErrors = (state: { wallet: WalletState }) => ({
+    depositsError: state.wallet.adminDepositsError,
+    withdrawalsError: state.wallet.adminWithdrawalsError,
+    approveDepositError: state.wallet.approveAdminDepositError,
+    rejectDepositError: state.wallet.rejectAdminDepositError,
+    approveWithdrawalError: state.wallet.approveAdminWithdrawalError,
+    rejectWithdrawalError: state.wallet.rejectAdminWithdrawalError,
+    statsError: state.wallet.adminStatsError,
+    dashboardError: state.wallet.adminDashboardError,
+});
+
+export const selectAdminLoading = (state: { wallet: WalletState }) => ({
+    loadingDeposits: state.wallet.isLoadingAdminDepositsPending,
+    loadingWithdrawals: state.wallet.isLoadingAdminWithdrawalsPending,
+    approvingDeposit: state.wallet.isApprovingAdminDeposit,
+    rejectingDeposit: state.wallet.isRejectingAdminDeposit,
+    approvingWithdrawal: state.wallet.isApprovingAdminWithdrawal,
+    rejectingWithdrawal: state.wallet.isRejectingAdminWithdrawal,
+    loadingStats: state.wallet.isLoadingAdminStats,
+    loadingDashboard: state.wallet.isLoadingAdminDashboard,
 });
 
 // Reducer

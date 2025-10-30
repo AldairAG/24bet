@@ -123,4 +123,73 @@ export enum EstadoSolicitud {
     CANCELADA = 'CANCELADA'
 }
 
+// ========== ADMINISTRACIÓN: Tipos y DTOs ==========
+
+// Entidad mínima para solicitudes de depósito visibles por admin
+export interface SolicitudDepositoAdmin {
+    id: number;
+    usuarioId: number;
+    monto: number;
+    estado: EstadoSolicitud | string;
+    metodoPago?: string;
+    observaciones?: string;
+    fechaCreacion?: string;
+    fechaActualizacion?: string;
+    // Campos adicionales del backend se aceptan sin tipar explícito
+    [key: string]: unknown;
+}
+
+// Entidad mínima para solicitudes de retiro visibles por admin
+export interface SolicitudRetiroAdmin {
+    id: number;
+    usuarioId: number;
+    monto: number;
+    montoNeto?: number;
+    comision?: number;
+    estado: EstadoSolicitud | string;
+    metodoRetiro?: string;
+    direccionWallet?: string;
+    tipoCrypto?: TipoCrypto;
+    referenciaTransaccion?: string;
+    observaciones?: string;
+    fechaCreacion?: string;
+    fechaActualizacion?: string;
+    // Campos adicionales del backend se aceptan sin tipar explícito
+    [key: string]: unknown;
+}
+
+// DTOs para acciones de admin
+export interface AdminAprobarSolicitudDto {
+    adminId: number;
+    observaciones?: string;
+}
+
+export interface AdminRechazarSolicitudDto {
+    adminId: number;
+    motivo: string;
+}
+
+export interface AdminAprobarRetiroDto {
+    adminId: number;
+    observaciones?: string;
+    referenciaTransaccion: string;
+}
+
+// Resúmenes y estadísticas para vistas admin
+export interface EstadisticasTransaccionesDto {
+    depositosHoy: number;
+    retirosHoy: number;
+    // Permite información adicional sin romper el tipado
+    [key: string]: unknown;
+}
+
+export interface DashboardAdminDto {
+    depositosPendientes: number;
+    retirosPendientes: number;
+    depositosHoy: number;
+    retirosHoy: number;
+    ultimosDepositosPendientes: SolicitudDepositoAdmin[];
+    ultimosRetirosPendientes: SolicitudRetiroAdmin[];
+}
+
 

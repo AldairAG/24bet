@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import type { AppDispatch } from '../store';
 import type { CreateCryptoWalletDto, SolicitudDepositoDto, SolicitudRetiroDto } from '../types/walletTypes';
 import { TipoCrypto } from '../types/walletTypes';
 import {
@@ -11,6 +12,14 @@ import {
     createDepositRequest,
     createWithdrawalRequest,
     getWithdrawalRequests,
+    loadAdminDepositsPending,
+    loadAdminWithdrawalsPending,
+    approveAdminDeposit,
+    rejectAdminDeposit,
+    approveAdminWithdrawal,
+    rejectAdminWithdrawal,
+    loadAdminStats,
+    loadAdminDashboard,
     // Actions
     clearCreateWalletError,
     clearLoadUserWalletsError,
@@ -24,6 +33,11 @@ import {
     setValidationError,
     clearDepositRequest,
     clearWithdrawalRequest,
+    clearAdminDepositsError,
+    clearAdminWithdrawalsError,
+    clearAdminOperationErrors,
+    clearAdminStatsError,
+    clearAdminDashboardError,
     // Selectors
     selectWalletState,
     selectIsCreatingWallet,
@@ -45,6 +59,12 @@ import {
     selectIsCreatingWithdrawalRequest,
     selectDepositRequestState,
     selectWithdrawalRequestState,
+    selectAdminDepositsPending,
+    selectAdminWithdrawalsPending,
+    selectAdminStats,
+    selectAdminDashboard,
+    selectAdminErrors,
+    selectAdminLoading,
     // Helpers
     getCryptoDisplayName,
     validateWalletData,
@@ -54,7 +74,7 @@ import {
  * Hook personalizado para la gestión de wallets de criptomonedas
  */
 export const useWallet = () => {
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
 
     // ========== SELECTORES ==========
     const walletState = useSelector(selectWalletState);
@@ -77,6 +97,12 @@ export const useWallet = () => {
     const walletLoading = useSelector(selectWalletLoading);
     const depositRequestState = useSelector(selectDepositRequestState);
     const withdrawalRequestState = useSelector(selectWithdrawalRequestState);
+    const adminDepositsPending = useSelector(selectAdminDepositsPending);
+    const adminWithdrawalsPending = useSelector(selectAdminWithdrawalsPending);
+    const adminStats = useSelector(selectAdminStats);
+    const adminDashboard = useSelector(selectAdminDashboard);
+    const adminErrors = useSelector(selectAdminErrors);
+    const adminLoading = useSelector(selectAdminLoading);
 
     // ========== ACCIONES PRINCIPALES ==========
 
@@ -86,7 +112,7 @@ export const useWallet = () => {
     const createWallet = useCallback(
         async (usuarioId: number, walletData: CreateCryptoWalletDto) => {
             const result = await dispatch(
-                createCryptoWallet({ usuarioId, walletData }) as any
+                createCryptoWallet({ usuarioId, walletData })
             );
             return result;
         },
@@ -97,7 +123,7 @@ export const useWallet = () => {
      * Carga los tipos de criptomonedas disponibles
      */
     const loadCryptoTypes = useCallback(async () => {
-        const result = await dispatch(loadAvailableCryptoTypes() as any);
+    const result = await dispatch(loadAvailableCryptoTypes());
         return result;
     }, [dispatch]);
 
@@ -106,7 +132,7 @@ export const useWallet = () => {
      */
     const loadUserWallets = useCallback(
         async (usuarioId: number) => {
-            const result = await dispatch(getUserWallets(usuarioId) as any);
+            const result = await dispatch(getUserWallets(usuarioId));
             return result;
         },
         [dispatch]
@@ -117,7 +143,7 @@ export const useWallet = () => {
      */
     const deleteWallet = useCallback(
         async (walletId: number) => {
-            const result = await dispatch(deactivateWallet(walletId) as any);
+            const result = await dispatch(deactivateWallet(walletId));
             return result;
         },
         [dispatch]
@@ -129,7 +155,7 @@ export const useWallet = () => {
     const createDeposit = useCallback(
         async (usuarioId: number, depositoData: SolicitudDepositoDto) => {
             const result = await dispatch(
-                createDepositRequest({ usuarioId, depositoData }) as any
+                createDepositRequest({ usuarioId, depositoData })
             );
             return result;
         },
@@ -142,7 +168,7 @@ export const useWallet = () => {
     const createWithdrawal = useCallback(
         async (usuarioId: number, retiroData: SolicitudRetiroDto) => {
             const result = await dispatch(
-                createWithdrawalRequest({ usuarioId, retiroData }) as any
+                createWithdrawalRequest({ usuarioId, retiroData })
             );
             return result;
         },
@@ -154,11 +180,44 @@ export const useWallet = () => {
      */
     const loadWithdrawalRequests = useCallback(
         async (usuarioId: number) => {
-            const result = await dispatch(getWithdrawalRequests(usuarioId) as any);
+            const result = await dispatch(getWithdrawalRequests(usuarioId));
             return result;
         },
         [dispatch]
     );
+
+    // ===== ADMIN: acciones =====
+    const loadAdminPendingDeposits = useCallback(async () => {
+        return await dispatch(loadAdminDepositsPending());
+    }, [dispatch]);
+
+    const loadAdminPendingWithdrawals = useCallback(async () => {
+        return await dispatch(loadAdminWithdrawalsPending());
+    }, [dispatch]);
+
+    const approveDepositAdmin = useCallback(async (params: { solicitudId: number; adminId: number; observaciones?: string }) => {
+        return await dispatch(approveAdminDeposit(params));
+    }, [dispatch]);
+
+    const rejectDepositAdmin = useCallback(async (params: { solicitudId: number; adminId: number; motivo: string }) => {
+        return await dispatch(rejectAdminDeposit(params));
+    }, [dispatch]);
+
+    const approveWithdrawalAdmin = useCallback(async (params: { solicitudId: number; adminId: number; observaciones?: string; referenciaTransaccion: string }) => {
+        return await dispatch(approveAdminWithdrawal(params));
+    }, [dispatch]);
+
+    const rejectWithdrawalAdmin = useCallback(async (params: { solicitudId: number; adminId: number; motivo: string }) => {
+        return await dispatch(rejectAdminWithdrawal(params));
+    }, [dispatch]);
+
+    const loadAdminStatsAction = useCallback(async () => {
+        return await dispatch(loadAdminStats());
+    }, [dispatch]);
+
+    const loadAdminDashboardAction = useCallback(async () => {
+        return await dispatch(loadAdminDashboard());
+    }, [dispatch]);
 
     // ========== ACCIONES DE LIMPIEZA ==========
 
@@ -248,6 +307,12 @@ export const useWallet = () => {
     const clearWithdrawal = useCallback(() => {
         dispatch(clearWithdrawalRequest());
     }, [dispatch]);
+
+    const clearAdminDepositsErr = useCallback(() => { dispatch(clearAdminDepositsError()); }, [dispatch]);
+    const clearAdminWithdrawalsErr = useCallback(() => { dispatch(clearAdminWithdrawalsError()); }, [dispatch]);
+    const clearAdminOpsErr = useCallback(() => { dispatch(clearAdminOperationErrors()); }, [dispatch]);
+    const clearAdminStatsErr = useCallback(() => { dispatch(clearAdminStatsError()); }, [dispatch]);
+    const clearAdminDashboardErr = useCallback(() => { dispatch(clearAdminDashboardError()); }, [dispatch]);
 
     // ========== FUNCIONES AUXILIARES ==========
 
@@ -365,6 +430,10 @@ export const useWallet = () => {
         createdWallet,
         userWallets,
         withdrawalRequests,
+    adminDepositsPending,
+    adminWithdrawalsPending,
+    adminStats,
+    adminDashboard,
         availableCryptoTypes,
         depositRequestResponse: depositRequestState.response,
         withdrawalRequestResponse: withdrawalRequestState.response,
@@ -378,6 +447,7 @@ export const useWallet = () => {
         depositRequestError: depositRequestState.error,
         withdrawalRequestError: withdrawalRequestState.error,
         errors: walletErrors,
+    adminErrors,
         hasErrors: hasErrors(),
         allErrors: getAllErrors(),
 
@@ -389,6 +459,15 @@ export const useWallet = () => {
         deleteWallet,
         createDeposit,
         createWithdrawal,
+    // Admin thunks
+    loadAdminPendingDeposits,
+    loadAdminPendingWithdrawals,
+    approveDepositAdmin,
+    rejectDepositAdmin,
+    approveWithdrawalAdmin,
+    rejectWithdrawalAdmin,
+    loadAdminStats: loadAdminStatsAction,
+    loadAdminDashboard: loadAdminDashboardAction,
 
         // Acciones de limpieza
         clearCreateError,
@@ -404,12 +483,18 @@ export const useWallet = () => {
         resetWalletState,
         clearDeposit,
         clearWithdrawal,
+    clearAdminDepositsError: clearAdminDepositsErr,
+    clearAdminWithdrawalsError: clearAdminWithdrawalsErr,
+    clearAdminOperationErrors: clearAdminOpsErr,
+    clearAdminStatsError: clearAdminStatsErr,
+    clearAdminDashboardError: clearAdminDashboardErr,
 
         // Funciones auxiliares
         validateWallet,
         getCryptoName,
         getCryptoOptions,
         isCryptoAvailable,
+        adminLoading,
 
         // Tipos disponibles (para fácil acceso)
         TipoCrypto,
