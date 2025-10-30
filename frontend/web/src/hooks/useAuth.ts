@@ -8,7 +8,7 @@ import {
 	setUser,
 	setToken
 } from '../store/slices/authSlice';
-import type{
+import type {
 	LoginRequest,
 	RegistroRequest,
 	Usuario
@@ -23,12 +23,12 @@ export const useAuth = () => {
 	// Login con sincronización de apiBase
 	const handleLogin = useCallback(async (data: LoginRequest) => {
 		const result = await dispatch(login(data));
-		
+
 		// Si el login es exitoso, sincronizar el token con apiBase
 		if (login.fulfilled.match(result)) {
 			apiBase.syncTokenFromRedux();
 		}
-		
+
 		return result;
 	}, [dispatch]);
 
@@ -44,7 +44,7 @@ export const useAuth = () => {
 	}, [dispatch]);
 
 	// Set user
-	const handleSetUser = useCallback((user: Usuario ) => {
+	const handleSetUser = useCallback((user: Usuario) => {
 		return dispatch(setUser(user));
 	}, [dispatch]);
 
