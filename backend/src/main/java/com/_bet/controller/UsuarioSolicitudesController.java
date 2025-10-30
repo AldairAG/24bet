@@ -209,7 +209,9 @@ public class UsuarioSolicitudesController {
                 totalDepositado,
                 totalRetirado,
                 usuario.getSaldoUsd(),
-                saldoBloqueado
+                saldoBloqueado,
+                retiros,
+                depositos
             );
             
             return ResponseEntity.ok(resumen);
@@ -228,16 +230,21 @@ public class UsuarioSolicitudesController {
         private final BigDecimal totalRetirado;
         private final BigDecimal saldoDisponible;
         private final BigDecimal saldoBloqueado;
+        private final List<SolicitudRetiro> retiros;
+        private final List<SolicitudDeposito> depositos;
 
         public ResumenTransaccionesDto(long depositosPendientes, long retirosPendientes,
                                      BigDecimal totalDepositado, BigDecimal totalRetirado,
-                                     BigDecimal saldoDisponible, BigDecimal saldoBloqueado) {
+                                     BigDecimal saldoDisponible, BigDecimal saldoBloqueado,
+                                     List<SolicitudRetiro> retiros, List<SolicitudDeposito> depositos) {
             this.depositosPendientes = depositosPendientes;
             this.retirosPendientes = retirosPendientes;
             this.totalDepositado = totalDepositado;
             this.totalRetirado = totalRetirado;
             this.saldoDisponible = saldoDisponible;
             this.saldoBloqueado = saldoBloqueado;
+            this.retiros = retiros;
+            this.depositos = depositos;
         }
 
         public long getDepositosPendientes() { return depositosPendientes; }
@@ -246,5 +253,7 @@ public class UsuarioSolicitudesController {
         public BigDecimal getTotalRetirado() { return totalRetirado; }
         public BigDecimal getSaldoDisponible() { return saldoDisponible; }
         public BigDecimal getSaldoBloqueado() { return saldoBloqueado; }
+        public List<SolicitudRetiro> getRetiros() { return retiros; }
+        public List<SolicitudDeposito> getDepositos() { return depositos; }
     }
 }
