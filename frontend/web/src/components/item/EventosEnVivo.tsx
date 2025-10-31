@@ -45,15 +45,15 @@ const EventosEnVivo: React.FC = () => {
 
       {/* Filtros de deportes */}
       <div className="bg-gray-800 text-white p-2 flex space-x-4 overflow-x-auto">
-        <div className="flex items-center space-x-2 bg-red-600 px-3 py-1 rounded text-xs">
+        <div className="flex items-center space-x-2 bg-red-600 px-3 py-1 rounded text-xs" onClick={() => setDeporte('Soccer')}>
           <span>⚽</span>
           <span>Fútbol</span>
         </div>
-        <div className="flex items-center space-x-2 text-gray-300 px-3 py-1 rounded text-xs hover:bg-gray-700 cursor-pointer">
+        <div className="flex items-center space-x-2 text-gray-300 px-3 py-1 rounded text-xs hover:bg-gray-700 cursor-pointer" onClick={() => setDeporte('Basketball')}>
           <span>🏀</span>
           <span>Baloncesto</span>
         </div>
-        <div className="flex items-center space-x-2 text-gray-300 px-3 py-1 rounded text-xs hover:bg-gray-700 cursor-pointer">
+        <div className="flex items-center space-x-2 text-gray-300 px-3 py-1 rounded text-xs hover:bg-gray-700 cursor-pointer" onClick={()=> setDeporte('Baseball')}>
           <span>⚾</span>
           <span>Béisbol</span>
         </div>

@@ -1,8 +1,7 @@
-import { Outlet, useNavigate, useParams } from "react-router-dom"
+import { Outlet, useParams } from "react-router-dom"
 import useEventos from "../../../hooks/useEventos";
 import { useEffect, useMemo, useState } from "react";
 import type { EventoConOddsResponse } from "../../../types/EventosType";
-import { ROUTES } from "../../../routes/routes";
 import Breadcrumb from "../../../components/navigation/Breadcrumb";
 import EventoItem from "../../../components/item/EventoItem";
 

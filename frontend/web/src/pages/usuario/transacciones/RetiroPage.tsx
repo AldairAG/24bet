@@ -270,7 +270,6 @@ const RetiroPage = () => {
     loadWithdrawalRequests,
     withdrawalRequests,
     isLoadingWithdrawalRequests,
-    loadWithdrawalRequestsError,
     loadUserWallets,
     userWallets,
     isLoadingUserWallets
