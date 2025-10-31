@@ -1,30 +1,11 @@
 import { apiBase } from './apiBase';
-import type { CrearApuesta, ApuestaEnBoleto } from '../types/apuestasTypes';
+import type { CrearApuesta } from '../types/apuestasTypes';
 import type { ApiResponseWrapper } from '../types/authTypes';
-
-/**
- * Interfaz que define los métodos del servicio de apuestas
- */
-export interface IApuestaService {
-    /**
-     * Crea una lista de apuestas
-     * @param apuestas Lista de apuestas a crear
-     * @returns Promise con el resultado de la operación
-     */
-    crearListaApuestas(apuestas: CrearApuesta[]): Promise<ApiResponseWrapper<CrearApuesta[]>>;
-
-    /**
-     * Obtiene una lista de apuestas por usuario (método futuro)
-     * @param usuarioId ID del usuario
-     * @returns Promise con las apuestas del usuario
-     */
-    obtenerApuestasPorUsuario?(usuarioId: number): Promise<ApuestaEnBoleto[]>;
-}
 
 /**
  * Implementación del servicio de apuestas
  */
-class ApuestaService implements IApuestaService {
+class ApuestaService  {
     private readonly baseUrl = '/apuestas';
 
     /**
@@ -43,10 +24,22 @@ class ApuestaService implements IApuestaService {
         return response.data;
     }
 
+    /**
+     * crear un parlay de apuestas
+     */
+    async crearParlayApuestas(apuestas: CrearApuesta[]): Promise<ApiResponseWrapper<CrearApuesta[]>> {
+
+        if (!Array.isArray(apuestas) || apuestas.length === 0) {
+            throw new Error('La lista de apuestas no puede estar vacía');
+        }
+
+        const response = await apiBase.post<ApiResponseWrapper<CrearApuesta[]>>(`${this.baseUrl}/parlay/crear`, apuestas);
+
+        return response.data;
+    }
+
 }
 
-// Instancia singleton del servicio
-export const apuestaService: IApuestaService = new ApuestaService();
 
 // Export por defecto para compatibilidad
-export default apuestaService;
+export default new ApuestaService();

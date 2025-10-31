@@ -32,6 +32,8 @@ const BoletoButtom: React.FC = () => {
     validarBoleto,
     parlayGanancia,
     esParlayValido,
+    editarMontoApuestaParlay,
+    apuestasParlay,
   } = useApuesta();
 
   // No mostrar si no hay apuestas
@@ -204,12 +206,10 @@ const BoletoButtom: React.FC = () => {
                   <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
                   <input
                     type="number"
-                    value={totalApostar.toString()}
+                    value={apuestasParlay?.toString()}
                     onChange={(e) => {
                       const monto = parseFloat(e.target.value) || 0;
-                      boleto.forEach((apuesta) => {
-                        editarMontoApuesta(apuesta.id, apuesta.eventoId, monto);
-                      });
+                      editarMontoApuestaParlay(monto);
                     }}
                     className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-slate-900 placeholder-slate-400 bg-white caret-red-900"
                     placeholder="0.00"

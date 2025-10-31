@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import type { ApuestaEnBoleto, CrearApuesta } from '../../types/apuestasTypes';
-import { apuestaService } from '../../service/apuestaService';
-
+import ApuestaService  from '../../service/apuestaService';
 /**
  * Estado del slice de apuestas
  */
@@ -25,6 +24,7 @@ interface ApuestaState {
     parlayTotal: number;
     parlayGanancia: number;
     esParlayValido: boolean;
+    apuestasParlay?: number;
 }
 
 /**
@@ -44,6 +44,7 @@ const initialState: ApuestaState = {
     parlayTotal: 0,
     parlayGanancia: 0,
     esParlayValido: false,
+    apuestasParlay: 0,
 };
 
 /**
@@ -69,7 +70,7 @@ export const realizarApuestaThunk = createAsyncThunk(
                 tipoApuesta: apuesta.tipoApuesta
             }));
             
-            const resultado = await apuestaService.crearListaApuestas(apuestasParaCrear);
+            const resultado = await ApuestaService.crearListaApuestas(apuestasParaCrear);
             return resultado;
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'Error al realizar las apuestas';
@@ -123,6 +124,22 @@ const apuestaSlice = createSlice({
             // Recalcular totales
             apuestaSlice.caseReducers.calcularTotales(state);
         },
+
+        /**
+         * Editar el monto de un parlay
+         */
+        editarMontoParlay: (state, action: PayloadAction<{ nuevoMonto: number }>) => {
+            const { nuevoMonto } = action.payload;
+            
+            // Validar que el monto sea positivo
+            if (nuevoMonto <= 0) {
+                return;
+            }
+            state.apuestasParlay = nuevoMonto;
+            // Recalcular totales
+            apuestaSlice.caseReducers.calcularTotales(state);
+        },
+
 
         /**
          * Editar el monto de una apuesta específica
@@ -193,11 +210,11 @@ const apuestaSlice = createSlice({
             state.esParlayValido = state.boleto.length >= 2;
             
             if (state.esParlayValido) {
-                // Para Parlay, usamos el monto menor como base y multiplicamos todas las cuotas
-                const montoBase = Math.min(...state.boleto.map(apuesta => apuesta.monto));
+                
+                const montoBase = state.apuestasParlay && state.apuestasParlay > 0 ? state.apuestasParlay : state.totalApostar;
                 const cuotaCombinada = state.boleto.reduce((cuota, apuesta) => cuota * apuesta.odd, 1);
                 
-                state.parlayTotal = montoBase;
+                //state.parlayTotal = montoBase;
                 state.parlayGanancia = montoBase * cuotaCombinada;
                 
                 console.log('✅ Parlay calculado:', {
@@ -272,6 +289,7 @@ export const {
     toggleCarritoVisible,
     setCarritoVisible,
     limpiarErrores,
+    editarMontoParlay,
 } = apuestaSlice.actions;
 
 // Selectores
@@ -282,6 +300,7 @@ export const selectGananciaPotencial = (state: { apuesta: ApuestaState }) => sta
 export const selectIsRealizandoApuesta = (state: { apuesta: ApuestaState }) => state.apuesta.loading.realizandoApuesta;
 export const selectErrorRealizandoApuesta = (state: { apuesta: ApuestaState }) => state.apuesta.error.realizandoApuesta;
 export const selectCantidadApuestas = (state: { apuesta: ApuestaState }) => state.apuesta.boleto.length;
+export const selectApuestasParlay = (state: { apuesta: ApuestaState }) => state.apuesta.apuestasParlay;
 
 // Selectores avanzados
 export const selectApuestaPorId = (state: { apuesta: ApuestaState }, id: number, eventoId: number) => 
