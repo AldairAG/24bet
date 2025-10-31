@@ -74,7 +74,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         usuario.setActivo(true);
         usuario.setRol(Usuario.Rol.USER);
         usuario.setSaldoUsd(BigDecimal.ZERO);
-        
+
         usuario.setInformacionPersonal(new InformacionPersonal());
         usuario.getInformacionPersonal().setUsuario(usuario);
 
@@ -94,15 +94,21 @@ public class UsuarioServiceImpl implements UsuarioService {
         response.setNumeroTelefono(usuario.getNumeroTelefono());
         response.setRol(usuario.getRol().name());
         response.setActivo(usuario.getActivo());
-        
+        // Evitar NPE cuando fechas sean nulas (usuarios antiguos o datos incompletos)
+        response.setFechaNacimiento(
+                usuario.getFechaNacimiento() != null ? usuario.getFechaNacimiento().toString() : null);
+        response.setSaldoUsd(usuario.getSaldoUsd());
+        response.setFechaCreacion(
+                usuario.getFechaCreacion() != null ? usuario.getFechaCreacion().toString() : null);
+
         // Mapear información personal si existe
         if (usuario.getInformacionPersonal() != null) {
             response.setInformacionPersonal(convertirAInformacionPersonalResponse(usuario.getInformacionPersonal()));
         }
-        
+
         return response;
     }
-    
+
     private InformacionPersonalResponse convertirAInformacionPersonalResponse(InformacionPersonal informacionPersonal) {
         InformacionPersonalResponse response = new InformacionPersonalResponse();
         response.setId(informacionPersonal.getId());
@@ -119,32 +125,31 @@ public class UsuarioServiceImpl implements UsuarioService {
         response.setOcupacion(informacionPersonal.getOcupacion());
         response.setFechaCreacion(informacionPersonal.getFechaCreacion());
         response.setFechaActualizacion(informacionPersonal.getFechaActualizacion());
-        
+
         // Agregar campos calculados
         response.setDireccionCompleta(informacionPersonal.getDireccionCompleta());
-        
+
         return response;
     }
-    
+
     private void actualizarInformacionPersonal(Usuario usuario, InformacionPersonalRequest request) {
         if (request == null) {
             return;
         }
-        
+
         InformacionPersonal informacionPersonal = usuario.getInformacionPersonal();
         if (informacionPersonal == null) {
             informacionPersonal = new InformacionPersonal();
             usuario.setInformacionPersonal(informacionPersonal);
             informacionPersonal.setUsuario(usuario);
         }
-        
+
         // Actualizar campos básicos
-        
+
         if (request.getGenero() != null) {
             informacionPersonal.setGenero(request.getGenero());
         }
 
-        
         // Actualizar dirección
         if (request.getCalle() != null) {
             informacionPersonal.setCalle(request.getCalle());
@@ -170,7 +175,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         if (request.getPais() != null) {
             informacionPersonal.setPais(request.getPais());
         }
-        
+
         // Actualizar información fiscal
         if (request.getRfc() != null) {
             informacionPersonal.setRfc(request.getRfc());
@@ -225,7 +230,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         if (request.getNumeroTelefono() != null) {
             usuario.setNumeroTelefono(request.getNumeroTelefono());
         }
-        
+
         // Actualizar información personal
         actualizarInformacionPersonal(usuario, request.getInformacionPersonal());
 
@@ -261,14 +266,17 @@ public class UsuarioServiceImpl implements UsuarioService {
         usuario.setLadaTelefono(request.getLadaTelefono());
         usuario.setNumeroTelefono(request.getNumeroTelefono());
         usuario.setFechaNacimiento(request.getFechaNacimiento());
-        
+        if (request.getSaldoUsd() != null) {
+            usuario.setSaldoUsd(request.getSaldoUsd());
+        }
+
         if (request.getActivo() != null) {
             usuario.setActivo(request.getActivo());
         }
         if (request.getRol() != null) {
             usuario.setRol(request.getRol());
         }
-        
+
         // Actualizar información personal
         actualizarInformacionPersonal(usuario, request.getInformacionPersonal());
 
@@ -302,7 +310,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     public void desactivarUsuario(Long userId) {
         Usuario usuario = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-        
+
         usuario.setActivo(false);
         usuarioRepository.save(usuario);
     }
@@ -312,7 +320,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     public void activarUsuario(Long userId) {
         Usuario usuario = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-        
+
         usuario.setActivo(true);
         usuarioRepository.save(usuario);
     }

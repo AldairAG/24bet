@@ -73,7 +73,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
       <div>
         <label 
           htmlFor="username" 
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          className="block text-sm font-medium text-gray-700 dark:text-black mb-1"
         >
           Nombre de Usuario
         </label>
@@ -88,7 +88,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
               ? 'border-red-500 focus:ring-red-500' 
               : 'border-gray-300 focus:ring-blue-500 dark:border-gray-600'
             }
-            dark:bg-gray-700 dark:text-white
+            dark:bg-white-700 dark:text-black
           `}
           placeholder="tu_usuario"
           disabled={isLoading}
@@ -102,7 +102,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
       <div>
         <label 
           htmlFor="password" 
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          className="block text-sm font-medium text-gray-700 dark:text-black mb-1"
         >
           Contraseña
         </label>
@@ -117,7 +117,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
               ? 'border-red-500 focus:ring-red-500' 
               : 'border-gray-300 focus:ring-blue-500 dark:border-gray-600'
             }
-            dark:bg-gray-700 dark:text-white
+            dark:bg-white-700 dark:text-black
           `}
           placeholder="••••••••"
           disabled={isLoading}

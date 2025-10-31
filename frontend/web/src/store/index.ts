@@ -4,6 +4,7 @@ import eventosReducer from './slices/EventosSlice';
 import apuestaReducer from './slices/apuestaSlice';
 import { apiBase } from '../service/apiBase';
 import walletReducer from './slices/walletSlice';
+import userReducer from './slices/userSlice';
 //import exampleReducer from './slices/exampleSlice';
 
 export const store = configureStore({
@@ -12,6 +13,7 @@ export const store = configureStore({
         eventos: eventosReducer,
         apuesta: apuestaReducer,
         wallet: walletReducer,
+        user: userReducer,
         // example: exampleReducer,
     },
 });

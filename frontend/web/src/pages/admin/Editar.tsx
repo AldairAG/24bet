@@ -1,25 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../routes/routes';
-
-interface Usuario {
-  id: number;
-  username: string;
-  email: string;
-  nombre: string;
-  apellido: string;
-  ladaTelefono: string;
-  numeroTelefono: string;
-  fechaNacimiento: string;
-  activo: boolean;
-  rol: 'USER' | 'ADMIN';
-}
+import { useUser } from '../../hooks/useUser';
+import type { EditarUsuarioAdminRequest } from '../../types/userTypes';
 
 const EditarUsuario = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
-  const [formData, setFormData] = useState<Omit<Usuario, 'id' | 'fechaCreacion' | 'fechaActualizacion'>>({
+  const {
+    usuarioActual,
+    isLoadingUsuarioActual,
+    isUpdatingUsuarioAdmin,
+    obtenerUsuarioPorId,
+    editarUsuarioComoAdmin,
+  } = useUser();
+
+  const [formData, setFormData] = useState<EditarUsuarioAdminRequest>({
     username: '',
     email: '',
     nombre: '',
@@ -27,69 +23,64 @@ const EditarUsuario = () => {
     ladaTelefono: '+57',
     numeroTelefono: '',
     fechaNacimiento: '',
-    activo: true,
-    rol: 'USER'
+    saldoUsd: 0,
   });
 
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-
-  // Simulación de datos - en la realidad vendría de la API
+  // Cargar usuario por ID
   useEffect(() => {
-    // Simular carga de datos del usuario
-    const loadUserData = () => {
-      // Datos de ejemplo basados en el ID
-      const userData = {
-        username: "juan_perez",
-        email: "juan.perez@email.com",
-        nombre: "Juan",
-        apellido: "Pérez",
-        ladaTelefono: "+57",
-        numeroTelefono: "3001234567",
-        fechaNacimiento: "1990-05-15",
-        activo: true,
-        rol: "USER" as const,
-        saldoUsd: 1500.75
-      };
-      
-      setFormData(userData);
-      setLoading(false);
-    };
+    if (id) {
+      void obtenerUsuarioPorId(Number(id));
+    }
+  }, [id, obtenerUsuarioPorId]);
 
-    setTimeout(loadUserData, 500); // Simular delay de API
-  }, [id]);
+  // Mapear usuarioActual al formulario cuando se cargue
+  useEffect(() => {
+    if (usuarioActual) {
+  const onlyDate = (d?: string | null) => (d ? d.substring(0, 10) : '');
+      const toNumber = (v: unknown): number => {
+        if (typeof v === 'number') return v;
+        if (typeof v === 'string') {
+          const n = Number(v);
+          return Number.isNaN(n) ? 0 : n;
+        }
+        return 0;
+      };
+      setFormData({
+        username: usuarioActual.username ?? '',
+        email: usuarioActual.email ?? '',
+        nombre: usuarioActual.nombre ?? '',
+        apellido: usuarioActual.apellido ?? '',
+        ladaTelefono: usuarioActual.ladaTelefono ?? '+57',
+        numeroTelefono: usuarioActual.numeroTelefono ?? '',
+        fechaNacimiento: onlyDate(usuarioActual.fechaNacimiento),
+        saldoUsd: toNumber(usuarioActual.saldoUsd),
+      });
+    }
+  }, [usuarioActual]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked 
-              : type === 'number' ? parseFloat(value) || 0
-              : value
-    }));
+    const { name, value } = e.target;
+    if (name === 'saldoUsd') {
+      const num = value === '' ? 0 : Number(value);
+      setFormData(prev => ({ ...prev, saldoUsd: Number.isNaN(num) ? 0 : num }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
-
     try {
-      // Simular llamada a la API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log('Datos a guardar:', { id, ...formData });
-      
-      // Mostrar mensaje de éxito (aquí podrías usar una librería de toast)
-      alert('Usuario actualizado correctamente');
-      
-      // Volver a la lista de usuarios
+      if (!id) return;
+      await editarUsuarioComoAdmin(Number(id), formData);
+      // Navegar al listado tras guardar
       navigate(`${ROUTES.ADMIN_CONTAINER}/${ROUTES.ADMIN_USUARIOS}`);
     } catch (error) {
-      console.error('Error al guardar:', error);
-      alert('Error al actualizar el usuario');
-    } finally {
-      setSaving(false);
+      console.error('Error al actualizar el usuario:', error);
+      // Aquí puedes integrar un toast de error si existe en el proyecto
     }
   };
 
@@ -97,7 +88,7 @@ const EditarUsuario = () => {
     navigate(`${ROUTES.ADMIN_CONTAINER}/${ROUTES.ADMIN_USUARIOS}`);
   };
 
-  if (loading) {
+  if (isLoadingUsuarioActual) {
     return (
       <div className="w-full flex items-center justify-center py-12">
         <div className="text-center">
@@ -235,37 +226,24 @@ const EditarUsuario = () => {
               />
             </div>
 
-            {/* Rol */}
+            {/* Saldo USD */}
             <div>
-              <label htmlFor="rol" className="block text-sm font-medium text-gray-700 mb-2">
-                Rol
+              <label htmlFor="saldoUsd" className="block text-sm font-medium text-gray-700 mb-2">
+                Saldo USD
               </label>
-              <select
-                id="rol"
-                name="rol"
-                value={formData.rol}
+              <input
+                type="number"
+                id="saldoUsd"
+                name="saldoUsd"
+                value={formData.saldoUsd}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-black focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
-              >
-                <option value="USER">Usuario</option>
-                <option value="ADMIN">Administrador</option>
-              </select>
+                step="0.01"
+                min="0"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              />
             </div>
 
-            {/* Estado Activo */}
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="activo"
-                name="activo"
-                checked={formData.activo}
-                onChange={handleInputChange}
-                className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-              />
-              <label htmlFor="activo" className="ml-2 block text-sm text-gray-700">
-                Usuario activo
-              </label>
-            </div>
+            {/* Campos de rol/activo no incluidos en la edición como Admin */}
           </div>
 
           {/* Botones de Acción */}
@@ -279,10 +257,10 @@ const EditarUsuario = () => {
             </button>
             <button
               type="submit"
-              disabled={saving}
+              disabled={isUpdatingUsuarioAdmin}
               className="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
             >
-              {saving ? (
+              {isUpdatingUsuarioAdmin ? (
                 <div className="flex items-center">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   Guardando...

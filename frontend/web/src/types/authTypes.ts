@@ -61,14 +61,16 @@ export interface UsuarioResponse {
   id: number;
   username: string;
   email: string;
-  password: string;
   nombre: string;
   apellido: string;
   ladaTelefono: string;
   numeroTelefono: string;
-  fechaNacimiento: string;
-
-  // Agrega otros campos según la respuesta del backend
+  rol: string;
+  activo: boolean;
+  fechaNacimiento: string | null; // backend envía string o null
+  saldoUsd: number | string; // BigDecimal puede ser serializado como string
+  fechaCreacion: string | null;
+  informacionPersonal?: InformacionPersonal; // opcional en respuesta
 }
 
 export interface ApiResponseWrapper<T> {

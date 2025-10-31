@@ -1,5 +1,7 @@
 package com._bet.dto.response;
 
+import java.math.BigDecimal;
+
 import lombok.Data;
 
 @Data
@@ -14,6 +16,9 @@ public class UsuarioResponse {
     private String numeroTelefono;
     private String rol;
     private Boolean activo;
+    private String fechaNacimiento;
+    private BigDecimal saldoUsd;
+    private String fechaCreacion;
     
     // ========== INFORMACIÓN PERSONAL ==========
     

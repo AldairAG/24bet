@@ -22,3 +22,25 @@ export interface ResumenTransacciones {
     retiros: SolicitudRetiroResponse[];
     depositos: SolicitudDepositoResponse[];
 }
+
+// ===== Tipos para funcionalidades de ADMIN =====
+export interface EditarUsuarioAdminRequest {
+    username: string;
+    email: string;
+    nombre: string;
+    apellido: string;
+    ladaTelefono: string;
+    numeroTelefono: string;
+    fechaNacimiento: string;
+    saldoUsd: number;
+}
+
+export interface PageResponse<T> {
+    content: T[];
+    totalElements: number;
+    totalPages: number;
+    size: number;
+    number: number;
+    first: boolean;
+    last: boolean;
+}

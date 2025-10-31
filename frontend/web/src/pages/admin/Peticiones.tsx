@@ -59,18 +59,42 @@ const AdminPeticiones = () => {
     return '-';
   }, []);
 
+  // Extrae el nombre/username del usuario de forma segura
+  const getUsuarioNombreSafe = useCallback((s: unknown): string => {
+    if (s && typeof s === 'object') {
+      const obj = s as Record<string, unknown>;
+      const directUser = obj['username'];
+      if (typeof directUser === 'string') return directUser;
+      const directNombre = obj['nombre'];
+      if (typeof directNombre === 'string') return directNombre;
+      const directName = obj['name'];
+      if (typeof directName === 'string') return directName;
+      const userNameAlt = obj['userName'];
+      if (typeof userNameAlt === 'string') return userNameAlt;
+      const usuario = obj['usuario'] as Record<string, unknown> | undefined;
+      if (usuario && typeof usuario === 'object') {
+        const u1 = usuario['username'];
+        if (typeof u1 === 'string') return u1;
+        const u2 = usuario['nombre'];
+        if (typeof u2 === 'string') return u2;
+        const u3 = usuario['name'];
+        if (typeof u3 === 'string') return u3;
+        const u4 = usuario['userName'];
+        if (typeof u4 === 'string') return u4;
+      }
+    }
+    return '-';
+  }, []);
+
   const handleAprobar = async (solicitudId: number) => {
     if (!adminId) return;
-    const observaciones = window.prompt('Observaciones (opcional):') || undefined;
-    await approveDepositAdmin({ solicitudId, adminId, observaciones });
+    await approveDepositAdmin({ solicitudId, adminId });
     // La lista se actualiza en el slice filtrando el aprobado
   };
 
   const handleDenegar = async (solicitudId: number) => {
     if (!adminId) return;
-    const motivo = window.prompt('Motivo del rechazo:');
-    if (!motivo) return;
-    await rejectDepositAdmin({ solicitudId, adminId, motivo });
+    await rejectDepositAdmin({ solicitudId, adminId, motivo: 'Sin motivo' });
   };
 
   useEffect(() => {
@@ -141,7 +165,8 @@ const AdminPeticiones = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Id Usuario</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hora</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Crypto</th>
@@ -164,6 +189,9 @@ const AdminPeticiones = () => {
                     <tr key={solicitud.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {getUsuarioIdSafe(solicitud)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {getUsuarioNombreSafe(solicitud)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         ${solicitud.monto.toLocaleString()}
@@ -227,7 +255,8 @@ const AdminPeticiones = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Id Usuario</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hora</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Crypto</th>
@@ -252,26 +281,25 @@ const AdminPeticiones = () => {
                       if (!adminId) return;
                       const referenciaTransaccion = window.prompt('Referencia de transacción (requerida para aprobar):');
                       if (!referenciaTransaccion) return;
-                      const observaciones = window.prompt('Observaciones (opcional):') || undefined;
                       await approveWithdrawalAdmin({
                         solicitudId: solicitud.id,
                         adminId,
                         referenciaTransaccion,
-                        observaciones,
                       });
                     };
 
                     const handleReject = async () => {
                       if (!adminId) return;
-                      const motivo = window.prompt('Motivo del rechazo:');
-                      if (!motivo) return;
-                      await rejectWithdrawalAdmin({ solicitudId: solicitud.id, adminId, motivo });
+                      await rejectWithdrawalAdmin({ solicitudId: solicitud.id, adminId, motivo: 'Sin motivo' });
                     };
 
                     return (
                       <tr key={solicitud.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           {getUsuarioIdSafe(solicitud)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {getUsuarioNombreSafe(solicitud)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           ${solicitud.monto.toLocaleString()}

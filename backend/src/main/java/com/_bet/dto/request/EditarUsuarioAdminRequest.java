@@ -8,38 +8,44 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.math.BigDecimal;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import com._bet.entity.user.Usuario;
 
 @Data
 public class EditarUsuarioAdminRequest {
-    
+
     @NotBlank(message = "El nombre de usuario es obligatorio")
     @Size(min = 3, max = 50, message = "El nombre de usuario debe tener entre 3 y 50 caracteres")
     private String username;
-    
+
     @NotBlank(message = "El email es obligatorio")
     @Email(message = "El email debe tener un formato válido")
     private String email;
-    
+
     private String nombre;
-    
+
     private String apellido;
-    
+
     @Size(max = 5, message = "La lada no puede tener más de 5 caracteres")
     private String ladaTelefono;
-    
+
     @Size(min = 7, max = 10, message = "El número de teléfono debe tener entre 7 y 10 dígitos")
     private String numeroTelefono;
-    
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private Date fechaNacimiento;
-    
+
     private Boolean activo;
-    
+
     private Usuario.Rol rol;
-    
+
+    // ========== SALDO GENERAL ==========
+    private BigDecimal saldoUsd;
+
     // ========== INFORMACIÓN PERSONAL ==========
-    
+
     @Valid
     private InformacionPersonalRequest informacionPersonal;
 }

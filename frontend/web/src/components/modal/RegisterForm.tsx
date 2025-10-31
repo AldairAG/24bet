@@ -195,7 +195,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             
             {/* Nombre de Usuario */}
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-black-300 mb-1">
                 Nombre de Usuario
               </label>
               <Field
@@ -203,12 +203,12 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                 id="username"
                 name="username"
                 className={`
-                  w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500
+                  w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500
                   ${errors.username && touched.username
                     ? 'border-red-500 focus:ring-red-500' 
                     : 'border-gray-300 dark:border-gray-600'
                   }
-                  bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                  bg-white dark:bg-white-700 text-gray-900 dark:text-black
                 `}
                 placeholder="Nombre de usuario único"
               />
@@ -217,7 +217,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
 
             {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-black-300 mb-1">
                 Correo Electrónico
               </label>
               <Field
@@ -225,12 +225,12 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                 id="email"
                 name="email"
                 className={`
-                  w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500
+                  w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500
                   ${errors.email && touched.email
                     ? 'border-red-500 focus:ring-red-500' 
                     : 'border-gray-300 dark:border-gray-600'
                   }
-                  bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                  bg-white dark:bg-white-700 text-gray-900 dark:text-black
                 `}
                 placeholder="tu@email.com"
               />
@@ -239,7 +239,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
 
             {/* Contraseña */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-black-300 mb-1">
                 Contraseña
               </label>
               <Field
@@ -247,12 +247,12 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                 id="password"
                 name="password"
                 className={`
-                  w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500
+                  w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500
                   ${errors.password && touched.password
                     ? 'border-red-500 focus:ring-red-500' 
                     : 'border-gray-300 dark:border-gray-600'
                   }
-                  bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                  bg-white dark:bg-white-700 text-gray-900 dark:text-black
                 `}
                 placeholder="Mínimo 8 caracteres"
               />
@@ -261,7 +261,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
 
             {/* Confirmar Contraseña */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-black-300 mb-1">
                 Confirmar Contraseña
               </label>
               <Field
@@ -269,12 +269,12 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                 id="confirmPassword"
                 name="confirmPassword"
                 className={`
-                  w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500
+                  w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500
                   ${errors.confirmPassword && touched.confirmPassword
                     ? 'border-red-500 focus:ring-red-500' 
                     : 'border-gray-300 dark:border-gray-600'
                   }
-                  bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                  bg-white dark:bg-white-700 text-gray-900 dark:text-black
                 `}
                 placeholder="Repite tu contraseña"
               />
@@ -284,7 +284,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             {/* Nombre y Apellido */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 dark:text-black-300 mb-1">
                   Nombre
                 </label>
                 <Field
@@ -292,12 +292,12 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                   id="nombre"
                   name="nombre"
                   className={`
-                    w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500
+                    w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500
                     ${errors.nombre && touched.nombre
                       ? 'border-red-500 focus:ring-red-500' 
                       : 'border-gray-300 dark:border-gray-600'
                     }
-                    bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                    bg-white dark:bg-white-700 text-gray-900 dark:text-black
                   `}
                   placeholder="Tu nombre"
                 />
@@ -305,7 +305,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
               </div>
 
               <div>
-                <label htmlFor="apellido" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label htmlFor="apellido" className="block text-sm font-medium text-gray-700 dark:text-black-300 mb-1">
                   Apellido
                 </label>
                 <Field
@@ -313,12 +313,12 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                   id="apellido"
                   name="apellido"
                   className={`
-                    w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500
+                    w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500
                     ${errors.apellido && touched.apellido
                       ? 'border-red-500 focus:ring-red-500' 
                       : 'border-gray-300 dark:border-gray-600'
                     }
-                    bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                    bg-white dark:bg-white-700 text-gray-900 dark:text-black
                   `}
                   placeholder="Tu apellido"
                 />
@@ -328,7 +328,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
 
             {/* Fecha de Nacimiento */}
             <div>
-              <label htmlFor="fechaNacimiento" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label htmlFor="fechaNacimiento" className="block text-sm font-medium text-gray-700 dark:text-black-300 mb-1">
                 Fecha de Nacimiento
               </label>
               <Field
@@ -336,12 +336,12 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                 id="fechaNacimiento"
                 name="fechaNacimiento"
                 className={`
-                  w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500
+                  w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500
                   ${errors.fechaNacimiento && touched.fechaNacimiento
                     ? 'border-red-500 focus:ring-red-500' 
                     : 'border-gray-300 dark:border-gray-600'
                   }
-                  bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                  bg-white dark:bg-white-700 text-gray-900 dark:text-black
                 `}
               />
               <ErrorMessage name="fechaNacimiento" component="p" className="mt-1 text-xs text-red-500" />
@@ -349,7 +349,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
 
             {/* Código de País y Teléfono */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-black-300 mb-1">
                 Teléfono
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -358,12 +358,12 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                     as="select"
                     name="ladaTelefono"
                     className={`
-                      w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500
+                      w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500
                       ${errors.ladaTelefono && touched.ladaTelefono
                         ? 'border-red-500 focus:ring-red-500' 
                         : 'border-gray-300 dark:border-gray-600'
                       }
-                      bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                      bg-white dark:bg-white-700 text-gray-900 dark:text-black
                     `}
                   >
                     <option value="+1">+1 (US/CA)</option>
@@ -384,12 +384,12 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                     id="numeroTelefono"
                     name="numeroTelefono"
                     className={`
-                      w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500
+                      w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500
                       ${errors.numeroTelefono && touched.numeroTelefono
                         ? 'border-red-500 focus:ring-red-500' 
                         : 'border-gray-300 dark:border-gray-600'
                       }
-                      bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                      bg-white dark:bg-white-700 text-gray-900 dark:text-black
                     `}
                     placeholder={getPhonePlaceholder(values.ladaTelefono)}
                   />
@@ -405,9 +405,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                 <Field
                   type="checkbox"
                   name="isAdult"
-                  className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  className="mt-1 w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
                 />
-                <span className="text-sm text-gray-700 dark:text-gray-300">
+                <span className="text-sm text-gray-700 dark:text-black-300">
                   Confirmo que soy mayor de 18 años
                 </span>
               </label>
@@ -420,15 +420,15 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                 <Field
                   type="checkbox"
                   name="acceptTerms"
-                  className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  className="mt-1 w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
                 />
-                <span className="text-sm text-gray-700 dark:text-gray-300">
+                <span className="text-sm text-gray-700 dark:text-black-300">
                   Acepto los{' '}
-                  <a href="#" className="text-blue-600 hover:text-blue-800 underline">
+                  <a href="#" className="text-red-600 hover:text-red-800 underline">
                     términos y condiciones
                   </a>
                   {' '}y la{' '}
-                  <a href="#" className="text-blue-600 hover:text-blue-800 underline">
+                  <a href="#" className="text-red-600 hover:text-red-800 underline">
                     política de privacidad
                   </a>
                 </span>
@@ -437,7 +437,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             </div>
 
             {/* Botones */}
-            <div className="flex space-x-4 pt-4">
+            <div className="flex space-x-4 pt-4 sticky bottom-0 bg-white border-t border-gray-100 pb-2">
               <button
                 type="button"
                 onClick={onCancel}
@@ -449,7 +449,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
               <button
                 type="submit"
                 disabled={isLoading || authLoading || isSubmitting}
-                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors flex items-center justify-center"
+                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg transition-colors flex items-center justify-center"
               >
                 {(isLoading || authLoading || isSubmitting) ? (
                   <>

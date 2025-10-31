@@ -1,98 +1,61 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../routes/routes';
+import { useUser } from '../../hooks/useUser';
 
-interface Usuario {
-  id: number;
-  username: string;
-  email: string;
-  nombre: string;
-  apellido: string;
-  ladaTelefono: string;
-  numeroTelefono: string;
-  fechaNacimiento: string;
-  activo: boolean;
-  fechaCreacion: string;
-  fechaActualizacion: string;
-  rol: 'USER' | 'ADMIN';
-  saldoUsd: number;
+// Helper seguro para leer propiedades opcionales sin usar 'any'
+function getProp<T>(obj: unknown, key: string): T | undefined {
+  if (obj && typeof obj === 'object' && Object.prototype.hasOwnProperty.call(obj, key)) {
+    return (obj as Record<string, unknown>)[key] as T | undefined;
+  }
+  return undefined;
 }
+
+// Formatea fechas de forma tolerante a distintos formatos o null
+function formatDate(value?: string): string {
+  if (!value) return '-';
+  const d = new Date(value);
+  if (isNaN(d.getTime())) {
+    // Si no parsea como Date, devolver el valor crudo
+    return value;
+  }
+  return d.toLocaleDateString('es-ES');
+}
+
+// Formatea montos manejando number o string (BigDecimal serializado)
+function formatMoney(value?: number | string): string {
+  if (value === undefined || value === null) return '-';
+  const num = typeof value === 'number' ? value : Number(value);
+  if (Number.isNaN(num)) return '-';
+  return `$${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+// La vista usará el shape que entrega el backend a través del hook useUser
 
 const AdminUsuarios = () => {
   const navigate = useNavigate();
-  
-  // Datos de ejemplo - estos vendrían de una API
-  const [usuarios] = useState<Usuario[]>([
-    {
-      id: 1,
-      username: "juan_perez",
-      email: "juan.perez@email.com",
-      nombre: "Juan",
-      apellido: "Pérez",
-      ladaTelefono: "+57",
-      numeroTelefono: "3001234567",
-      fechaNacimiento: "1990-05-15",
-      activo: true,
-      fechaCreacion: "2024-01-10T10:30:00",
-      fechaActualizacion: "2024-01-15T14:20:00",
-      rol: "USER",
-      saldoUsd: 1500.75
-    },
-    {
-      id: 2,
-      username: "admin_carlos",
-      email: "carlos.admin@24bet.com",
-      nombre: "Carlos",
-      apellido: "González",
-      ladaTelefono: "+57",
-      numeroTelefono: "3109876543",
-      fechaNacimiento: "1985-11-22",
-      activo: true,
-      fechaCreacion: "2024-01-05T08:15:00",
-      fechaActualizacion: "2024-01-20T16:45:00",
-      rol: "ADMIN",
-      saldoUsd: 0.00
-    },
-    {
-      id: 3,
-      username: "maria_lopez",
-      email: "maria.lopez@email.com",
-      nombre: "María",
-      apellido: "López",
-      ladaTelefono: "+57",
-      numeroTelefono: "3125678901",
-      fechaNacimiento: "1992-03-08",
-      activo: false,
-      fechaCreacion: "2024-01-12T12:00:00",
-      fechaActualizacion: "2024-01-18T09:30:00",
-      rol: "USER",
-      saldoUsd: 750.25
-    },
-    {
-      id: 4,
-      username: "pedro_ramirez",
-      email: "pedro.ramirez@email.com",
-      nombre: "Pedro",
-      apellido: "Ramírez",
-      ladaTelefono: "+57",
-      numeroTelefono: "3201112233",
-      fechaNacimiento: "1988-07-30",
-      activo: true,
-      fechaCreacion: "2024-01-08T14:45:00",
-      fechaActualizacion: "2024-01-22T11:15:00",
-      rol: "USER",
-      saldoUsd: 2250.00
-    }
-  ]);
+  const {
+    usuarios,
+    usuariosPagination,
+    isLoadingUsuarios,
+    loadUsuariosError,
+    listarUsuarios,
+    activarUsuario,
+    desactivarUsuario,
+    isActivatingUsuario,
+    isDeactivatingUsuario,
+  } = useUser();
 
-  const handleDesactivar = (id: number, activo: boolean) => {
-    const accion = activo ? 'desactivar' : 'activar';
-    console.log(`${accion} usuario con ID:`, id);
-    // Aquí iría la lógica para llamar a la API
-  };
+  const [page, setPage] = useState(0);
+  const size = 10;
+
+  useEffect(() => {
+    void listarUsuarios(page, size);
+  }, [page, listarUsuarios]);
+
+  const isBusy = isLoadingUsuarios || isActivatingUsuario || isDeactivatingUsuario;
 
   const handleEditar = (id: number) => {
-    console.log('Editar usuario con ID:', id);
     navigate(`${ROUTES.ADMIN_CONTAINER}/${ROUTES.ADMIN_USUARIOS_EDITAR}/${id}`);
   };
 
@@ -118,6 +81,9 @@ const AdminUsuarios = () => {
       <div className="bg-white shadow-sm rounded-lg overflow-hidden">
         <div className="px-4 py-5 sm:p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Lista de Usuarios</h3>
+          {loadUsuariosError && (
+            <div className="mb-4 text-sm text-red-600">{loadUsuariosError}</div>
+          )}
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -136,7 +102,16 @@ const AdminUsuarios = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {usuarios.map((usuario) => (
+                {usuarios.map((usuario) => {
+                  const rol = getProp<string>(usuario, 'rol') ?? 'USER';
+                  const hasActivo = Object.prototype.hasOwnProperty.call(usuario, 'activo');
+                  const activo = hasActivo ? Boolean(getProp<boolean>(usuario, 'activo')) : false;
+                  const saldoUsd = getProp<number | string>(usuario, 'saldoUsd');
+                  const fechaRegistro = getProp<string>(usuario, 'fechaCreacion');
+                  const lada = getProp<string>(usuario, 'ladaTelefono') ?? '';
+                  const numeroTel = getProp<string>(usuario, 'numeroTelefono') ?? '';
+                  const telefono = `${lada} ${numeroTel}`.trim();
+                  return (
                   <tr key={usuario.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {usuario.id}
@@ -148,29 +123,29 @@ const AdminUsuarios = () => {
                       {usuario.email}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {usuario.nombre} {usuario.apellido}
+                      {(getProp<string>(usuario, 'nombre')) ?? ''} {(getProp<string>(usuario, 'apellido')) ?? ''}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {usuario.ladaTelefono} {usuario.numeroTelefono}
+                      {telefono || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(usuario.fechaNacimiento).toLocaleDateString('es-ES')}
+                      {formatDate(getProp<string>(usuario, 'fechaNacimiento'))}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRolColor(usuario.rol)}`}>
-                        {usuario.rol}
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRolColor(rol)}`}>
+                        {rol}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getEstadoColor(usuario.activo)}`}>
-                        {usuario.activo ? 'Activo' : 'Inactivo'}
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getEstadoColor(activo)}`}>
+                        {activo ? 'Activo' : 'Inactivo'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      ${usuario.saldoUsd.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      {formatMoney(saldoUsd)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(usuario.fechaCreacion).toLocaleDateString('es-ES')}
+                      {formatDate(fechaRegistro)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <div className="flex space-x-2">
@@ -180,23 +155,59 @@ const AdminUsuarios = () => {
                         >
                           Editar
                         </button>
-                        <button 
-                          className={`px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 ${
-                            usuario.activo 
-                              ? 'bg-red-600 hover:bg-red-700 text-white' 
-                              : 'bg-green-600 hover:bg-green-700 text-white'
-                          }`}
-                          onClick={() => handleDesactivar(usuario.id, usuario.activo)}
-                        >
-                          {usuario.activo ? 'Desactivar' : 'Activar'}
-                        </button>
+                        {hasActivo && (
+                          activo ? (
+                            <button
+                              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 bg-red-600 hover:bg-red-700 text-white ${isBusy ? 'opacity-50 cursor-not-allowed' : ''}`}
+                              onClick={() => desactivarUsuario(usuario.id)}
+                              disabled={isBusy}
+                            >
+                              Desactivar
+                            </button>
+                          ) : (
+                            <button
+                              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 bg-green-600 hover:bg-green-700 text-white ${isBusy ? 'opacity-50 cursor-not-allowed' : ''}`}
+                              onClick={() => activarUsuario(usuario.id)}
+                              disabled={isBusy}
+                            >
+                              Activar
+                            </button>
+                          )
+                        )}
                       </div>
                     </td>
                   </tr>
-                ))}
+                );})}
               </tbody>
             </table>
+            {isLoadingUsuarios && (
+              <div className="p-4 text-sm text-gray-500">Cargando usuarios…</div>
+            )}
           </div>
+          {/* Controles de paginación */}
+          {usuariosPagination && (
+            <div className="mt-4 flex items-center justify-between">
+              <div className="text-sm text-gray-600">
+                Página {usuariosPagination.number + 1} de {usuariosPagination.totalPages}
+              </div>
+              <div className="space-x-2">
+                <button
+                  className={`px-3 py-1 rounded border ${usuariosPagination.first ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  onClick={() => !usuariosPagination.first && setPage((p) => Math.max(0, p - 1))}
+                  disabled={usuariosPagination.first}
+                >
+                  Anterior
+                </button>
+                <button
+                  className={`px-3 py-1 rounded border ${usuariosPagination.last ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  onClick={() => !usuariosPagination.last && setPage((p) => p + 1)}
+                  disabled={usuariosPagination.last}
+                >
+                  Siguiente
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

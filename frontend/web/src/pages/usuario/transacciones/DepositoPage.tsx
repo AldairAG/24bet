@@ -208,7 +208,21 @@ const DepositoPage = () => {
   const abrirModal = (cripto: CriptomonedaInfo) => {
     setCriptoSeleccionada(cripto);
     setOpcionBancariaSeleccionada(null);
-    const tipoCrypto = Object.values(TipoCrypto).find(crypto => crypto === cripto.simbolo) || TipoCrypto.BITCOIN;
+    // Mapear símbolo o id de la tarjeta seleccionada al enum TipoCrypto
+    const mapPorSimbolo: Record<string, TipoCrypto> = {
+      ETH: TipoCrypto.ETHEREUM,
+      USDT: TipoCrypto.USDT,
+      BTC: TipoCrypto.BITCOIN,
+      SOL: TipoCrypto.SOLANA,
+    };
+    const mapPorId: Record<string, TipoCrypto> = {
+      ethereum: TipoCrypto.ETHEREUM,
+      usdt: TipoCrypto.USDT,
+      bitcoin: TipoCrypto.BITCOIN,
+      solana: TipoCrypto.SOLANA,
+    };
+
+    const tipoCrypto = mapPorSimbolo[cripto.simbolo] ?? mapPorId[cripto.id] ?? TipoCrypto.BITCOIN;
     
     formik.setValues({
       ...formik.values,
