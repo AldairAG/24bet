@@ -12,6 +12,7 @@ import {
     toggleCarritoVisible,
     setCarritoVisible,
     limpiarErrores,
+    editarMontoParlay,
     // Thunk
     realizarApuestaThunk,
     // Selectores
@@ -26,6 +27,8 @@ import {
     selectParlayTotal,
     selectParlayGanancia,
     selectEsParlayValido,
+    selectApuestasParlay,
+
 } from '../store/slices/apuestaSlice';
 
 /**
@@ -46,6 +49,7 @@ export const useApuesta = () => {
     const parlayTotal = useSelector(selectParlayTotal);
     const parlayGanancia = useSelector(selectParlayGanancia);
     const esParlayValido = useSelector(selectEsParlayValido);
+    const apuestasParlay = useSelector(selectApuestasParlay);
 
     // ========== ACCIONES DEL BOLETO ==========
     
@@ -68,6 +72,13 @@ export const useApuesta = () => {
      */
     const editarMontoApuesta = useCallback((id: number, eventoId: number, nuevoMonto: number) => {
         dispatch(editarMonto({ id, eventoId, nuevoMonto }));
+    }, [dispatch]);
+
+    /**
+     * Editar el monto de una apuesta en parlay
+     */
+    const editarMontoApuestaParlay = useCallback((nuevoMonto: number) => {
+        dispatch(editarMontoParlay({ nuevoMonto }));
     }, [dispatch]);
 
     /**
@@ -293,6 +304,7 @@ export const useApuesta = () => {
         parlayTotal,
         parlayGanancia,
         esParlayValido,
+        apuestasParlay,
 
         // Acciones del boleto
         agregarApuestaAlBoleto,
@@ -300,6 +312,7 @@ export const useApuesta = () => {
         editarMontoApuesta,
         limpiarBoleto,
         recalcularTotales,
+        editarMontoApuestaParlay,
 
         // Acciones de visibilidad
         toggleVisibilidadCarrito,

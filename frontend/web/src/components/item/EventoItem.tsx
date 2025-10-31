@@ -99,7 +99,7 @@ const EventoItem: React.FC<EventoItemProps> = ({
   // Definir clases CSS basadas en la variante
   const containerClasses = variante === 'detailed'
     ? "rounded-lg border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow min-w-100 h-45"
-    : "border-b border-gray-600 p-3";
+    : "border-b border-b-gray-400 border border-gray-300 p-3 bg-gray-100 cursor-pointer";
 
   const headerClasses = variante === 'detailed'
     ? "flex items-center justify-between mb-2"
@@ -123,7 +123,7 @@ const EventoItem: React.FC<EventoItemProps> = ({
 
   const teamClasses = variante === 'detailed'
     ? "flex items-center gap-2 min-w-0"
-    : "flex items-center space-x-2 mb-1";
+    : "flex items-center space-x-2 mb-1 text-gray-900";
 
   const teamLogoClasses = variante === 'detailed'
     ? "w-7 h-7 rounded-full object-contain bg-gray-100"
@@ -131,39 +131,39 @@ const EventoItem: React.FC<EventoItemProps> = ({
 
   const teamNameClasses = variante === 'detailed'
     ? "text-sm text-gray-900 font-medium truncate max-w-[120px]"
-    : "text-sm";
+    : "text-sm text-gray-900";
 
   const scoreClasses = variante === 'detailed'
     ? "flex items-center gap-2 text-sm font-semibold text-gray-900"
-    : "text-sm font-bold";
+    : "text-sm font-bold text-gray-900";
 
   const betsContainerClasses = variante === 'detailed'
     ? "grid grid-cols-3 gap-2 text-[11px]"
-    : "flex space-x-2 text-xs";
+    : "flex space-x-2 text-xs ";
 
   const betButtonClasses = (isSelected: boolean) => {
-    const baseClasses = "px-2 py-1 rounded text-center transition-colors duration-200";
+    const baseClasses = "px-2 py-1 rounded text-center transition-colors duration-200 bg-gray-300";
     if (variante === 'detailed') {
-      return `${baseClasses} min-w-0 ${isSelected ? 'bg-blue-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-white'}`;
+      return `${baseClasses} min-w-0 ${isSelected ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`;
     }
-    return `${baseClasses} ${isSelected ? 'bg-blue-500 text-white' : 'bg-gray-600 hover:bg-gray-500 text-white'}`;
+    return `${baseClasses} ${isSelected ? 'bg-blue-500 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`;
   };
 
   const oddTextClasses = (odd: number) => {
     if (variante === 'detailed') {
-      return `font-bold leading-4 ${odd > 2 ? 'text-green-300' : 'text-white'}`;
+      return `font-bold leading-4 ${odd > 2 ? 'text-green-600' : 'text-gray-800'}`;
     }
-    return `font-bold ${odd > 2 ? 'text-green-400' : 'text-white'}`;
+    return `font-bold ${odd > 2 ? 'text-green-600' : 'text-gray-800'}`;
   };
 
   const valueTextClasses = variante === 'detailed'
-    ? "text-white/90 truncate"
+    ? "text-gray-600 truncate"
     : "";
 
   return (
     <div className={containerClasses}>
       {/* Header del evento */}
-      <div className={headerClasses} onClick={() => handleEventoClick(evento?.fixture.id.toString())} style={{ cursor: 'pointer' }}>
+      <div className={headerClasses} onClick={() => handleEventoClick(`${evento?.teams.home.name} vs ${evento?.teams.away.name}`)} style={{ cursor: 'pointer' }}>
         <div className={headerContentClasses}>
           {/* En vivo / fecha */}
           {isLive ? (
@@ -201,9 +201,9 @@ const EventoItem: React.FC<EventoItemProps> = ({
               renderStatusIndicator()
             ) : (
               <div className="flex space-x-1">
-                <div className="w-1 h-4 bg-white"></div>
-                <div className="w-1 h-4 bg-white"></div>
-                <div className="w-1 h-4 bg-white"></div>
+                <div className="w-1 h-4 bg-gray-400"></div>
+                <div className="w-1 h-4 bg-gray-400"></div>
+                <div className="w-1 h-4 bg-gray-400"></div>
               </div>
             )}
           </div>
@@ -211,7 +211,7 @@ const EventoItem: React.FC<EventoItemProps> = ({
       </div>
 
       {/* Equipos y apuestas */}
-      <div className={teamsContainerClasses} onClick={() => handleEventoClick(evento?.fixture.id.toString())} style={{ cursor: 'pointer' }}>
+      <div className={teamsContainerClasses} onClick={() => handleEventoClick(`${evento?.teams.home.name} vs ${evento?.teams.away.name}`)} style={{ cursor: 'pointer' }}>
         {variante === 'detailed' ? (
           <>
             {/* Equipos en layout horizontal para detailed */}
@@ -243,8 +243,8 @@ const EventoItem: React.FC<EventoItemProps> = ({
               </div>
 
               {/* Visitante */}
-              <div className="flex items-center gap-2 min-w-0 justify-end">
-                <span className="text-sm text-gray-900 font-medium truncate max-w-[120px] text-right">
+              <div className={teamClasses}>
+                <span className={teamNameClasses}>
                   {evento?.teams.away.name}
                 </span>
                 <img

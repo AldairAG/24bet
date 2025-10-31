@@ -1,5 +1,5 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { 
+import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
+import type { 
     EventoResponseApi, 
     HeadToHeadResponseApi, 
     StandingsApiResponse 
@@ -122,7 +122,7 @@ const apiSportSlice = createSlice({
         },
         
         // Limpiar todo el estado
-        clearAll: (state) => {
+        clearAll: () => {
             return initialState;
         },
         

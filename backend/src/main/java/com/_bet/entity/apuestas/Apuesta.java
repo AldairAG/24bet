@@ -50,7 +50,7 @@ public class Apuesta {
      * Resultado apostado
      */
     @Enumerated(EnumType.STRING)
-    @Column(name = "resultado_apostado", nullable = false)
+    @Column(name = "resultado_apostado", nullable = true)
     private ResultadoApuesta resultadoApostado;
 
     /**
