@@ -52,10 +52,11 @@ public class ApuestaService {
                     .momio(dto.getOdd())
                     .monto(dto.getMonto())
                     .tipoApuesta(dto.getTipoApuesta())
-                    .gananciaPotencial(BigDecimal.valueOf(dto.getMonto()).multiply(BigDecimal.valueOf(dto.getOdd())).subtract(BigDecimal.valueOf(dto.getMonto())))
+                    .gananciaPotencial(BigDecimal.valueOf(dto.getMonto()).multiply(BigDecimal.valueOf(dto.getOdd())))
                     .gananciaReal(BigDecimal.valueOf(dto.getMonto()).multiply(BigDecimal.valueOf(dto.getOdd())).subtract(BigDecimal.valueOf(dto.getMonto())))
                     .estado(Apuesta.EstadoApuesta.ACTIVA)
                     .fechaCreacion(LocalDateTime.now())
+                    .eventoDeportivo(momioOpt.get().getEventoDeportivo())
                     .build();
 
             // Crear la apuesta
@@ -69,8 +70,8 @@ public class ApuestaService {
             Valor odd = valorRepository.findById(dto.getId())
                     .orElseThrow(() -> new IllegalArgumentException("odd no encontrado: " + dto.getId())) ;
 
-            odd.setNumeroApuestas(odd.getNumeroApuestas() + 1);
-            odd.setMontoTotalApostado(odd.getMontoTotalApostado().add(BigDecimal.valueOf(dto.getMonto())));
+            odd.setNumeroApuestas((odd.getNumeroApuestas() != null ? odd.getNumeroApuestas() : 0) + 1);
+            odd.setMontoTotalApostado((odd.getMontoTotalApostado() != null ? odd.getMontoTotalApostado() : BigDecimal.ZERO).add(BigDecimal.valueOf(dto.getMonto())));
             valorRepository.save(odd);
 
             // Actualizar el saldo del usuario

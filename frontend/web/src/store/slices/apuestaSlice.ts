@@ -71,8 +71,9 @@ export const realizarApuestaThunk = createAsyncThunk(
             
             const resultado = await apuestaService.crearListaApuestas(apuestasParaCrear);
             return resultado;
-        } catch (error: any) {
-            return rejectWithValue(error.message || 'Error al realizar las apuestas');
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Error al realizar las apuestas';
+            return rejectWithValue(errorMessage);
         }
     }
 );
