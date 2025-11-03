@@ -85,7 +85,7 @@ public class ApiSportsScheduledTasks {
     public void sincronizacionEventosEnVivoYCuotas() {
 
         try {
-            apiSportService.obtenerEventosEnVivo();
+            //      apiSportService.obtenerEventosEnVivo();
         } catch (Exception e) {
             log.error("❌ Error en la sincronización de eventos en vivo y cuotas de apuestas: {}", e.getMessage(), e);
         }

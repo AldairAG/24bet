@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from '../store';
+import type{ AppDispatch, RootState } from '../store';
 import {
     fetchEventoById,
     fetchHeadToHead,
@@ -23,7 +23,7 @@ import {
     selectIsLoading,
     selectError,
 } from '../store/slices/apiSportSlice';
-import { 
+import type{ 
     EventoResponseApi, 
     HeadToHeadResponseApi, 
     StandingsApiResponse 

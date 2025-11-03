@@ -54,4 +54,19 @@ public interface ParlayRepository extends JpaRepository<Parlay, Long> {
      * Busca parlays de un usuario ordenados por fecha de creación
      */
     List<Parlay> findByUsuarioIdOrderByFechaCreacionDesc(Long usuarioId);
+
+    /**
+     * Busca parlays de un usuario por estado
+     */
+    List<Parlay> findByUsuarioAndEstado(Usuario usuario, Parlay.EstadoParlay estado);
+
+    /**
+     * Busca parlays de un usuario por estado
+     */
+    List<Parlay> findByUsuarioIdAndEstado(Long usuarioId, Parlay.EstadoParlay estado);
+
+    /**
+     * Busca un parlay por ID y usuario ID
+     */
+    Parlay findByIdAndUsuarioId(Long parlayId, Long usuarioId);
 }
