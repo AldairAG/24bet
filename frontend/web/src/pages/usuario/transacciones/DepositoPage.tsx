@@ -50,42 +50,61 @@ const depositoValidationSchema = Yup.object().shape({
     .required('La dirección de wallet es requerida')
 });
 
+// Solo mostrar las criptomonedas disponibles en la base de datos
 const criptomonedas: CriptomonedaInfo[] = [
   {
     id: 'ethereum',
     nombre: 'Ethereum',
     simbolo: 'ETH',
-    icono: '⟠', // Símbolo de Ethereum
+    icono: '⟠',
     color: '#627EEA',
     wallet: '0x1234567890abcdef1234567890abcdef12345678',
     red: 'ERC-20'
   },
   {
-    id: 'usdt',
-    nombre: 'USDT (TRC20)',
-    simbolo: 'USDT',
-    icono: '₮', // Símbolo de Tether
-    color: '#26A17B',
-    wallet: 'TRX7n8fjn8fjn8fjn8fjn8fjn8fjn8fjn8fjn8f',
-    red: 'TRC-20'
+    id: 'binance-coin',
+    nombre: 'Binance Coin',
+    simbolo: 'BNB',
+    icono: 'B',
+    color: '#F0B90B',
+    wallet: '0xbnb1234567890abcdef1234567890abcdef1234',
+    red: 'BEP-20'
+  },
+  {
+    id: 'usdc',
+    nombre: 'USD Coin',
+    simbolo: 'USDC',
+    icono: '$',
+    color: '#2775CA',
+    wallet: '0xusdc1234567890abcdef1234567890abcdef12',
+    red: 'ERC-20'
   },
   {
     id: 'bitcoin',
     nombre: 'Bitcoin',
     simbolo: 'BTC',
-    icono: '₿', // Símbolo de Bitcoin
+    icono: '₿',
     color: '#F7931A',
     wallet: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
     red: 'Bitcoin'
   },
   {
-    id: 'solana',
-    nombre: 'Solana',
-    simbolo: 'SOL',
-    icono: '◎', // Símbolo de Solana
-    color: '#9945FF',
-    wallet: '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM',
-    red: 'Solana'
+    id: 'litecoin',
+    nombre: 'Litecoin',
+    simbolo: 'LTC',
+    icono: 'Ł',
+    color: '#B8B8B8',
+    wallet: 'ltc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+    red: 'Litecoin'
+  },
+  {
+    id: 'usdt',
+    nombre: 'Tether USDT (TRC20)',
+    simbolo: 'USDT',
+    icono: '₮',
+    color: '#26A17B',
+    wallet: 'TRX7n8fjn8fjn8fjn8fjn8fjn8fjn8fjn8fjn8f',
+    red: 'TRC-20'
   }
 ];
 
@@ -211,15 +230,19 @@ const DepositoPage = () => {
     // Mapear símbolo o id de la tarjeta seleccionada al enum TipoCrypto
     const mapPorSimbolo: Record<string, TipoCrypto> = {
       ETH: TipoCrypto.ETHEREUM,
-      USDT: TipoCrypto.USDT,
+      BNB: TipoCrypto.BINANCE_COIN,
+      USDC: TipoCrypto.USDC,
       BTC: TipoCrypto.BITCOIN,
-      SOL: TipoCrypto.SOLANA,
+      LTC: TipoCrypto.LITECOIN,
+      USDT: TipoCrypto.USDT,
     };
     const mapPorId: Record<string, TipoCrypto> = {
       ethereum: TipoCrypto.ETHEREUM,
-      usdt: TipoCrypto.USDT,
+      'binance-coin': TipoCrypto.BINANCE_COIN,
+      usdc: TipoCrypto.USDC,
       bitcoin: TipoCrypto.BITCOIN,
-      solana: TipoCrypto.SOLANA,
+      litecoin: TipoCrypto.LITECOIN,
+      usdt: TipoCrypto.USDT,
     };
 
     const tipoCrypto = mapPorSimbolo[cripto.simbolo] ?? mapPorId[cripto.id] ?? TipoCrypto.BITCOIN;
@@ -554,18 +577,30 @@ const DepositoPage = () => {
                     Criptomoneda
                   </label>
                   <div className="relative">
-                    <select
-                      name="tipoCrypto"
-                      value={formik.values.tipoCrypto}
-                      onChange={formik.handleChange}
-                      className="w-full pl-4 pr-12 py-4 border-2 rounded-xl text-base text-gray-900 appearance-none bg-gray-50 border-gray-300 hover:bg-white hover:border-gray-400 focus:ring-4 focus:ring-orange-100 focus:border-orange-500 focus:outline-none transition-all duration-300"
-                    >
-                      {Object.values(TipoCrypto).map((crypto) => (
-                        <option key={crypto} value={crypto}>
-                          {crypto}
-                        </option>
-                      ))}
-                    </select>
+                    {(() => {
+                      const tiposPermitidos: TipoCrypto[] = [
+                        TipoCrypto.ETHEREUM,
+                        TipoCrypto.BINANCE_COIN,
+                        TipoCrypto.USDC,
+                        TipoCrypto.BITCOIN,
+                        TipoCrypto.LITECOIN,
+                        TipoCrypto.USDT,
+                      ];
+                      return (
+                        <select
+                          name="tipoCrypto"
+                          value={formik.values.tipoCrypto}
+                          onChange={formik.handleChange}
+                          className="w-full pl-4 pr-12 py-4 border-2 rounded-xl text-base text-gray-900 appearance-none bg-gray-50 border-gray-300 hover:bg-white hover:border-gray-400 focus:ring-4 focus:ring-orange-100 focus:border-orange-500 focus:outline-none transition-all duration-300"
+                        >
+                          {tiposPermitidos.map((crypto) => (
+                            <option key={crypto} value={crypto}>
+                              {crypto}
+                            </option>
+                          ))}
+                        </select>
+                      );
+                    })()}
                     <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
                       <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

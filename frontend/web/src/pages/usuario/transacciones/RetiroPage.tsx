@@ -58,6 +58,16 @@ interface SolicitudRetiro {
   fecha: string;
 }
 
+// Lista de criptomonedas permitidas para agregar nueva wallet
+const ALLOWED_CRYPTOS: TipoCrypto[] = [
+  TipoCrypto.ETHEREUM,
+  TipoCrypto.BINANCE_COIN,
+  TipoCrypto.USDC,
+  TipoCrypto.BITCOIN,
+  TipoCrypto.LITECOIN,
+  TipoCrypto.USDT
+];
+
 // Configuración de criptomonedas
 const criptomonedas: Record<TipoCrypto, CriptomonedaConfig> = {
   [TipoCrypto.BITCOIN]: {
@@ -201,7 +211,7 @@ const walletValidationSchema = Yup.object().shape({
     .max(255, 'La dirección no puede tener más de 255 caracteres')
     .required('La dirección es obligatoria'),
   criptomoneda: Yup.string()
-    .oneOf(Object.values(TipoCrypto), 'Selecciona una criptomoneda válida')
+    .oneOf(ALLOWED_CRYPTOS as unknown as string[], 'Selecciona una criptomoneda válida')
     .required('La criptomoneda es obligatoria')
 });
 
@@ -270,7 +280,6 @@ const RetiroPage = () => {
     loadWithdrawalRequests,
     withdrawalRequests,
     isLoadingWithdrawalRequests,
-    loadWithdrawalRequestsError,
     loadUserWallets,
     userWallets,
     isLoadingUserWallets
@@ -286,9 +295,6 @@ const RetiroPage = () => {
   const [modalAgregarVisible, setModalAgregarVisible] = useState(false);
   const [modalAgregarCuentaVisible, setModalAgregarCuentaVisible] = useState(false);
   const [modalRetiroVisible, setModalRetiroVisible] = useState(false);
-  
-  // Estado para tipo de retiro seleccionado
-  const [tipoRetiroSeleccionado, setTipoRetiroSeleccionado] = useState<TipoRetiro>(TipoRetiro.CRIPTOMONEDA);
   
   // Estados para elementos seleccionados
   const [walletSeleccionada, setWalletSeleccionada] = useState<WalletInfo | null>(null);
@@ -349,6 +355,7 @@ const RetiroPage = () => {
     cargarWallets();
     cargarCuentasBancarias();
     cargarSolicitudes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Cargar wallets reales desde el backend
@@ -533,7 +540,6 @@ const RetiroPage = () => {
   const abrirModalRetiro = (wallet: WalletInfo) => {
     setWalletSeleccionada(wallet);
     setCuentaBancariaSeleccionada(null);
-    setTipoRetiroSeleccionado(TipoRetiro.CRIPTOMONEDA);
     formikRetiro.setValues({
       tipoRetiro: TipoRetiro.CRIPTOMONEDA,
       walletId: wallet.id,
@@ -549,7 +555,6 @@ const RetiroPage = () => {
   const abrirModalRetiroBancario = (cuenta?: CuentaBancariaInfo) => {
     setWalletSeleccionada(null);
     setCuentaBancariaSeleccionada(cuenta || null);
-    setTipoRetiroSeleccionado(TipoRetiro.TRANSFERENCIA_BANCARIA);
     formikRetiro.setValues({
       tipoRetiro: TipoRetiro.TRANSFERENCIA_BANCARIA,
       walletId: '',
@@ -568,15 +573,14 @@ const RetiroPage = () => {
     setModalRetiroVisible(false);
     setWalletSeleccionada(null);
     setCuentaBancariaSeleccionada(null);
-    setTipoRetiroSeleccionado(TipoRetiro.CRIPTOMONEDA);
     formikWallet.resetForm();
     formikCuentaBancaria.resetForm();
     formikRetiro.resetForm();
   };
 
   const eliminarWallet = (walletId: string) => {
-    setWallets(prev => prev.filter(w => w.id !== walletId));
-    showToast('Wallet eliminada correctamente', 'success');
+    //setWallets(prev => prev.filter(w => w.id !== walletId));
+    showToast('Funcionalidad no implementada', 'success');
   };
 
   const eliminarCuentaBancaria = (cuentaId: string) => {
@@ -595,6 +599,7 @@ const RetiroPage = () => {
       const cantidadCrypto = calcularConversion(formikRetiro.values.cantidadUSD, walletSeleccionada.criptomoneda);
       formikRetiro.setFieldValue('cantidadCrypto', cantidadCrypto);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formikRetiro.values.cantidadUSD, formikRetiro.values.tipoRetiro, walletSeleccionada]);
 
   const getEstadoColor = (estado: string) => {
@@ -834,9 +839,9 @@ const RetiroPage = () => {
           <div className="mb-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Historial de Retiros</h2>
             <div className="space-y-4">
-              {withdrawalRequests.map((solicitud: any) => (
+              {withdrawalRequests.map((solicitud,index) => (
                 <div
-                  key={solicitud.id}
+                  key={index}
                   className="bg-white rounded-xl shadow-md p-6 border border-gray-200"
                 >
                   <div className="flex items-center justify-between mb-4">
@@ -995,32 +1000,35 @@ const RetiroPage = () => {
                   Criptomoneda
                 </label>
                 <div className="space-y-2">
-                  {Object.entries(criptomonedas).map(([key, config]) => (
-                    <label
-                      key={key}
-                      className={`flex items-center p-3 border-2 rounded-xl cursor-pointer transition-all duration-300 ${
-                        formikWallet.values.criptomoneda === key
-                          ? 'border-red-500 bg-red-50'
-                          : 'border-gray-300 bg-gray-50 hover:bg-white hover:border-gray-400'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="criptomoneda"
-                        value={key}
-                        checked={formikWallet.values.criptomoneda === key}
-                        onChange={formikWallet.handleChange}
-                        className="sr-only"
-                      />
-                      <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold mr-3"
-                        style={{ backgroundColor: config.color }}
+                  {ALLOWED_CRYPTOS.map((crypto) => {
+                    const config = criptomonedas[crypto];
+                    return (
+                      <label
+                        key={crypto}
+                        className={`flex items-center p-3 border-2 rounded-xl cursor-pointer transition-all duration-300 ${
+                          formikWallet.values.criptomoneda === crypto
+                            ? 'border-red-500 bg-red-50'
+                            : 'border-gray-300 bg-gray-50 hover:bg-white hover:border-gray-400'
+                        }`}
                       >
-                        {config.icono}
-                      </div>
-                      <span className="text-gray-900 font-medium">{config.nombre}</span>
-                    </label>
-                  ))}
+                        <input
+                          type="radio"
+                          name="criptomoneda"
+                          value={crypto}
+                          checked={formikWallet.values.criptomoneda === crypto}
+                          onChange={formikWallet.handleChange}
+                          className="sr-only"
+                        />
+                        <div
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold mr-3"
+                          style={{ backgroundColor: config.color }}
+                        >
+                          {config.icono}
+                        </div>
+                        <span className="text-gray-900 font-medium">{config.nombre}</span>
+                      </label>
+                    );
+                  })}
                 </div>
                 {formikWallet.touched.criptomoneda && formikWallet.errors.criptomoneda && (
                   <p className="text-red-600 text-sm mt-1">{formikWallet.errors.criptomoneda}</p>

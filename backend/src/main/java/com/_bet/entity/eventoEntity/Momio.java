@@ -50,6 +50,8 @@ public class Momio {
     @OneToMany(mappedBy = "momio", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     private List<Valor> valores;
 
+    private List<Valor> valoresGanadores;
+
     /**
      * Indica si el momio está activo para apuestas
      */

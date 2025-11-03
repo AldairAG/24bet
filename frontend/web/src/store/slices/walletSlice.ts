@@ -12,7 +12,7 @@ import {
     type AdminRechazarSolicitudDto,
     type AdminAprobarRetiroDto,
     type EstadisticasTransaccionesDto,
-    type DashboardAdminDto
+    type DashboardAdminDto,
 } from '../../types/walletTypes';
 import { walletService } from '../../service/walletService';
 import { TipoCrypto } from '../../types/walletTypes';
@@ -37,7 +37,7 @@ interface WalletState {
     createdWallet: CryptoWalletDto | null;
     userWallets: CryptoWalletDto[];
     availableCryptoTypes: TipoCrypto[];
-    withdrawalRequests: unknown[];
+    withdrawalRequests: SolicitudRetiroDto[];
 
     // Errores
     createWalletError: string | null;

@@ -3,6 +3,8 @@ package com._bet.entity.eventoEntity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import javax.swing.text.StyledEditorKit.BoldAction;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -28,6 +30,8 @@ public class Valor {
 
     private String valor;
     private Double odd;
+
+    private Boolean isGanador;
 
     /**
      * Límite máximo de apuesta para este momio

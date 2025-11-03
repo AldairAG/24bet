@@ -112,6 +112,7 @@ export interface SolicitudRetiroDto {
     tipoCrypto: TipoCrypto;
     observaciones: string;
     estado: EstadoSolicitud;
+    fechaSolicitud: string;
 }
 
 export enum EstadoSolicitud {
