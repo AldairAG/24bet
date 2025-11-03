@@ -66,6 +66,7 @@ export interface FixtureStatus {
 export interface Evento {
     fixture: Fixture;
     bets: Bet[];
+    teams: TeamsApi;
 }
 
 export interface Bet {

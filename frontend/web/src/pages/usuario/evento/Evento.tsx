@@ -6,6 +6,7 @@ import Breadcrumb from "../../../components/navigation/Breadcrumb";
 import EventoInfoWidget from "../../../components/EventoInfoWidget";
 import { useApuesta } from "../../../hooks/useApuesta";
 import { useToast } from "../../../components/Toast";
+import { formatoCuota } from "../../../utils/formatHelper";
 
 const EventoPage = () => {
   const { deporte, liga, evento } = useParams();
@@ -70,8 +71,9 @@ const EventoPage = () => {
         monto: 10, // Monto por defecto
         odd: value.odd,
         tipoApuesta: bet.name,
-        eventoName: `Evento ${eventoDetail.fixture.id}`,
-        descripcion: value.value
+        eventoName: `${evento}`,
+        descripcion: value.value.replace("Home", eventoDetail.teams.home.name).replace("Away", eventoDetail.teams.away.name).trim(),
+        idOddValue: value.id
       };
 
       // Validar antes de agregar
@@ -229,9 +231,9 @@ const EventoPage = () => {
 
                                       <span className={`font-bold text-sm px-3 py-2 rounded-md ${isSelected
                                         ? 'text-emerald-600 bg-white shadow-sm'
-                                        : 'text-gray-800 bg-gradient-to-r from-gray-50 to-gray-50 shadow-sm group-hover:from-red-500 group-hover:to-red-700 group-hover:text-white'
+                                        : `px-2 py-1 rounded text-center transition-colors duration-200 bg-gray-300 ${value.odd > 1.99 ? 'text-green-600' : 'text-gray-500'}`
                                         }`}>
-                                        {value.odd.toFixed(2)}
+                                        {formatoCuota(value.odd)}
                                       </span>
                                     </div>
 

@@ -4,6 +4,7 @@ export interface CrearApuesta {
     monto: number;
     odd: number;
     tipoApuesta: string;
+    idOddValue: number;
 }
 
 export interface ApuestaEnBoleto extends CrearApuesta {

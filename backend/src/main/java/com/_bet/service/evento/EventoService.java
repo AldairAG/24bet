@@ -83,10 +83,28 @@ public class EventoService {
                                 })
                                 .collect(Collectors.toList());
 
+                Teams teams = Teams.builder()
+                                .home(Team.builder()
+                                                .id(evento.getEquipoLocal().getId().intValue())
+                                                .name(evento.getEquipoLocal().getNombre())
+                                                .code(evento.getEquipoLocal().getCode())
+                                                .country(evento.getEquipoLocal().getPais())
+                                                .logo(evento.getEquipoLocal().getLogoUrl())
+                                                .build())
+                                .away(Team.builder()
+                                                .id(evento.getEquipoVisitante().getId().intValue())
+                                                .name(evento.getEquipoVisitante().getNombre())
+                                                .code(evento.getEquipoVisitante().getCode())
+                                                .country(evento.getEquipoVisitante().getPais())
+                                                .logo(evento.getEquipoVisitante().getLogoUrl())
+                                                .build())
+                                .build();
+
                 EventoDeportivoResponse response = new EventoDeportivoResponse();
                 response.setNombreEvento(evento.getNombre());
                 response.setFixture(fixture);
                 response.setBets(oddsList);
+                response.setTeams(teams);
 
                 return response;
         }

@@ -50,6 +50,7 @@ public class Momio {
     @OneToMany(mappedBy = "momio", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     private List<Valor> valores;
 
+    @Transient
     private List<Valor> valoresGanadores;
 
     /**

@@ -134,8 +134,8 @@ export const useApuesta = () => {
     /**
      * Verificar si una apuesta específica existe en el boleto
      */
-    const existeApuestaEnBoleto = useCallback((id: number, eventoId: number) => {
-        return boleto.some(apuesta => apuesta.id === id && apuesta.eventoId === eventoId);
+    const existeApuestaEnBoleto = useCallback((id: number, idOddValue: number) => {
+        return boleto.some(apuesta => apuesta.id === id && apuesta.eventoId === idOddValue);
     }, [boleto]);
 
     /**
@@ -215,12 +215,12 @@ export const useApuesta = () => {
                 return false;
             });
             
-            if (hayConflicto) {
+/*             if (hayConflicto) {
                 return { 
                     valido: false, 
                     mensaje: 'No puedes apostar a resultados diferentes en el mismo tipo de apuesta para este evento' 
                 };
-            }
+            } */
         }
         
         // Validación adicional: No permitir múltiples apuestas del mismo tipo exacto EN EL MISMO EVENTO
@@ -236,12 +236,12 @@ export const useApuesta = () => {
         }
 
         // Validar límite de apuestas por evento (máximo 3)
-        if (apuestasDelEvento.length >= 3) {
+/*         if (apuestasDelEvento.length >= 3) {
             return { 
                 valido: false, 
                 mensaje: 'Máximo 3 apuestas por evento permitidas' 
             };
-        }
+        } */
 
         // Validar límite total de apuestas en el boleto (máximo 15)
         if (boleto.length >= 15) {

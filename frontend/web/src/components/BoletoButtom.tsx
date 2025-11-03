@@ -105,8 +105,8 @@ const BoletoButtom: React.FC = () => {
             <button
               onClick={() => setBetMode('INDIVIDUAL')}
               className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${betMode === 'INDIVIDUAL'
-                  ? 'bg-white text-red-900 shadow-sm'
-                  : 'text-slate-600 hover:text-red-900'
+                ? 'bg-white text-red-900 shadow-sm'
+                : 'text-slate-600 hover:text-red-900'
                 }`}
             >
               Apuestas Individuales
@@ -115,10 +115,10 @@ const BoletoButtom: React.FC = () => {
               onClick={() => setBetMode('PARLAY')}
               disabled={!esParlayValido}
               className={`flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors ${betMode === 'PARLAY' && esParlayValido
-                  ? 'bg-white text-red-900 shadow-sm'
-                  : esParlayValido
-                    ? 'text-slate-600 hover:text-red-900'
-                    : 'text-slate-400 cursor-not-allowed'
+                ? 'bg-white text-red-900 shadow-sm'
+                : esParlayValido
+                  ? 'text-slate-600 hover:text-red-900'
+                  : 'text-slate-400 cursor-not-allowed'
                 }`}
             >
               Parlay
@@ -175,12 +175,17 @@ const BoletoButtom: React.FC = () => {
                 <div key={key} className={`flex items-center justify-between p-3 ${index < boleto.length - 1 ? 'border-b border-gray-100' : ''}`}>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">{apuesta.eventoName}</p>
-                    <p className="text-xs text-gray-600 truncate">{apuesta.descripcion}</p>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <span className="bg-gray-100 text-gray-800 px-1.5 py-0.5 rounded text-xs">
+                        {apuesta.tipoApuesta}
+                      </span>
+                      <span className="bg-red-100 text-red-800 px-1.5 py-0.5 rounded text-xs font-semibold">
+                        {formatoCuota(apuesta.odd)}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-700 truncate px-2">{apuesta.descripcion}</p>
                   </div>
                   <div className="flex items-center space-x-3 ml-3">
-                    <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-semibold">
-                      {formatoCuota(apuesta.odd)}
-                    </span>
                     <button
                       onClick={() => handleEliminarApuesta(apuesta)}
                       className="text-gray-400 hover:text-red-500 p-1 hover:bg-red-50 rounded transition-colors"
@@ -224,7 +229,7 @@ const BoletoButtom: React.FC = () => {
                 </label>
                 <div className="bg-green-50 border border-green-200 rounded-lg p-2 text-center">
                   <span className="text-green-700 font-bold text-lg">
-                    ${parlayGanancia.toFixed(2)}
+                    ${parlayGanancia.toFixed(0)}
                   </span>
                 </div>
               </div>
@@ -312,12 +317,12 @@ const BoletoButtom: React.FC = () => {
                 <>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-500 text-sm">Monto del Parlay:</span>
-                    <span className="font-semibold text-gray-500">${totalApostar.toFixed(2)}</span>
+                    <span className="font-semibold text-gray-500">${apuestasParlay!.toFixed(2)}</span>
                   </div>
                   <div className="border-t border-gray-300 pt-2">
                     <div className="flex justify-between items-center text-sm text-gray-500">
                       <span>Ganancia potencial:</span>
-                      <span className="text-green-600">${parlayGanancia.toFixed(2)}</span>
+                      <span className="text-green-600">${parlayGanancia.toFixed(0)}</span>
                     </div>
                   </div>
                 </>
@@ -325,12 +330,12 @@ const BoletoButtom: React.FC = () => {
                 <>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600 text-sm">Total apostado:</span>
-                    <span className=" text-gray-600 text-sm">${totalApostar.toFixed(2)}</span>
+                    <span className=" text-gray-600 text-sm">${apuestasParlay!.toFixed(2)}</span>
                   </div>
                   <div className="border-t border-gray-300 pt-2">
                     <div className="flex justify-between items-center text-sm font-bold">
                       <span className='text-gray-600'>Ganancia potencial:</span>
-                      <span className="text-green-600">${gananciaPotencial.toFixed(2)}</span>
+                      <span className="text-green-600">${gananciaPotencial.toFixed(0)}</span>
                     </div>
                   </div>
                 </>
@@ -372,7 +377,7 @@ const BoletoButtom: React.FC = () => {
                   Procesando...
                 </>
               ) : (
-                `${betMode === 'PARLAY' && esParlayValido ? 'Apostar Parlay' : 'Apostar'} $${totalApostar.toFixed(2)}`
+                `${betMode === 'PARLAY' && esParlayValido ? `Apostar Parlay $${apuestasParlay!.toFixed(2)}` : `Apostar ${totalApostar.toFixed(2)}`}`
               )}
             </button>
           </div>
@@ -409,16 +414,8 @@ const BoletoButtom: React.FC = () => {
             className="w-full flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4  bg-red-600 hover:bg-red-700 transition-colors"
           >
             <div className="flex items-center gap-3 sm:gap-4">
-              <div className="bg-white text-gray-700 p-2 rounded-md">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-              </div>
               <div className="text-left">
-                <div className="font-semibold text-sm text-white tracking-wide">Boleto</div>
-                <div className="text-xs text-gray-100">
-                  {cantidadApuestas} {cantidadApuestas === 1 ? 'apuesta' : 'apuestas'}
-                </div>
+                <div className="font-semibold text-base text-white tracking-wide">Boleto</div>
               </div>
               <div className="bg-white text-gray-700 px-2 py-1 rounded-full text-xs font-semibold min-w-[24px] text-center">
                 {cantidadApuestas}
@@ -426,7 +423,7 @@ const BoletoButtom: React.FC = () => {
             </div>
             <div className="flex items-center gap-3">
               <div className="text-right">
-                <div className="font-bold text-base sm:text-lg text-white">+{formatoCuota(boleto.reduce((acc, bet) => acc * bet.odd, 1))}</div>
+                <div className="font-bold text-base sm:text-lg text-white">{formatoCuota(boleto.reduce((acc, bet) => acc * bet.odd, 1))}</div>
               </div>
               <svg
                 className={`w-5 h-5 text-white transition-transform ${isExpanded ? 'rotate-180' : ''}`}
@@ -449,19 +446,19 @@ const BoletoButtom: React.FC = () => {
             {notification && (
               <div
                 className={`mx-4 sm:mx-6 mt-4 p-3 rounded-lg ${notification.type === 'success'
-                    ? 'bg-green-50 border border-green-200 text-green-700'
-                    : notification.type === 'error'
-                      ? 'bg-red-50 border border-red-200 text-red-700'
-                      : 'bg-yellow-50 border border-yellow-200 text-yellow-700'
+                  ? 'bg-green-50 border border-green-200 text-green-700'
+                  : notification.type === 'error'
+                    ? 'bg-red-50 border border-red-200 text-red-700'
+                    : 'bg-yellow-50 border border-yellow-200 text-yellow-700'
                   }`}
               >
                 <div className="flex items-center">
                   <div
                     className={`w-2 h-2 rounded-full mr-3 ${notification.type === 'success'
-                        ? 'bg-green-500'
-                        : notification.type === 'error'
-                          ? 'bg-red-500'
-                          : 'bg-yellow-500'
+                      ? 'bg-green-500'
+                      : notification.type === 'error'
+                        ? 'bg-red-500'
+                        : 'bg-yellow-500'
                       }`}
                   ></div>
                   {notification.message}
@@ -476,8 +473,8 @@ const BoletoButtom: React.FC = () => {
                   <button
                     onClick={() => setActiveTab('CARRITO')}
                     className={`pb-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'CARRITO'
-                        ? 'border-red-900 text-red-900'
-                        : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                      ? 'border-red-900 text-red-900'
+                      : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
                       }`}
                   >
                     Carrito
@@ -490,8 +487,8 @@ const BoletoButtom: React.FC = () => {
                   <button
                     onClick={() => setActiveTab('HISTORIAL')}
                     className={`pb-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'HISTORIAL'
-                        ? 'border-red-900 text-red-900'
-                        : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                      ? 'border-red-900 text-red-900'
+                      : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
                       }`}
                   >
                     Historial

@@ -9,6 +9,7 @@ import java.util.List;
 
 import com._bet.dto.apiSports.entidades.Fixture;
 import com._bet.dto.apiSports.entidades.Odds.Bet;
+import com._bet.dto.apiSports.response.EventsByLeagueResponse.Teams;
 
 /**
  * DTO de respuesta para evento deportivo
@@ -25,5 +26,7 @@ public class EventoDeportivoResponse {
     private List<Bet> bets;
 
     private String nombreEvento;
+
+    private Teams teams;
 
 }

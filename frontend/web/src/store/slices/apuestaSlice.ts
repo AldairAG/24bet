@@ -44,7 +44,7 @@ const initialState: ApuestaState = {
     parlayTotal: 0,
     parlayGanancia: 0,
     esParlayValido: false,
-    apuestasParlay: 0,
+    apuestasParlay: 10,
 };
 
 /**
@@ -187,25 +187,6 @@ const apuestaSlice = createSlice({
                 0
             );
             
-            // Calcular Parlay - Nueva lógica más flexible
-            // Para demo/testing, considerar Parlay cuando hay múltiples apuestas diferentes
-            const apuestasUnicas = new Set(state.boleto.map(apuesta => 
-                `${apuesta.eventoId}-${apuesta.tipoApuesta}-${apuesta.descripcion}`
-            ));
-            
-            // Debug para ver qué está pasando
-            console.log('🎲 Debug Parlay:', {
-                totalApuestas: state.boleto.length,
-                apuestasUnicas: apuestasUnicas.size,
-                boleto: state.boleto.map(ap => ({ 
-                    eventoId: ap.eventoId, 
-                    tipo: ap.tipoApuesta,
-                    descripcion: ap.descripcion,
-                    odd: ap.odd,
-                    monto: ap.monto
-                }))
-            });
-            
             // Parlay se activa con 2 o más apuestas diferentes (independiente del evento para testing)
             state.esParlayValido = state.boleto.length >= 2;
             
@@ -217,12 +198,6 @@ const apuestaSlice = createSlice({
                 //state.parlayTotal = montoBase;
                 state.parlayGanancia = montoBase * cuotaCombinada;
                 
-                console.log('✅ Parlay calculado:', {
-                    montoBase,
-                    cuotaCombinada,
-                    parlayGanancia: state.parlayGanancia,
-                    apuestasIncluidas: state.boleto.length
-                });
             } else {
                 state.parlayTotal = 0;
                 state.parlayGanancia = 0;

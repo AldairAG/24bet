@@ -3,8 +3,6 @@ package com._bet.service.apuesta;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Locale;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -22,7 +20,7 @@ import jakarta.transaction.Transactional;
 
 @Service
 public class DeterminarResultadoApuesta {
-    private final List<String> tipoDeApuesta = List.of("Match Winner", "Home/Away",
+/*     private final List<String> tipoDeApuesta = List.of("Match Winner", "Home/Away",
             "Second Half Winner", "Asian Handicap", "Goals Over/Under", "Goals Over/Under First Half",
             "Goals Over/Under - Second Half", "HT/FT Double", "Clean Sheet – Home", "Clean Sheet – Away",
             "Both Teams Score", "Win to Nil – Home", "Win to Nil – Away", "Handicap Result", "Exact Score",
@@ -30,7 +28,7 @@ public class DeterminarResultadoApuesta {
             "Double Chance", "First Half Winner", "Team To Score First", "Team To Score Last",
             "Win Both Halves", "Total – Home", "Total – Away", "Asian Handicap First Half",
             "Double Chance - First Half", "Odd/Even", "Odd/Even - First Half",
-            "Odd/Even - Second Half", "Goal Line", "Goal Line (1st Half)");
+            "Odd/Even - Second Half", "Goal Line", "Goal Line (1st Half)"); */
 
     private static final Logger log = LoggerFactory.getLogger(DeterminarResultadoApuesta.class);
 

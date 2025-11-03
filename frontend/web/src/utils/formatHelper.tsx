@@ -65,7 +65,7 @@ export const formatearEstadoPartido = (estado: string): string => {
 };
 
 export const formatoCuota = (cuota: number): string => {
-  return cuota.toFixed(2);
+  
   const momioAmericano = cuota > 2 ? (cuota - 1) * 100 : -100 / (cuota - 1);
   if (momioAmericano > 0) {
     return `+${momioAmericano.toFixed(0)}`;

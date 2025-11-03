@@ -43,4 +43,9 @@ public interface MomioRepository extends JpaRepository<Momio, Long> {
     @Query("SELECT COUNT(DISTINCT m.eventoDeportivo) FROM Momio m WHERE m.activo = true")
     long countDistinctEventosByActivoTrue();
 
+    /**
+     * Busca momio por evento id
+     */
+    List<Momio> findByEventoDeportivoId(Long eventoId);
+
 }
