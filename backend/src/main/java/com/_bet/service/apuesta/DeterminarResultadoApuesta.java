@@ -40,7 +40,9 @@ public class DeterminarResultadoApuesta {
     @Autowired
     private ValorRepository valorRepository;
 
-    public enum Team { HOME, AWAY }
+    public enum Team {
+        HOME, AWAY
+    }
 
     /**
      * Datos mínimos para evaluar mercados comunes de fútbol.
@@ -55,15 +57,30 @@ public class DeterminarResultadoApuesta {
         public Team primerAnota; // opcional
         public Team ultimoAnota; // opcional
 
-        public int totalGolesFT() { return golesHomeFT + golesAwayFT; }
-        public int totalGolesHT() { return nvl(golesHomeHT) + nvl(golesAwayHT); }
-        public int golesHome2T() { return golesHomeFT - nvl(golesHomeHT); }
-        public int golesAway2T() { return golesAwayFT - nvl(golesAwayHT); }
-        private int nvl(Integer v) { return v == null ? 0 : v; }
+        public int totalGolesFT() {
+            return golesHomeFT + golesAwayFT;
+        }
+
+        public int totalGolesHT() {
+            return nvl(golesHomeHT) + nvl(golesAwayHT);
+        }
+
+        public int golesHome2T() {
+            return golesHomeFT - nvl(golesHomeHT);
+        }
+
+        public int golesAway2T() {
+            return golesAwayFT - nvl(golesAwayHT);
+        }
+
+        private int nvl(Integer v) {
+            return v == null ? 0 : v;
+        }
     }
 
     /**
-     * Resuelve y persiste los resultados (isGanador) de todos los momios de un evento.
+     * Resuelve y persiste los resultados (isGanador) de todos los momios de un
+     * evento.
      */
     @Transactional
     public void resolverResultadosDeEvento(Long eventoId, ResultadoEvento resultado) {
@@ -75,7 +92,8 @@ public class DeterminarResultadoApuesta {
 
         List<Valor> aGuardar = new ArrayList<>();
         for (Momio m : momios) {
-            if (m.getValores() == null || m.getValores().isEmpty()) continue;
+            if (m.getValores() == null || m.getValores().isEmpty())
+                continue;
             // reset
             m.getValores().forEach(v -> v.setIsGanador(Boolean.FALSE));
             // resolver según tipo
@@ -184,7 +202,8 @@ public class DeterminarResultadoApuesta {
         int h = r.golesHomeFT, a = r.golesAwayFT;
         for (Valor v : safeList(m.getValores())) {
             String val = norm(v.getValor());
-            boolean win = (val.equals("HOME") && h > a) || (val.equals("AWAY") && a > h) || (val.equals("DRAW") && a == h);
+            boolean win = (val.equals("HOME") && h > a) || (val.equals("AWAY") && a > h)
+                    || (val.equals("DRAW") && a == h);
             v.setIsGanador(win);
         }
     }
@@ -192,13 +211,16 @@ public class DeterminarResultadoApuesta {
     private void resolverHalfWinner(Momio m, ResultadoEvento r, int half) {
         int h, a;
         if (half == 1) {
-            h = nvl(r.golesHomeHT); a = nvl(r.golesAwayHT);
+            h = nvl(r.golesHomeHT);
+            a = nvl(r.golesAwayHT);
         } else {
-            h = r.golesHome2T(); a = r.golesAway2T();
+            h = r.golesHome2T();
+            a = r.golesAway2T();
         }
         for (Valor v : safeList(m.getValores())) {
             String val = norm(v.getValor());
-            boolean win = (val.equals("HOME") && h > a) || (val.equals("AWAY") && a > h) || (val.equals("DRAW") && a == h);
+            boolean win = (val.equals("HOME") && h > a) || (val.equals("AWAY") && a > h)
+                    || (val.equals("DRAW") && a == h);
             v.setIsGanador(win);
         }
     }
@@ -206,9 +228,13 @@ public class DeterminarResultadoApuesta {
     private void resolverOverUnderTotal(Momio m, int totalGoles) {
         for (Valor v : safeList(m.getValores())) {
             OU ou = parseOverUnder(v.getValor());
-            if (ou == null) { v.setIsGanador(false); continue; }
+            if (ou == null) {
+                v.setIsGanador(false);
+                continue;
+            }
             boolean win = (ou.isOver && totalGoles > ou.linea) || (!ou.isOver && totalGoles < ou.linea);
-            // Nota: si total == linea, típicamente es "push" (Goal Line). Aquí no se marca ganador.
+            // Nota: si total == linea, típicamente es "push" (Goal Line). Aquí no se marca
+            // ganador.
             v.setIsGanador(win);
         }
     }
@@ -233,10 +259,9 @@ public class DeterminarResultadoApuesta {
         for (Valor v : safeList(m.getValores())) {
             String dc = norm(v.getValor());
             boolean homeWin = gh > ga, draw = gh == ga, awayWin = ga > gh;
-            boolean win =
-                (dc.equals("1X") && (homeWin || draw)) ||
-                (dc.equals("12") && (homeWin || awayWin)) ||
-                (dc.equals("X2") && (draw || awayWin));
+            boolean win = (dc.equals("1X") && (homeWin || draw)) ||
+                    (dc.equals("12") && (homeWin || awayWin)) ||
+                    (dc.equals("X2") && (draw || awayWin));
             v.setIsGanador(win);
         }
     }
@@ -271,6 +296,7 @@ public class DeterminarResultadoApuesta {
         public String tipoApuesta;
         public List<ValorResultadoDto> valores;
     }
+
     public static class ValorResultadoDto {
         public Long valorId;
         public String valor;
@@ -278,29 +304,49 @@ public class DeterminarResultadoApuesta {
     }
 
     // ----------------- Utilidades -----------------
-    private static String safe(String s) { return s == null ? "" : s; }
-    private static List<Valor> safeList(List<Valor> l) { return l == null ? List.of() : l; }
+    private static String safe(String s) {
+        return s == null ? "" : s;
+    }
+
+    private static List<Valor> safeList(List<Valor> l) {
+        return l == null ? List.of() : l;
+    }
+
     private static String norm(String s) {
-        if (s == null) return "";
+        if (s == null)
+            return "";
         s = s.trim();
-        if (s.equalsIgnoreCase("home")) return "HOME";
-        if (s.equalsIgnoreCase("away")) return "AWAY";
-        if (s.equalsIgnoreCase("draw") || s.equalsIgnoreCase("empate") || s.equalsIgnoreCase("x")) return "DRAW";
-        if (s.equalsIgnoreCase("sí") || s.equalsIgnoreCase("si") || s.equalsIgnoreCase("yes")) return "YES";
-        if (s.equalsIgnoreCase("no")) return "NO";
-        if (s.equalsIgnoreCase("odd") || s.equalsIgnoreCase("impar")) return "ODD";
-        if (s.equalsIgnoreCase("even") || s.equalsIgnoreCase("par")) return "EVEN";
+        if (s.equalsIgnoreCase("home"))
+            return "HOME";
+        if (s.equalsIgnoreCase("away"))
+            return "AWAY";
+        if (s.equalsIgnoreCase("draw") || s.equalsIgnoreCase("empate") || s.equalsIgnoreCase("x"))
+            return "DRAW";
+        if (s.equalsIgnoreCase("sí") || s.equalsIgnoreCase("si") || s.equalsIgnoreCase("yes"))
+            return "YES";
+        if (s.equalsIgnoreCase("no"))
+            return "NO";
+        if (s.equalsIgnoreCase("odd") || s.equalsIgnoreCase("impar"))
+            return "ODD";
+        if (s.equalsIgnoreCase("even") || s.equalsIgnoreCase("par"))
+            return "EVEN";
         return s.toUpperCase(Locale.ROOT);
     }
 
-    private static class OU { boolean isOver; double linea; }
+    private static class OU {
+        boolean isOver;
+        double linea;
+    }
+
     private static OU parseOverUnder(String raw) {
-        if (raw == null) return null;
+        if (raw == null)
+            return null;
         String s = raw.trim().toLowerCase(Locale.ROOT);
         // soporta "Over 2.5" / "Under 1.5" / "Más de 2.5" / "Menos de 2.5"
         boolean over = s.startsWith("over") || s.startsWith("más") || s.startsWith("mas");
         boolean under = s.startsWith("under") || s.startsWith("menos");
-        if (!over && !under) return null;
+        if (!over && !under)
+            return null;
         String digits = s.replaceAll("[^0-9\\.]", "");
         try {
             double line = Double.parseDouble(digits);
@@ -313,9 +359,14 @@ public class DeterminarResultadoApuesta {
         }
     }
 
-    private static class Score { int h; int a; }
+    private static class Score {
+        int h;
+        int a;
+    }
+
     private static Score parseScore(String raw) {
-        if (raw == null) return null;
+        if (raw == null)
+            return null;
         Matcher m = Pattern.compile("^(\\d+)[-:](\\d+)$").matcher(raw.trim());
         if (m.find()) {
             Score s = new Score();
@@ -326,6 +377,8 @@ public class DeterminarResultadoApuesta {
         return null;
     }
 
-    private static int nvl(Integer v) { return v == null ? 0 : v; }
+    private static int nvl(Integer v) {
+        return v == null ? 0 : v;
+    }
 
 }
