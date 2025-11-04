@@ -23,6 +23,7 @@ export interface EventoConOddsResponse {
     teams: TeamsApi;
     goals: GoalsApi;
     score: ScoreApi;
+    sport: string;
     odds: Bet[];
 }
 

@@ -19,5 +19,6 @@ public class EventoConOddsResponse {
     private Goals goals;
     private Score score;
     private List<Bet> odds;
+    private String sport;
 
 }

@@ -190,6 +190,8 @@ public class EventoService {
 
                                                 }).toList();
 
+                
+
                 EventoConOddsResponse response = new EventoConOddsResponse();
                 response.setFixture(fixture);
                 response.setLeague(league);
@@ -197,6 +199,7 @@ public class EventoService {
                 response.setScore(score);
                 response.setTeams(teams);
                 response.setOdds(odds);
+                response.setSport(evento.getLiga().getDeporte().getNombre());
 
                 return response;
         }

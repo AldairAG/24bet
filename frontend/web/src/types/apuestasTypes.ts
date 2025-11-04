@@ -9,6 +9,7 @@ export interface CrearApuesta {
 export interface ApuestaEnBoleto extends CrearApuesta {
     eventoName: string;
     descripcion: string;
+    validaParaParlay: boolean;
 }
 
 

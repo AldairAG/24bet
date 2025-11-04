@@ -1,27 +1,27 @@
 import { ROUTES } from "../../routes/routes";
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 const AsideUser = () => {
-    const location = useLocation();
-    const currentPath = location.pathname;
+  const location = useLocation();
+  const currentPath = location.pathname;
 
   const ligas = [
-    { name: "Liga MX", icon: "🇲🇽", flag: true },
-    { name: "Liga MX Femenil", icon: "🇲🇽", flag: true },
-    { name: "NFL", icon: "🏈", flag: false },
-    { name: "NCAAF", icon: "🏈", flag: false },
-    { name: "MLB", icon: "⚾", flag: false },
-    { name: "Premier League", icon: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", flag: true },
-    { name: "La Liga", icon: "🇪🇸", flag: true },
-    { name: "Bundesliga", icon: "🇩🇪", flag: true },
-    { name: "Serie A", icon: "🇮🇹", flag: true },
-    { name: "Ligue 1", icon: "🇫🇷", flag: true },
-    { name: "UEFA Champions League", icon: "🏆", flag: false },
-    { name: "UEFA Liga Europa", icon: "🏆", flag: false },
-    { name: "Copa Libertadores", icon: "🏆", flag: false },
-    { name: "Copa Sudamericana", icon: "🏆", flag: false },
-    { name: "MLS", icon: "🇺🇸", flag: true },
-    { name: "Primera División", icon: "🇦🇷", flag: true },
-    { name: "Eredivisie", icon: "🇳🇱", flag: true },
+    { name: "Liga MX", icon: "🇲🇽", flag: true, deporte: "Soccer", flagCountryUrl: "https://media.api-sports.io/flags/mx.svg" },
+    { name: "Liga MX Femenil", icon: "🇲🇽", flag: true, deporte: "Soccer", flagCountryUrl: "https://media.api-sports.io/flags/mx.svg" },
+    { name: "NFL", icon: "🏈", flag: false, deporte: "American Football", flagCountryUrl: "https://media.api-sports.io/flags/us.svg" },
+    { name: "NCAAF", icon: "🏈", flag: false, deporte: "American Football", flagCountryUrl: "https://media.api-sports.io/flags/us.svg" },
+    { name: "MLB", icon: "⚾", flag: false, deporte: "Baseball", flagCountryUrl: "https://media.api-sports.io/flags/us.svg" },
+    { name: "Premier League", icon: "🏴", flag: true, deporte: "Soccer", flagCountryUrl: "https://media.api-sports.io/flags/gb.svg" },
+    { name: "La Liga", icon: "🇪🇸", flag: true, deporte: "Soccer", flagCountryUrl: "https://media.api-sports.io/flags/es.svg" },
+    { name: "Bundesliga", icon: "🇩🇪", flag: true, deporte: "Soccer", flagCountryUrl: "https://media.api-sports.io/flags/de.svg" },
+    { name: "Serie A", icon: "🇮🇹", flag: true, deporte: "Soccer", flagCountryUrl: "https://media.api-sports.io/flags/it.svg" },
+    { name: "Ligue 1", icon: "🇫🇷", flag: true, deporte: "Soccer", flagCountryUrl: "https://media.api-sports.io/flags/fr.svg" },
+    { name: "UEFA Champions League", icon: "🏆", flag: false, deporte: "Soccer", flagCountryUrl: "https://media.api-sports.io/flags/eu.svg" },
+    { name: "UEFA Liga Europa", icon: "🏆", flag: false, deporte: "Soccer", flagCountryUrl: "https://media.api-sports.io/flags/eu.svg" },
+    { name: "Copa Libertadores", icon: "🏆", flag: false, deporte: "Soccer", flagCountryUrl: "https://media.api-sports.io/flags/south-america.svg" },
+    { name: "Copa Sudamericana", icon: "🏆", flag: false, deporte: "Soccer", flagCountryUrl: "https://media.api-sports.io/flags/south-america.svg" },
+    { name: "MLS", icon: "🇺🇸", flag: true, deporte: "Soccer", flagCountryUrl: "https://media.api-sports.io/flags/us.svg" },
+    { name: "Primera División", icon: "🇦🇷", flag: true, deporte: "Soccer", flagCountryUrl: "https://media.api-sports.io/flags/ar.svg" },
+    { name: "Eredivisie", icon: "🇳🇱", flag: true, deporte: "Soccer", flagCountryUrl: "https://media.api-sports.io/flags/nl.svg" },
   ];
   if (currentPath.includes(ROUTES.USER_PERFIL) ||
     currentPath.includes(ROUTES.USER_RETIRO) ||
@@ -41,13 +41,21 @@ const AsideUser = () => {
         <ul className="space-y-1">
           {ligas.map((liga, index) => (
             <li key={index}>
-              <a
-                href="#"
+              <Link
+                to={ROUTES.USER_LIGA(liga.deporte, liga.name)}
                 className="flex items-center space-x-2 px-2 py-1 rounded hover:bg-gray-700 transition-colors"
               >
-                <span className="text-sm">{liga.icon}</span>
+                {liga.flag ? (
+                  <img
+                    src={liga.flagCountryUrl}
+                    alt={`${liga.name} flag`}
+                    className="w-4 h-2 object-cover"
+                  />
+                ) : (
+                  <span className="text-sm">{liga.icon}</span>
+                )}
                 <span className="text-xs">{liga.name}</span>
-              </a>
+              </Link>
             </li>
           ))}
         </ul>

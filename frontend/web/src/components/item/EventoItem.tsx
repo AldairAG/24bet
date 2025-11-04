@@ -35,7 +35,8 @@ const EventoItem: React.FC<EventoItemProps> = ({
       odd: odd,
       tipoApuesta: tipoApuesta,
       eventoName: eventoName,
-      descripcion: descripcion
+      descripcion: descripcion,
+      validaParaParlay: true
     };
 
     // Validar antes de agregar
@@ -67,7 +68,7 @@ const EventoItem: React.FC<EventoItemProps> = ({
   };
 
   const handleEventoClick = (eventoName: string) => {
-    navigate(`${ROUTES.USER_EVENTO(deporte!, liga!, eventoName)}`);
+    navigate(`${ROUTES.USER_EVENTO(deporte ? deporte : evento.sport, liga ? liga : evento.league.name, eventoName)}`);
   };
 
 

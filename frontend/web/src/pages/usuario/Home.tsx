@@ -9,12 +9,12 @@ const deportes = [
   { name: "Fútbol americano", icon: "🏈" ,id:"American Football"},
   { name: "Béisbol", icon: "⚾" ,id:"Baseball"},
   { name: "Baloncesto", icon: "🏀" ,id:"Basketball"},
-  { name: "Tenis", icon: "🎾" ,id:"Tennis"},
-  { name: "Boxeo", icon: "🥊" ,id:"Boxing"},
+  { name: "Voleyball", icon: "🏐" ,id:"Volleyball"},
+  { name: "NBA", icon: "🏀" ,id:"NBA"},
   { name: "MMA", icon: "🥋" ,id:"MMA"},
   { name: "Hockey", icon: "🏒" ,id:"Hockey"},
-  { name: "E-sports +", icon: "🎮" ,id:"Esports"},
   { name: "Carreras de Autos", icon: "🏎️" ,id:"Auto Racing"},
+  { name: "Rugby", icon: "🏉" ,id:"Rugby"},
 ];
 
 const Home = () => {

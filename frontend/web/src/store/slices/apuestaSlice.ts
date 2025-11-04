@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import type { ApuestaEnBoleto, CrearApuesta } from '../../types/apuestasTypes';
-import ApuestaService  from '../../service/apuestaService';
+import ApuestaService from '../../service/apuestaService';
 /**
  * Estado del slice de apuestas
  */
@@ -56,11 +56,11 @@ export const realizarApuestaThunk = createAsyncThunk(
         try {
             const state = getState() as { apuesta: ApuestaState };
             const boleto = state.apuesta.boleto;
-            
+
             if (boleto.length === 0) {
                 throw new Error('El boleto está vacío');
             }
-            
+
             // Convertir ApuestaEnBoleto[] a CrearApuesta[]
             const apuestasParaCrear: CrearApuesta[] = boleto.map(apuesta => ({
                 id: apuesta.id,
@@ -69,7 +69,7 @@ export const realizarApuestaThunk = createAsyncThunk(
                 odd: apuesta.odd,
                 tipoApuesta: apuesta.tipoApuesta
             }));
-            
+
             const resultado = await ApuestaService.crearListaApuestas(apuestasParaCrear);
             return resultado;
         } catch (error: unknown) {
@@ -91,13 +91,37 @@ const apuestaSlice = createSlice({
          */
         agregarApuesta: (state, action: PayloadAction<ApuestaEnBoleto>) => {
             const nuevaApuesta = action.payload;
-            
+
             // Verificar si la apuesta ya existe (mismo id y eventoId)
             const existeApuesta = state.boleto.find(
                 apuesta => apuesta.id === nuevaApuesta.id && apuesta.eventoId === nuevaApuesta.eventoId
             );
-            
-            if (!existeApuesta?.id ) {
+
+            //verificar si ya existe otra apuesta del mismo evento
+            const existeApuestaEvento = state.boleto.find(
+                apuesta => apuesta.eventoId === nuevaApuesta.eventoId
+            );
+
+            if (existeApuestaEvento) {
+                //si la apuesta no es valida para parlay, hace a todas las demas apuestas del mismo evento invalidas para parlay
+                // Marcar apuestas del mismo evento como inválidas para parlay
+                state.boleto.forEach(apuesta => {
+                    if (apuesta.eventoId === nuevaApuesta.eventoId) {
+                        apuesta.validaParaParlay = false;
+                    }
+                });
+                nuevaApuesta.validaParaParlay = false;
+            } else {
+                // Si no existe una apuesta del mismo evento, agregarla normalmente y hace a todas las demas apuestas del mismo evento validas para parlay
+                state.boleto = state.boleto.map(apuesta => {
+                    if (apuesta.eventoId === nuevaApuesta.eventoId) {
+                        return { ...apuesta, validaParaParlay: true };
+                    }
+                    return apuesta;
+                });
+            }
+
+            if (!existeApuesta?.id) {
                 state.boleto.push(nuevaApuesta);
                 // Mostrar carrito automáticamente cuando hay al menos 1 apuesta
                 state.carritoVisible = true;
@@ -111,16 +135,28 @@ const apuestaSlice = createSlice({
          */
         eliminarApuesta: (state, action: PayloadAction<{ id: number; eventoId: number }>) => {
             const { id, eventoId } = action.payload;
-            
+
             state.boleto = state.boleto.filter(
                 apuesta => !(apuesta.id === id && apuesta.eventoId === eventoId)
             );
-            
+
             // Ocultar carrito si no hay apuestas
             if (state.boleto.length === 0) {
                 state.carritoVisible = false;
             }
-            
+
+            // Restaurar validez para parlay de otras apuestas del mismo evento devolviendo un entero 
+            const hayOtraApuestaMismoEvento = state.boleto.filter(
+                apuesta => apuesta.eventoId === eventoId
+            ).length;
+
+            if (hayOtraApuestaMismoEvento === 1) {
+                state.boleto = state.boleto.map(apuesta => ({
+                    ...apuesta,
+                    validaParaParlay: true,
+                }));
+            } 
+
             // Recalcular totales
             apuestaSlice.caseReducers.calcularTotales(state);
         },
@@ -130,7 +166,7 @@ const apuestaSlice = createSlice({
          */
         editarMontoParlay: (state, action: PayloadAction<{ nuevoMonto: number }>) => {
             const { nuevoMonto } = action.payload;
-            
+
             // Validar que el monto sea positivo
             if (nuevoMonto <= 0) {
                 return;
@@ -146,16 +182,16 @@ const apuestaSlice = createSlice({
          */
         editarMonto: (state, action: PayloadAction<{ id: number; eventoId: number; nuevoMonto: number }>) => {
             const { id, eventoId, nuevoMonto } = action.payload;
-            
+
             // Validar que el monto sea positivo
             if (nuevoMonto <= 0) {
                 return;
             }
-            
+
             const apuesta = state.boleto.find(
                 apuesta => apuesta.id === id && apuesta.eventoId === eventoId
             );
-            
+
             if (apuesta) {
                 apuesta.monto = nuevoMonto;
                 // Recalcular totales
@@ -183,21 +219,21 @@ const apuestaSlice = createSlice({
         calcularTotales: (state) => {
             state.totalApostar = state.boleto.reduce((total, apuesta) => total + apuesta.monto, 0);
             state.gananciaPotencial = state.boleto.reduce(
-                (total, apuesta) => total + (apuesta.monto * apuesta.odd), 
+                (total, apuesta) => total + (apuesta.monto * apuesta.odd),
                 0
             );
-            
+
             // Parlay se activa con 2 o más apuestas diferentes (independiente del evento para testing)
             state.esParlayValido = state.boleto.length >= 2;
-            
+
             if (state.esParlayValido) {
-                
+
                 const montoBase = state.apuestasParlay && state.apuestasParlay > 0 ? state.apuestasParlay : state.totalApostar;
                 const cuotaCombinada = state.boleto.reduce((cuota, apuesta) => cuota * apuesta.odd, 1);
-                
+
                 //state.parlayTotal = montoBase;
                 state.parlayGanancia = montoBase * cuotaCombinada;
-                
+
             } else {
                 state.parlayTotal = 0;
                 state.parlayGanancia = 0;
@@ -278,7 +314,7 @@ export const selectCantidadApuestas = (state: { apuesta: ApuestaState }) => stat
 export const selectApuestasParlay = (state: { apuesta: ApuestaState }) => state.apuesta.apuestasParlay;
 
 // Selectores avanzados
-export const selectApuestaPorId = (state: { apuesta: ApuestaState }, id: number, eventoId: number) => 
+export const selectApuestaPorId = (state: { apuesta: ApuestaState }, id: number, eventoId: number) =>
     state.apuesta.boleto.find(apuesta => apuesta.id === id && apuesta.eventoId === eventoId);
 
 export const selectHayApuestas = (state: { apuesta: ApuestaState }) => state.apuesta.boleto.length > 0;

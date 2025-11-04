@@ -172,9 +172,10 @@ const BoletoButtom: React.FC = () => {
             {boleto.map((apuesta, index) => {
               const key = `${apuesta.id}-${apuesta.eventoId}`;
               return (
-                <div key={key} className={`flex items-center justify-between p-3 ${index < boleto.length - 1 ? 'border-b border-gray-100' : ''}`}>
+                <div key={key} className={`${apuesta.validaParaParlay ? '' : 'bg-red-50'} flex items-center justify-between p-3 ${index < boleto.length - 1 ? 'border-b border-gray-100' : ''}`}>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">{apuesta.eventoName}</p>
+                    
+                    <p className="text-sm font-medium text-gray-900 truncate">{apuesta.eventoName} </p>
                     <div className="flex items-center space-x-2 mt-1">
                       <span className="bg-gray-100 text-gray-800 px-1.5 py-0.5 rounded text-xs">
                         {apuesta.tipoApuesta}
@@ -368,7 +369,7 @@ const BoletoButtom: React.FC = () => {
             </button>
             <button
               onClick={handleRealizarApuestas}
-              disabled={isRealizandoApuesta || boleto.length === 0}
+              disabled={isRealizandoApuesta || boleto.length === 0 || boleto.some(apuesta => !apuesta.validaParaParlay)}
               className="flex-2 bg-red-600 text-white py-2.5 px-4 rounded-lg text-sm font-semibold hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
             >
               {isRealizandoApuesta ? (
