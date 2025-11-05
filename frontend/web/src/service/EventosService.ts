@@ -84,10 +84,10 @@ class EventosService {
      * GET /24bet/eventos/futuros
      * @returns Promise con la lista de eventos futuros
      */
-    async getEventosFuturosByLigaName(ligaNombre: string): Promise<EventoConOddsResponse[]> {
+    async getEventosFuturosByLigaName(paisNombre: string, ligaNombre: string): Promise<EventoConOddsResponse[]> {
         try {
             const response = await apiBase.get<EventoConOddsResponse[]>(
-                `${this.baseUrl}/eventos-por-liga/${ligaNombre}`
+                `${this.baseUrl}/eventos-por-liga/${paisNombre}/${ligaNombre}`
             );
             return response.data;
         } catch (error) {

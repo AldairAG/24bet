@@ -6,7 +6,6 @@ import com._bet.dto.request.ParlayRequest;
 import com._bet.dto.response.ApuestaHistorialResponse;
 import com._bet.dto.response.ParlayResponse;
 import com._bet.entity.apuestas.Apuesta;
-import com._bet.entity.apuestas.Parlay;
 import com._bet.entity.user.Usuario;
 import com._bet.repository.ApuestaRepository;
 import com._bet.service.apuesta.ApuestaService;
@@ -23,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 
 /**

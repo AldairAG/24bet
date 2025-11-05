@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
-import type { ApuestaEnBoleto, CrearApuesta } from '../../types/apuestasTypes';
+import type { ApuestaEnBoleto, CrearApuesta, CrearParlayApuestas } from '../../types/apuestasTypes';
 import ApuestaService from '../../service/apuestaService';
 /**
  * Estado del slice de apuestas
@@ -74,6 +74,41 @@ export const realizarApuestaThunk = createAsyncThunk(
             return resultado;
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'Error al realizar las apuestas';
+            return rejectWithValue(errorMessage);
+        }
+    }
+);
+
+/**
+ * Thunk para realizar un parlay de apuestas
+ */
+export const realizarParlayApuestaThunk = createAsyncThunk(
+    'apuesta/realizarParlayApuesta',
+    async (_, { getState, rejectWithValue }) => {
+        try {
+            const state = getState() as { apuesta: ApuestaState };
+            const boleto = state.apuesta.boleto;
+            if (boleto.length === 0) {
+                throw new Error('El boleto está vacío');
+            }
+            // Convertir ApuestaEnBoleto[] a CrearApuesta[]
+            const apuestasParaCrear: CrearApuesta[] = boleto.map(apuesta => ({
+                id: apuesta.id,
+                eventoId: apuesta.eventoId,
+                monto: apuesta.monto,
+                odd: apuesta.odd,
+                tipoApuesta: apuesta.tipoApuesta
+            }));
+
+            const parlayApuesta: CrearParlayApuestas = {
+                apuestas: apuestasParaCrear,
+                montoApostar: state.apuesta.apuestasParlay || 10,
+            };  
+
+            const resultado = await ApuestaService.crearParlayApuestas(parlayApuesta);
+            return resultado;
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Error al realizar el parlay de apuestas';
             return rejectWithValue(errorMessage);
         }
     }
@@ -155,7 +190,7 @@ const apuestaSlice = createSlice({
                     ...apuesta,
                     validaParaParlay: true,
                 }));
-            } 
+            }
 
             // Recalcular totales
             apuestaSlice.caseReducers.calcularTotales(state);
@@ -284,6 +319,27 @@ const apuestaSlice = createSlice({
             })
             // Realizar apuesta - rejected
             .addCase(realizarApuestaThunk.rejected, (state, action) => {
+                state.loading.realizandoApuesta = false;
+                state.error.realizandoApuesta = action.payload as string;
+            });
+        builder
+            .addCase(realizarParlayApuestaThunk.pending, (state) => {
+                state.loading.realizandoApuesta = true;
+                state.error.realizandoApuesta = null;
+            })
+            .addCase(realizarParlayApuestaThunk.fulfilled, (state) => {
+                state.loading.realizandoApuesta = false;
+                state.error.realizandoApuesta = null;
+                // Limpiar el boleto después de realizar las apuestas exitosamente
+                state.boleto = [];
+                state.carritoVisible = false;
+                state.totalApostar = 0;
+                state.gananciaPotencial = 0;
+                state.parlayTotal = 0;
+                state.parlayGanancia = 0;
+                state.esParlayValido = false;
+            })
+            .addCase(realizarParlayApuestaThunk.rejected, (state, action) => {
                 state.loading.realizandoApuesta = false;
                 state.error.realizandoApuesta = action.payload as string;
             });

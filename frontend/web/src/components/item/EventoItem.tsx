@@ -1,6 +1,6 @@
 import React from 'react';
 import type { EventoConOddsResponse } from '../../types/EventosType';
-import { IsoAFechaMesDia, IsoAHora } from '../../utils/formatHelper';
+import { formatoCuota, IsoAFechaMesDia, IsoAHora } from '../../utils/formatHelper';
 import useEventos from '../../hooks/useEventos';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ROUTES } from '../../routes/routes';
@@ -19,7 +19,7 @@ const EventoItem: React.FC<EventoItemProps> = ({
 }) => {
   const { obtenerBanderaPorNombrePais } = useEventos();
   const navigate = useNavigate();
-  const { deporte, liga } = useParams();
+  const { deporte, pais, liga } = useParams();
   const { agregarApuestaAlBoleto, existeApuestaEnBoleto, puedeAgregarApuesta } = useApuesta();
 
   // Función para manejar apuestas rápidas desde la Home
@@ -68,7 +68,7 @@ const EventoItem: React.FC<EventoItemProps> = ({
   };
 
   const handleEventoClick = (eventoName: string) => {
-    navigate(`${ROUTES.USER_EVENTO(deporte ? deporte : evento.sport, liga ? liga : evento.league.name, eventoName)}`);
+    navigate(`${ROUTES.USER_EVENTO(deporte ? deporte : evento.sport, pais ? pais : evento.league.country, liga ? liga : evento.league.name, eventoName)}`);
   };
 
 
@@ -320,7 +320,7 @@ const EventoItem: React.FC<EventoItemProps> = ({
                       className={betButtonClasses(isBetSelected(value.id, evento.fixture.id))}
                     >
                       <p className={oddTextClasses(value.odd)}>
-                        {value.odd > 2 ? '+' : ''}{((value.odd - 1) * 100).toFixed(0)}
+                        {formatoCuota(value.odd)}
                       </p>
                       <p className={valueTextClasses}>{value.value}</p>
                     </button>

@@ -97,7 +97,7 @@ public class ApuestaService {
     public ParlayResponse crearParlay(ParlayRequest parlayRequest, Usuario usuario) {
         // Validar saldo suficiente
         BigDecimal saldoUsuario = usuario.getSaldoUsd();
-        if (parlayRequest.getMontoTotal().compareTo(saldoUsuario.doubleValue()) > 0) {
+        if (parlayRequest.getMontoApostar().compareTo(saldoUsuario.doubleValue()) > 0) {
             throw new IllegalArgumentException("Saldo insuficiente para el parlay");
         }
 
@@ -108,17 +108,17 @@ public class ApuestaService {
 
         // Calcular momio total del parlay (multiplicación de todos los momios)
         BigDecimal momioTotal = parlayRequest.getApuestas().stream()
-                .map(apuesta -> BigDecimal.valueOf(apuesta.getMomio()))
+                .map(apuesta -> BigDecimal.valueOf(apuesta.getOdd()))
                 .reduce(BigDecimal.ONE, BigDecimal::multiply);
 
         // Calcular ganancia potencial
-        BigDecimal gananciaPotencial = BigDecimal.valueOf(parlayRequest.getMontoTotal())
+        BigDecimal gananciaPotencial = BigDecimal.valueOf(parlayRequest.getMontoApostar())
                 .multiply(momioTotal);
 
         // Crear el parlay
         Parlay parlay = Parlay.builder()
                 .usuario(usuario)
-                .montoTotal(parlayRequest.getMontoTotal())
+                .montoTotal(parlayRequest.getMontoApostar())
                 .momioTotal(momioTotal)
                 .gananciaPotencial(gananciaPotencial)
                 .numeroApuestas(parlayRequest.getApuestas().size())
@@ -126,7 +126,6 @@ public class ApuestaService {
                 .apuestasPerdidas(0)
                 .apuestasPendientes(parlayRequest.getApuestas().size())
                 .estado(Parlay.EstadoParlay.ACTIVO)
-                .observaciones(parlayRequest.getObservaciones())
                 .fechaCreacion(LocalDateTime.now())
                 .build();
 
@@ -135,16 +134,16 @@ public class ApuestaService {
 
         // Crear las apuestas individuales del parlay
         List<Apuesta> apuestasParlay = new ArrayList<>();
-        for (ParlayRequest.ApuestaParlay apuestaReq : parlayRequest.getApuestas()) {
+        for (CrearApuestaRequest apuestaReq : parlayRequest.getApuestas()) {
             // Verificar que el valor exista
-            Valor valor = valorRepository.findById(apuestaReq.getOpcionId())
-                    .orElseThrow(() -> new IllegalArgumentException("Opción de apuesta no encontrada: " + apuestaReq.getOpcionId()));
+            Valor valor = valorRepository.findById(apuestaReq.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Opción de apuesta no encontrada: " + apuestaReq.getId()));
 
             // Crear apuesta individual
             Apuesta apuesta = Apuesta.builder()
                     .usuario(usuario)
                     .parlay(parlayGuardado)
-                    .momio(apuestaReq.getMomio())
+                    .momio(apuestaReq.getOdd())
                     .monto(0.0) // En parlays, el monto está en el parlay padre
                     .tipoApuesta(apuestaReq.getTipoApuesta())
                     .estado(Apuesta.EstadoApuesta.ACTIVA)
@@ -160,7 +159,7 @@ public class ApuestaService {
         }
 
         // Actualizar saldo del usuario
-        usuario.setSaldoUsd(saldoUsuario.subtract(BigDecimal.valueOf(parlayRequest.getMontoTotal())));
+        usuario.setSaldoUsd(saldoUsuario.subtract(BigDecimal.valueOf(parlayRequest.getMontoApostar())));
         usuarioRepository.save(usuario);
 
         // Convertir a response

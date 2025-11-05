@@ -12,6 +12,7 @@ export interface ApuestaEnBoleto extends CrearApuesta {
     validaParaParlay: boolean;
 }
 
-
-
-
+export interface CrearParlayApuestas {
+    apuestas: CrearApuesta[];
+    montoApostar: number;
+}

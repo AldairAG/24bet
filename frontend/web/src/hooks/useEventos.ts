@@ -87,8 +87,8 @@ export const useEventos = () => {
     /**
      * Carga eventos futuros desde el servidor
      */
-    const loadEventosFuturosPorLiga = useCallback(async (ligaNombre: string) => {
-        const result = await dispatch(getEventosFuturosPorLiga(ligaNombre) as any);
+    const loadEventosFuturosPorLiga = useCallback(async (ligaNombre: string, paisNombre: string) => {
+        const result = await dispatch(getEventosFuturosPorLiga({ paisNombre,ligaNombre }) as any);
         return result;
     }, [dispatch]);
 

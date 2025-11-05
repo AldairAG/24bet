@@ -28,6 +28,7 @@ import {
     selectParlayGanancia,
     selectEsParlayValido,
     selectApuestasParlay,
+    realizarParlayApuestaThunk,
 
 } from '../store/slices/apuestaSlice';
 
@@ -127,6 +128,13 @@ export const useApuesta = () => {
      */
     const realizarApuestas = useCallback(async () => {
         return dispatch(realizarApuestaThunk());
+    }, [dispatch]);
+
+    /**
+     * Realizar parlay de apuestas
+     */
+    const realizarParlayApuestas = useCallback(async () => {
+        return dispatch(realizarParlayApuestaThunk());
     }, [dispatch]);
 
     // ========== UTILIDADES ==========
@@ -256,6 +264,7 @@ export const useApuesta = () => {
 
         // Thunk
         realizarApuestas,
+        realizarParlayApuestas,
 
         // Utilidades
         existeApuestaEnBoleto,

@@ -1,5 +1,5 @@
 import { apiBase } from './apiBase';
-import type { CrearApuesta } from '../types/apuestasTypes';
+import type { CrearApuesta, CrearParlayApuestas } from '../types/apuestasTypes';
 import type { ApiResponseWrapper } from '../types/authTypes';
 
 /**
@@ -27,13 +27,12 @@ class ApuestaService  {
     /**
      * crear un parlay de apuestas
      */
-    async crearParlayApuestas(apuestas: CrearApuesta[]): Promise<ApiResponseWrapper<CrearApuesta[]>> {
+    async crearParlayApuestas(parlay: CrearParlayApuestas): Promise<ApiResponseWrapper<CrearParlayApuestas[]>> {
 
-        if (!Array.isArray(apuestas) || apuestas.length === 0) {
+        if (!Array.isArray(parlay.apuestas) || parlay.apuestas.length === 0) {
             throw new Error('La lista de apuestas no puede estar vacía');
         }
-
-        const response = await apiBase.post<ApiResponseWrapper<CrearApuesta[]>>(`${this.baseUrl}/parlay/crear`, apuestas);
+        const response = await apiBase.post<ApiResponseWrapper<CrearParlayApuestas[]>>(`${this.baseUrl}/parlay/crear`, parlay);
 
         return response.data;
     }

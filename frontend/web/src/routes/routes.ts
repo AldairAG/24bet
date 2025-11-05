@@ -3,8 +3,8 @@ export const ROUTES = {
   //////////////// USER///////////////////
   USER_CONTAINER: '/c',
   USER_DEPORTE: (deporte: string) => `/c/${deporte}`,
-  USER_LIGA: (deporte: string, liga: string) => `/c/${deporte}/${liga}`,
-  USER_EVENTO: (deporte: string, liga: string, evento: string) => `/c/${deporte}/${liga}/${evento}`,
+  USER_LIGA: (deporte: string, pais: string, liga: string) => `/c/${deporte}/${pais}/${liga}`,
+  USER_EVENTO: (deporte: string, pais: string, liga: string, evento: string) => `/c/${deporte}/${pais}/${liga}/${evento}`,
   USER_DEPOSITO: `/c/deposito`,
   USER_EVENTOS_EN_VIVO: `/c/en-vivo`,
   USER_PERFIL: `/c/perfil`,

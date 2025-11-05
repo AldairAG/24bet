@@ -47,7 +47,7 @@ const Accordion: React.FC<AccordionProps> = ({
   const { deporte } = useParams<{ deporte: string }>();
 
   const handleLigaClick = (liga: LigaPorDeporteDetalleResponse) => {
-    navigate(`${ROUTES.USER_LIGA(deporte!, liga.nombre)}`);
+    navigate(`${ROUTES.USER_LIGA(deporte!, liga.paisNombre, liga.nombre)}`);
   };
 
   return (

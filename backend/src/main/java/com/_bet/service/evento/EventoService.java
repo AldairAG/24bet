@@ -35,8 +35,8 @@ public class EventoService {
          * @param nombreLiga Nombre de la liga
          * @return Lista de eventos deportivos
          */
-        public List<EventoConOddsResponse> obtenerEventosPorLiga(String nombreLiga) {
-                List<EventoDeportivo> eventos = eventoDeportivoRepository.findByLigaNombreAndLigaActivaTrue(nombreLiga);
+        public List<EventoConOddsResponse> obtenerEventosPorLigaPorLigaNombreYPais( String paisLiga,String nombreLiga) {
+                List<EventoDeportivo> eventos = eventoDeportivoRepository.findByLigaNombreAndLigaPaisNombreAndLigaActivaTrue(nombreLiga, paisLiga);
 
                 return eventos.stream()
                                 .map(this::convertirEventoEnVivoResponses)

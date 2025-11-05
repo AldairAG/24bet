@@ -20,7 +20,7 @@ const UserContainer: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <div>
+            <div className="flex">
                 <HeaderUser onMenuToggle={toggleSidebar} />
             </div>
             <div>

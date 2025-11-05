@@ -13,10 +13,10 @@ const DeportePage = () => {
     ligasPorDeporte,
     loadLigasPorDeporte,
     loadLigasPorDeporteError,
-    isLoadingLigasPorDeporte, 
-    isLoadingEventosEnVivo, 
-    eventosEnVivo, 
-    loadEventosEnVivoError, 
+    isLoadingLigasPorDeporte,
+    isLoadingEventosEnVivo,
+    eventosEnVivo,
+    loadEventosEnVivoError,
     loadEventosEnVivoPorDeporte
   } = useEventos()
 
@@ -50,7 +50,7 @@ const DeportePage = () => {
 
     return grupos;
   }, [ligasPorDeporte]);
-  
+
   const renderEventos = () => {
     if (isLoadingEventosEnVivo) {
       return <div className="p-4 text-center text-black">Cargando eventos en vivo...</div>;
@@ -62,17 +62,17 @@ const DeportePage = () => {
       return <div className="p-4 text-center text-black">No hay eventos en vivo disponibles.</div>;
     }
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 overflow-auto">
-      <div className="flex gap-2">
-        {eventosEnVivo.map((evento) => (
-          <EventoItem
-            key={evento.fixture.id}
-            evento={evento}
-            isLive={true}
-            variante="detailed"
-          />
-        ))}
-      </div>
+      <div className="w-full overflow-x-auto">
+        <div className="flex gap-2 min-w-max">
+          {eventosEnVivo.map((evento) => (
+            <EventoItem
+              key={evento.fixture.id}
+              evento={evento}
+              isLive={true}
+              variante="detailed"
+            />
+          ))}
+        </div>
       </div>
     );
   }
@@ -82,7 +82,7 @@ const DeportePage = () => {
     const paisesPrioritarios = [
       'World',
       'Mexico',
-      'England', 
+      'England',
       'Spain',
       'Italy',
       'Germany',
@@ -94,14 +94,14 @@ const DeportePage = () => {
     ];
 
     const paisesDisponibles = Object.keys(ligasAgrupadasPorPais);
-    
+
     // Separar países prioritarios de los demás
     const prioritarios = paisesPrioritarios.filter(pais => paisesDisponibles.includes(pais));
     const otros = paisesDisponibles.filter(pais => !paisesPrioritarios.includes(pais));
-    
+
     // Ordenar alfabéticamente los países que no son prioritarios
     otros.sort((a, b) => a.localeCompare(b));
-    
+
     // Retornar primero los prioritarios, luego los demás
     return [...prioritarios, ...otros];
   }, [ligasAgrupadasPorPais]);
@@ -134,34 +134,34 @@ const DeportePage = () => {
       </div>
     );
   }
-  
+
   if (liga) {
     return <Outlet />;
   }
 
   return (
-    <div className="container mx-auto px-4 py-6">
-          
-          <Breadcrumb />
+    <div className="px-4 py-6 overflow-hidden">
 
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 capitalize">{deporte}</h1>
-            <p className="text-gray-600 mt-1">
-              {paisesOrdenados.length} países • {ligasPorDeporte?.length || 0} ligas disponibles
-            </p>
-          </div>
+      <Breadcrumb />
 
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4 font-bold ">Eventos en vivo</h2>
-            {renderEventos()}
-          </div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 capitalize">{deporte}</h1>
+        <p className="text-gray-600 mt-1">
+          {paisesOrdenados.length} países • {ligasPorDeporte?.length || 0} ligas disponibles
+        </p>
+      </div>
+
+      <div className="mb-8">
+        <h2 className="text-xl text-gray-800 mb-4 font-bold ">Eventos en vivo</h2>
+        {renderEventos()}
+      </div>
 
       {paisesOrdenados.length > 0 ? (
-        <div className="space-y-2">
+        <div className="space-y-2 overflow-hidden">
           {paisesOrdenados.map((pais) => {
             const ligasDelPais = ligasAgrupadasPorPais[pais];
             const banderaPais = ligasDelPais[0]?.pais.flagUrl;
-            
+
             return (
               <Accordion
                 key={pais}

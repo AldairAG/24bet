@@ -114,13 +114,13 @@ export const getEventosFuturosPorDeporte = createAsyncThunk<
  */
 export const getEventosFuturosPorLiga = createAsyncThunk<
     EventoConOddsResponse[], // Tipo de datos de retorno
-    string, // Tipo de parámetro de entrada
+    { paisNombre: string; ligaNombre: string }, // Tipo de parámetro de entrada
     { rejectValue: string } // Tipo de error
 >(
     'eventos/getEventosFuturosPorLiga',
-    async (ligaNombre, { rejectWithValue }) => {
+    async ({ paisNombre, ligaNombre }, { rejectWithValue }) => {
         try {
-            return await eventosService.getEventosFuturosByLigaName(ligaNombre);
+            return await eventosService.getEventosFuturosByLigaName(paisNombre, ligaNombre);
         } catch (error) {
             return rejectWithValue(error instanceof Error ? error.message : 'Error desconocido');
         }

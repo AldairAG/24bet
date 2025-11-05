@@ -70,14 +70,15 @@ public class EventosController {
     
     /**
      * Obtiene todos los eventos de una liga por nombre
-     * @param nombreLiga Nombre de la liga
+     * @param ligaNombre Nombre de la liga
+     * @param paisLiga País de la liga
      * @return Lista de eventos de la liga
      */
-    @GetMapping("/eventos-por-liga/{nombreLiga}")
-    public ResponseEntity<ApiResponseWrapper<List<EventoConOddsResponse>>> getEventosPorLiga(@PathVariable String nombreLiga) {
+    @GetMapping("/eventos-por-liga/{paisLiga}/{ligaNombre}")
+    public ResponseEntity<ApiResponseWrapper<List<EventoConOddsResponse>>> getEventosPorLiga(@PathVariable String paisLiga, @PathVariable String ligaNombre) {
         try {
             // Buscar la liga por nombre (ignorando mayúsculas/minúsculas)
-            List<EventoConOddsResponse> eventoResponses = eventoService.obtenerEventosPorLiga(nombreLiga);
+            List<EventoConOddsResponse> eventoResponses = eventoService.obtenerEventosPorLigaPorLigaNombreYPais(ligaNombre, paisLiga);
 
             ApiResponseWrapper<List<EventoConOddsResponse>> responseWrapper = new ApiResponseWrapper<>(true, "Eventos obtenidos exitosamente", eventoResponses);
 

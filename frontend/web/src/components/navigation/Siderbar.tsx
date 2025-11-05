@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../routes/routes';
+import logo from '/src/assets/24bet.png';
 
 interface SidebarProps {
     isOpen: boolean;
@@ -23,13 +24,22 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 transform transition-transform duration-300 ease-in-out
                 ${isOpen ? 'translate-x-0' : '-translate-x-full'}
             `}>
-                <div className="p-6">
-                    {/* Header del sidebar */}
-                    <div className="flex items-center justify-between mb-8">
-                        <h2 className="text-xl font-bold text-gray-800">Menú</h2>
+                {/* Sección del Logo */}
+                <div className="bg-gradient-to-r from-red-600 to-red-700 -m-0 mb-0 p-6 border-b border-gray-200">
+                    <div className="flex items-center justify-evenly">
+                        <div className="flex items-center space-x-3">
+                            <img 
+                                src={logo}
+                                alt="24bet Logo" 
+                                className="h-15 w-35"
+                                style={{
+                                    filter: "brightness(0) saturate(100%) invert(100%)"
+                                }}
+                            />
+                        </div>
                         <button 
                             onClick={onClose}
-                            className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                            className="text-white hover:text-red-200 focus:outline-none p-1 rounded-md hover:bg-red-500 hover:bg-opacity-30 transition-all duration-200"
                             aria-label="Cerrar menú"
                         >
                             <svg 
@@ -41,11 +51,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                                 <path 
                                     strokeLinecap="round" 
                                     strokeLinejoin="round" 
-                                    strokeWidth={2} 
+                                    strokeWidth={2.5} 
                                     d="M6 18L18 6M6 6l12 12" 
                                 />
                             </svg>
                         </button>
+                    </div>
+                </div>
+
+                <div className="p-6">
+                    {/* Header del menú */}
+                    <div className="mb-6">
+                        <h2 className="text-lg font-semibold text-gray-800">Menú Principal</h2>
                     </div>
 
                     {/* Enlaces del menú */}
@@ -60,7 +77,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 1v6M16 1v6" />
                                     </svg>
-                                    Dashboard
+                                    Inicio
                                 </Link>
                             </li>
                             <li>

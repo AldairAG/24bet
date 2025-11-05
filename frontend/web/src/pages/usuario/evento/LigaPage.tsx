@@ -13,7 +13,7 @@ interface DateGroup {
 }
 
 const LigaPage = () => {
-  const {liga, evento } = useParams();
+  const { pais, liga, evento } = useParams();
 
   const {
     eventosFuturosPorLiga,
@@ -26,9 +26,9 @@ const LigaPage = () => {
 
   useEffect(() => {
     if (liga) {
-      loadEventosFuturosPorLiga(liga);
+      loadEventosFuturosPorLiga(pais!, liga);
     }
-  }, [liga, loadEventosFuturosPorLiga]);
+  }, [pais, liga, loadEventosFuturosPorLiga]);
 
   // Procesar eventos para obtener los próximos 5 y agrupar por fechas
   const { proximosEventos, eventosPorFecha } = useMemo(() => {

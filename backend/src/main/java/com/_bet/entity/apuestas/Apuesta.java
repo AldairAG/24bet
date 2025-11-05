@@ -57,7 +57,6 @@ public class Apuesta {
      * Monto apostado
      */
     @NotNull(message = "El monto es obligatorio")
-    @DecimalMin(value = "0.01", message = "El monto debe ser mayor a 0")
     @Column(name = "monto", nullable = false)
     private Double monto;
 

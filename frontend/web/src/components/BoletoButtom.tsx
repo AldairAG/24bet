@@ -34,6 +34,7 @@ const BoletoButtom: React.FC = () => {
     esParlayValido,
     editarMontoApuestaParlay,
     apuestasParlay,
+    realizarParlayApuestas,
   } = useApuesta();
 
   // No mostrar si no hay apuestas
@@ -76,8 +77,13 @@ const BoletoButtom: React.FC = () => {
     }
 
     try {
+      if (betMode === 'PARLAY' && esParlayValido) {
+        await realizarParlayApuestas();
+        showNotification('success', 'Parlay realizado exitosamente');
+      } 
+
       await realizarApuestas();
-      showNotification('success', 'Apuestas realizadas exitosamente');
+      //showNotification('success', 'Apuestas realizadas exitosamente');
       // Contraer betSlip tras éxito
       setTimeout(() => setIsExpanded(false), 1500);
     } catch {
@@ -369,7 +375,7 @@ const BoletoButtom: React.FC = () => {
             </button>
             <button
               onClick={handleRealizarApuestas}
-              disabled={isRealizandoApuesta || boleto.length === 0 || boleto.some(apuesta => !apuesta.validaParaParlay)}
+              disabled={isRealizandoApuesta || boleto.length === 0 || (boleto.some(apuesta => !apuesta.validaParaParlay)&& betMode === 'PARLAY')}
               className="flex-2 bg-red-600 text-white py-2.5 px-4 rounded-lg text-sm font-semibold hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
             >
               {isRealizandoApuesta ? (
