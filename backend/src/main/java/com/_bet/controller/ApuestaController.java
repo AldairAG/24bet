@@ -3,6 +3,7 @@ package com._bet.controller;
 import com._bet.controller.AuthController.ApiResponseWrapper;
 import com._bet.dto.request.CrearApuestaRequest;
 import com._bet.dto.request.ParlayRequest;
+import com._bet.dto.response.ApuestaHistorialResponse;
 import com._bet.dto.response.ParlayResponse;
 import com._bet.entity.apuestas.Apuesta;
 import com._bet.entity.apuestas.Parlay;
@@ -21,6 +22,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 /**
  * Controlador REST para gestionar apuestas
@@ -158,6 +162,24 @@ public class ApuestaController {
             return ResponseEntity.ok(new ApiResponseWrapper<>(true, "Parlay obtenido exitosamente", parlay));
         } catch (Exception e) {
             log.error("Error obteniendo parlay: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(new ApiResponseWrapper<>(false, e.getMessage(), null));
+        }
+    }
+
+    @GetMapping("/historial")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponseWrapper<List<ApuestaHistorialResponse>>> getHistorialApuestas() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            Usuario usuario = (Usuario) authentication.getPrincipal();
+
+            log.info("Obteniendo historial de apuestas para usuario: {}", usuario.getId());
+
+            List<ApuestaHistorialResponse> historial = apuestaService.obtenerTodasLasApuestasPorUsuario(usuario);
+
+            return ResponseEntity.ok(new ApiResponseWrapper<>(true, "Historial obtenido exitosamente", historial));
+        } catch (Exception e) {
+            log.error("Error obteniendo historial de apuestas: {}", e.getMessage());
             return ResponseEntity.badRequest().body(new ApiResponseWrapper<>(false, e.getMessage(), null));
         }
     }

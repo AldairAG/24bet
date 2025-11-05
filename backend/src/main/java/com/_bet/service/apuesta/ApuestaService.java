@@ -1,20 +1,18 @@
 package com._bet.service.apuesta;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com._bet.dto.request.CrearApuestaRequest;
 import com._bet.dto.request.ParlayRequest;
+import com._bet.dto.response.ApuestaHistorialResponse;
 import com._bet.dto.response.ParlayResponse;
 import com._bet.entity.apuestas.Apuesta;
 import com._bet.entity.apuestas.Parlay;
@@ -244,4 +242,25 @@ public class ApuestaService {
                 .build();
     }
 
+    public List<ApuestaHistorialResponse> obtenerTodasLasApuestasPorUsuario(Usuario usuario) {
+        List<Apuesta> apuestas = apuestaRepository.findByUsuarioAndActivaTrue(usuario);
+        return apuestas.stream()
+                .map(this::convertirApuestaAHistorialResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Convierte una entidad Apuesta a ApuestaHistorialResponse
+     */
+    private ApuestaHistorialResponse convertirApuestaAHistorialResponse(Apuesta apuesta) {
+        return ApuestaHistorialResponse.builder()
+                .tipoApuesta(apuesta.getTipoApuesta())
+                .resultadoApostado(apuesta.getResultadoApostado())
+                .montoApostado(apuesta.getMonto())
+                .momio(apuesta.getMomio())
+                .estadoApuesta(apuesta.getEstado())
+                .fechaApuesta(apuesta.getFechaCreacion())
+                .nombreEvento(apuesta.getEventoDeportivo() != null ? apuesta.getEventoDeportivo().getNombre() : null)
+                .build();
+    }
 }
