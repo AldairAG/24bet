@@ -16,3 +16,16 @@ export interface CrearParlayApuestas {
     apuestas: CrearApuesta[];
     montoApostar: number;
 }
+
+export interface ApuestaHistorialResponse {
+    tipoApuesta: string;
+    montoApostado: number;
+    resultado: boolean;
+    fechaApuesta: string;
+    nombreEvento: string;
+    resultadoEvento: string;
+    resultadoApostado: string;
+    estadoApuesta: string;
+    momio: number;
+    descripcionResultado?: string;
+}

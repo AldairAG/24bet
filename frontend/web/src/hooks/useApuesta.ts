@@ -29,6 +29,10 @@ import {
     selectEsParlayValido,
     selectApuestasParlay,
     realizarParlayApuestaThunk,
+    selectIsObteniendoHistorial,
+    selectHistorialApuestas,
+    selectErrorObteniendoHistorial,
+    obtenerHistorialApuestasThunk,
 
 } from '../store/slices/apuestaSlice';
 
@@ -51,6 +55,9 @@ export const useApuesta = () => {
     const parlayGanancia = useSelector(selectParlayGanancia);
     const esParlayValido = useSelector(selectEsParlayValido);
     const apuestasParlay = useSelector(selectApuestasParlay);
+    const historialApuestas = useSelector(selectHistorialApuestas);
+    const isObteniendoHistorial = useSelector(selectIsObteniendoHistorial);
+    const errorObteniendoHistorial = useSelector(selectErrorObteniendoHistorial);
 
     // ========== ACCIONES DEL BOLETO ==========
     
@@ -230,6 +237,11 @@ export const useApuesta = () => {
         return { valido: true, mensaje: 'Boleto válido' };
     }, [hayApuestas, boleto]);
 
+    // ========== HISTORIAL ==========
+    const obtenerHistorialApuestas = useCallback(() => {
+        dispatch(obtenerHistorialApuestasThunk());
+    }, [dispatch]);
+
     // ========== RETORNO DEL HOOK ==========
     return {
         // Estado
@@ -241,6 +253,11 @@ export const useApuesta = () => {
         errorRealizandoApuesta,
         cantidadApuestas,
         hayApuestas,
+        // Historial
+        historialApuestas,
+        isObteniendoHistorial,
+        errorObteniendoHistorial,
+        obtenerHistorialApuestas,
         // Estado de Parlay
         parlayTotal,
         parlayGanancia,

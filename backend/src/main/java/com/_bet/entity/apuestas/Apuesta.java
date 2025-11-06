@@ -49,9 +49,14 @@ public class Apuesta {
     /**
      * Resultado apostado
      */
-    @Enumerated(EnumType.STRING)
     @Column(name = "resultado_apostado", nullable = true)
-    private ResultadoApuesta resultadoApostado;
+    private String resultadoApostado;
+
+    /**
+     * Descripcion del resultado apostado
+     */
+    @Column(name = "descripcion_resultado", nullable = true)
+    private String descripcionResultado;
 
     /**
      * Monto apostado
@@ -153,16 +158,6 @@ public class Apuesta {
         RESULTADO_EXACTO,
         PRIMER_TIEMPO,
         AMBOS_ANOTAN
-    }
-
-    public enum ResultadoApuesta {
-        LOCAL,
-        VISITANTE,
-        EMPATE,
-        OVER,
-        UNDER,
-        SI,
-        NO
     }
 
     public enum EstadoApuesta {
