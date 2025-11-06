@@ -21,6 +21,7 @@ import PerfilPage from './pages/usuario/perfil/PerfilPage'
 import HistorialApuestasPage from './pages/usuario/evento/HistorialApuestasPage'
 import DefaultPage from './pages/usuario/DefaultPage'
 import SoportePage from './pages/usuario/SoportePage'
+import DatosMaestros from './pages/admin/DatosMaestros'
 
 function App() {
 
@@ -56,6 +57,7 @@ function App() {
               <Route path={ROUTES.ADMIN_DASHBOARD} element={<AdminDashboard />} />
               <Route path={ROUTES.ADMIN_PETICIONES} element={<AdminPeticiones />} />
               <Route path={ROUTES.ADMIN_USUARIOS} element={<AdminUsuarios />} />
+              <Route path={ROUTES.ADMIN_DATOS_MAESTROS} element={<DatosMaestros />} />
               <Route path={`${ROUTES.ADMIN_USUARIOS_EDITAR}/:id`} element={<EditarUsuario />} />
             </Route>
           </Routes>
