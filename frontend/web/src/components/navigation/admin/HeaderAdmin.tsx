@@ -13,6 +13,11 @@ const HeaderAdmin: React.FC = () => {
       route: ROUTES.ADMIN_DASHBOARD
     },
     {
+      label: 'Datos Maestros',
+      path: `${ROUTES.ADMIN_CONTAINER}/${ROUTES.ADMIN_DATOS_MAESTROS}`,
+      route: ROUTES.ADMIN_DATOS_MAESTROS
+    },
+    {
       label: 'Peticiones',
       path: `${ROUTES.ADMIN_CONTAINER}/${ROUTES.ADMIN_PETICIONES}`,
       route: ROUTES.ADMIN_PETICIONES
