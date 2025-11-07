@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
-import type { ApuestaEnBoleto, CrearApuesta, CrearParlayApuestas } from '../../types/apuestasTypes';
+import type { ApuestaEnBoleto, ApuestaHistorialResponse, CrearApuesta, CrearParlayApuestas } from '../../types/apuestasTypes';
 import ApuestaService from '../../service/apuestaService';
 /**
  * Estado del slice de apuestas
@@ -9,10 +9,12 @@ interface ApuestaState {
     boleto: ApuestaEnBoleto[];
     // Estados de loading
     loading: {
+        obteniendoHistorial: boolean;
         realizandoApuesta: boolean;
     };
     // Estados de error
     error: {
+        obteniendoHistorial: string | null;
         realizandoApuesta: string | null;
     };
     // Estado de visibilidad del carrito (se muestra automáticamente si hay apuestas)
@@ -25,6 +27,7 @@ interface ApuestaState {
     parlayGanancia: number;
     esParlayValido: boolean;
     apuestasParlay?: number;
+    historialApuestas: ApuestaHistorialResponse[];
 }
 
 /**
@@ -33,9 +36,11 @@ interface ApuestaState {
 const initialState: ApuestaState = {
     boleto: [],
     loading: {
+        obteniendoHistorial: false,
         realizandoApuesta: false,
     },
     error: {
+        obteniendoHistorial: null,
         realizandoApuesta: null,
     },
     carritoVisible: false,
@@ -45,6 +50,7 @@ const initialState: ApuestaState = {
     parlayGanancia: 0,
     esParlayValido: false,
     apuestasParlay: 10,
+    historialApuestas: [],
 };
 
 /**
@@ -109,6 +115,22 @@ export const realizarParlayApuestaThunk = createAsyncThunk(
             return resultado;
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : 'Error al realizar el parlay de apuestas';
+            return rejectWithValue(errorMessage);
+        }
+    }
+);
+
+/**
+ * Thunk para obtener el historial de apuestas
+ */
+export const obtenerHistorialApuestasThunk = createAsyncThunk(
+    'apuesta/obtenerHistorialApuestas',
+    async (_, { rejectWithValue }) => {
+        try {
+            const resultado = await ApuestaService.obtenerHistorialApuestas();
+            return resultado.data;
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Error al obtener el historial de apuestas';
             return rejectWithValue(errorMessage);
         }
     }
@@ -343,6 +365,18 @@ const apuestaSlice = createSlice({
                 state.loading.realizandoApuesta = false;
                 state.error.realizandoApuesta = action.payload as string;
             });
+        builder
+            .addCase(obtenerHistorialApuestasThunk.pending, (state) => {
+                state.loading.obteniendoHistorial = true;
+            })
+            .addCase(obtenerHistorialApuestasThunk.fulfilled, (state, action) => {
+                state.loading.obteniendoHistorial = false;
+                state.historialApuestas = action.payload;
+            })
+            .addCase(obtenerHistorialApuestasThunk.rejected, (state, action) => {
+                state.loading.obteniendoHistorial = false;
+                state.error.obteniendoHistorial = action.payload as string;
+            });
     },
 });
 
@@ -368,6 +402,9 @@ export const selectIsRealizandoApuesta = (state: { apuesta: ApuestaState }) => s
 export const selectErrorRealizandoApuesta = (state: { apuesta: ApuestaState }) => state.apuesta.error.realizandoApuesta;
 export const selectCantidadApuestas = (state: { apuesta: ApuestaState }) => state.apuesta.boleto.length;
 export const selectApuestasParlay = (state: { apuesta: ApuestaState }) => state.apuesta.apuestasParlay;
+export const selectHistorialApuestas = (state: { apuesta: ApuestaState }) => state.apuesta.historialApuestas;
+export const selectIsObteniendoHistorial = (state: { apuesta: ApuestaState }) => state.apuesta.loading.obteniendoHistorial;
+export const selectErrorObteniendoHistorial = (state: { apuesta: ApuestaState }) => state.apuesta.error.obteniendoHistorial;
 
 // Selectores avanzados
 export const selectApuestaPorId = (state: { apuesta: ApuestaState }, id: number, eventoId: number) =>

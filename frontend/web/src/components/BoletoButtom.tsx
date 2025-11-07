@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useApuesta } from '../hooks/useApuesta';
 import type { ApuestaEnBoleto } from '../types/apuestasTypes';
 import { formatoCuota } from '../utils/formatHelper';
+import ApuestaHistorialItem from './item/ApuestaHistorialItem';
 
 type TabType = 'CARRITO' | 'HISTORIAL';
 type BetModeType = 'INDIVIDUAL' | 'PARLAY';
@@ -13,6 +14,7 @@ const BoletoButtom: React.FC = () => {
   // Estado copiado del antiguo modal
   const [activeTab, setActiveTab] = useState<TabType>('CARRITO');
   const [betMode, setBetMode] = useState<BetModeType>('INDIVIDUAL');
+  const [historialTab, setHistorialTab] = useState<'APUESTAS' | 'PARLAYS'>('APUESTAS');
   const [montos, setMontos] = useState<{ [key: string]: string }>({});
   const [notification, setNotification] = useState<{
     type: 'success' | 'error' | 'warning';
@@ -35,7 +37,19 @@ const BoletoButtom: React.FC = () => {
     editarMontoApuestaParlay,
     apuestasParlay,
     realizarParlayApuestas,
+    obtenerHistorialApuestas,
+    historialApuestas,
+    isObteniendoHistorial,
+    errorObteniendoHistorial,
   } = useApuesta();
+
+  useEffect(() => {
+    if (historialTab === 'APUESTAS') {
+      obtenerHistorialApuestas();
+    } else {
+      // Aquí podrías agregar la lógica para obtener el historial de parlays si es necesario
+    }
+  }, [obtenerHistorialApuestas, historialTab]);
 
   // No mostrar si no hay apuestas
   if (cantidadApuestas === 0) {
@@ -80,7 +94,7 @@ const BoletoButtom: React.FC = () => {
       if (betMode === 'PARLAY' && esParlayValido) {
         await realizarParlayApuestas();
         showNotification('success', 'Parlay realizado exitosamente');
-      } 
+      }
 
       await realizarApuestas();
       //showNotification('success', 'Apuestas realizadas exitosamente');
@@ -180,7 +194,7 @@ const BoletoButtom: React.FC = () => {
               return (
                 <div key={key} className={`${apuesta.validaParaParlay ? '' : 'bg-red-50'} flex items-center justify-between p-3 ${index < boleto.length - 1 ? 'border-b border-gray-100' : ''}`}>
                   <div className="flex-1 min-w-0">
-                    
+
                     <p className="text-sm font-medium text-gray-900 truncate">{apuesta.eventoName} </p>
                     <div className="flex items-center space-x-2 mt-1">
                       <span className="bg-gray-100 text-gray-800 px-1.5 py-0.5 rounded text-xs">
@@ -375,7 +389,7 @@ const BoletoButtom: React.FC = () => {
             </button>
             <button
               onClick={handleRealizarApuestas}
-              disabled={isRealizandoApuesta || boleto.length === 0 || (boleto.some(apuesta => !apuesta.validaParaParlay)&& betMode === 'PARLAY')}
+              disabled={isRealizandoApuesta || boleto.length === 0 || (boleto.some(apuesta => !apuesta.validaParaParlay) && betMode === 'PARLAY')}
               className="flex-2 bg-red-600 text-white py-2.5 px-4 rounded-lg text-sm font-semibold hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
             >
               {isRealizandoApuesta ? (
@@ -393,16 +407,85 @@ const BoletoButtom: React.FC = () => {
     </div>
   );
 
-  const renderHistorialContent = () => (
-    <div className="text-center py-12">
-      <div className="w-16 h-16 mx-auto bg-gray-200 rounded-full flex items-center justify-center mb-4">
-        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
+  const renderHistorialApuestas = () => {
+    if (isObteniendoHistorial) {
+      return (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-red-600 mx-auto mb-4"></div>
+          <p className="text-gray-500">Cargando historial de apuestas...</p>
+        </div>
+      );
+    }
+
+    if (errorObteniendoHistorial) {
+      return (
+        <div className="text-center py-12">
+          <p className="text-red-500">Error al obtener el historial de apuestas</p>
+        </div>
+      );
+    }
+
+    if (historialApuestas.length == 0) {
+      <div className="text-center py-12">
+        <div className="w-16 h-16 mx-auto bg-gray-200 rounded-full flex items-center justify-center mb-4">
+          <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+        </div>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">Historial de Apuestas</h3>
+        <p className="text-gray-500">Aun no tienes apuestas recientes</p>
       </div>
-      <h3 className="text-lg font-medium text-gray-900 mb-2">Historial de Apuestas</h3>
-      <p className="text-gray-500">Aquí aparecerán tus apuestas realizadas</p>
-    </div>
+    }
+
+    return (
+      <div className="space-y-4">
+        {historialApuestas.map((apuesta,index) => (
+          <ApuestaHistorialItem key={index} apuesta={apuesta} />
+        ))}
+      </div>
+    );
+  }
+
+  const renderHistorialContent = () => (
+    <>
+      <div className="border-b border-slate-200 mb-6">
+        <nav className="flex space-x-6 text-sm font-medium">
+          <button
+            onClick={() => setHistorialTab('APUESTAS')}
+            className={`pb-3 px-1 border-b-2 transition-colors ${historialTab === 'APUESTAS'
+              ? 'border-red-900 text-red-900'
+              : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              }`}
+          >
+            Apuestas
+          </button>
+          <button
+            onClick={() => setHistorialTab('PARLAYS')}
+            className={`pb-3 px-1 border-b-2 transition-colors ${historialTab === 'PARLAYS'
+              ? 'border-red-900 text-red-900'
+              : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              }`}
+          >
+            Parlays
+          </button>
+        </nav>
+      </div>
+
+      {historialTab === 'APUESTAS' ? (
+        renderHistorialApuestas()
+      ) : (
+        <div className="text-center py-12">
+          <div className="w-16 h-16 mx-auto bg-gray-200 rounded-full flex items-center justify-center mb-4">
+            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h4" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13l4 4m0 0l4-4m-4 4V9" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Historial de Parlays</h3>
+          <p className="text-gray-500">Aquí aparecerán tus parlays realizados</p>
+        </div>
+      )}
+    </>
   );
 
   // UI principal
