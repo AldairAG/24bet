@@ -28,9 +28,11 @@ public class ApiSportsScheduledTasks {
         log.info("🔄 Sincronización automática de eventos diarios");
 
         try {
-            java.util.Calendar calendar = java.util.Calendar.getInstance();
-            calendar.add(java.util.Calendar.DAY_OF_YEAR, 7);
-            apiSportService.obtenerEventosByDate(calendar.getTime());
+            for (String deporte : ApiSportService.URLS_POR_DEPORTE.keySet()) {
+                java.util.Calendar calendar = java.util.Calendar.getInstance();
+                calendar.add(java.util.Calendar.DAY_OF_YEAR, 7);
+                apiSportService.obtenerEventosByDate(calendar.getTime(), deporte);
+            }
             log.info("✅ Sincronización automática completada exitosamente");
         } catch (Exception e) {
             log.error("❌ Error en la sincronización automática: {}", e.getMessage(), e);

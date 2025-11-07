@@ -7,6 +7,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com._bet.entity.soporte.Tiket;
 import com._bet.entity.transacciones.TransaccionCrypto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -103,7 +104,12 @@ public class Usuario implements UserDetails {
     
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<TransaccionCrypto> transacciones;
+
+    // ========== RELACIÓN CON TIKETS ==========
     
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Tiket> tikets;
+
     @PrePersist
     protected void onCreate() {
         fechaCreacion = LocalDateTime.now();

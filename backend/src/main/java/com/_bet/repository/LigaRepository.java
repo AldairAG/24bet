@@ -84,4 +84,9 @@ public interface LigaRepository extends JpaRepository<Liga, Long> {
      * Comprobar si existe una liga por su ID en ApiSports
      */
     boolean existsByApiSportsId(int apiSportsId);
+
+    /**
+     * Busca ligas activas por nombre de deporte
+     */
+    List<Liga> findByDeporteNombreAndActivaTrue(String deporteNombre);
 }

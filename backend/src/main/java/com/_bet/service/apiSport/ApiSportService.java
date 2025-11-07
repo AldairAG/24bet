@@ -14,7 +14,6 @@ import com._bet.dto.apiSports.entidades.Odds.Bet;
 import com._bet.dto.apiSports.entidades.Odds.Value;
 import com._bet.dto.apiSports.response.EventsByLeagueResponse;
 import com._bet.dto.apiSports.response.LeagueBySeasonResponse;
-import com._bet.dto.apiSports.response.OddsLiveResponse;
 import com._bet.dto.apiSports.response.OddsResponse;
 import com._bet.dto.apiSports.response.Response;
 import com._bet.dto.apiSports.response.TeamByLeagueResponse;
@@ -49,6 +48,7 @@ import java.util.stream.Collectors;
 import org.springframework.core.ParameterizedTypeReference;
 
 import lombok.RequiredArgsConstructor;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
@@ -63,8 +63,18 @@ public class ApiSportService {
     private final LigaRepository ligaRepository;
     private final EquipoRepository equipoRepository;
     private final MomioRepository momioRepository;
-    String urlEventosEnVivo = "https://v3.football.api-sports.io/fixtures?live=all";
-    String urlOddsEnVivo = "https://v3.football.api-sports.io/odds/live";
+
+    public static final Map<String, String> URLS_POR_DEPORTE = Map.ofEntries(
+            Map.entry("SOCCER", "https://v3.football.api-sports.io"),
+            Map.entry("BASKETBALL", "https://v1.basketball.api-sports.io"),
+            Map.entry("BASEBALL", "https://v1.baseball.api-sports.io"),
+            Map.entry("FORMULA1", "https://v1.formula-1.api-sports.io"),
+            Map.entry("HOCKEY", "https://v1.hockey.api-sports.io"),
+            Map.entry("MMA", "https://v1.mma.api-sports.io"),
+            Map.entry("NBA", "https://v2.nba.api-sports.io"),
+            Map.entry("AMERICAN_FOOTBALL", "https://v1.american-football.api-sports.io"),
+            Map.entry("RUGBY", "https://v1.rugby.api-sports.io"),
+            Map.entry("VOLLEYBALL", "https://v1.volleyball.api-sports.io"));
 
     /**
      * Metodo get base para consumir la API de ApiSport
@@ -95,9 +105,11 @@ public class ApiSportService {
      */
     @Async
     @Transactional
-    public void getLeaguesBySeason() {
+    public CompletableFuture<Integer> getLeaguesBySeason(String deporte) {
+        String deporteKey = (deporte == null || deporte.isBlank()) ? "SOCCER" : deporte.toUpperCase();
+
         int season = java.time.Year.now().getValue();
-        String url = "https://v3.football.api-sports.io/leagues?season=" + season + "&current=true";
+        String url = URLS_POR_DEPORTE.get(deporteKey) + "/leagues?season=" + season + "&current=true";
         Response<LeagueBySeasonResponse> response = getFromSportApi(
                 url,
                 new ParameterizedTypeReference<Response<LeagueBySeasonResponse>>() {
@@ -123,15 +135,17 @@ public class ApiSportService {
 
         response = filteredResponse;
 
-        saveLeagues(response.getResponse());
-
+        int ligasGuardadas = saveLeagues(response.getResponse());
+        
+        return CompletableFuture.completedFuture(ligasGuardadas);
     }
 
-    private void saveLeagues(List<LeagueBySeasonResponse> leagues) {
-        leagues.forEach(league -> {
-
+    private int saveLeagues(List<LeagueBySeasonResponse> leagues) {
+        int ligasGuardadas = 0;
+        
+        for (LeagueBySeasonResponse league : leagues) {
             if (ligaRepository.existsByApiSportsId(league.getLeague().getId())) {
-                return;
+                continue;
             }
 
             Deporte deporte = deporteRepository.findByNombre("Soccer")
@@ -161,7 +175,10 @@ public class ApiSportService {
 
             newLiga.setPais(country);
             ligaRepository.save(newLiga);
-        });
+            ligasGuardadas++;
+        }
+        
+        return ligasGuardadas;
     }
 
     /*
@@ -169,31 +186,38 @@ public class ApiSportService {
      */
     @Async
     @Transactional
-    public void getTeamsByLeague() {
+    public CompletableFuture<Integer> getTeamsByLeague(String deporte) {
+        String deporteKey = (deporte == null || deporte.isBlank()) ? "SOCCER" : deporte.toUpperCase();
         int season = java.time.Year.now().getValue();
-        List<Liga> activeLeagues = ligaRepository.findByActivaTrue();
+        List<Liga> activeLeagues = ligaRepository.findByDeporteNombreAndActivaTrue(deporteKey);
 
+        int totalEquiposGuardados = 0;
+        
         for (Liga league : activeLeagues) {
             Integer leagueId = league.getApiSportsId();
 
-            String url = "https://v3.football.api-sports.io/teams?league=" + leagueId + "&season=" + season;
+            String url = URLS_POR_DEPORTE.get(deporteKey) + "/teams?league=" + leagueId + "&season=" + season;
             Response<TeamByLeagueResponse> response = getFromSportApi(url,
                     new ParameterizedTypeReference<Response<TeamByLeagueResponse>>() {
                     });
 
-            saveTeams(response, leagueId); // Implementa este método para guardar los equipos y estadios
+            totalEquiposGuardados += saveTeams(response, leagueId);
 
         }
+        
+        return CompletableFuture.completedFuture(totalEquiposGuardados);
     }
 
-    private void saveTeams(Response<TeamByLeagueResponse> response, int leagueId) {
-        response.getResponse().forEach(teamByLeague -> {
+    private int saveTeams(Response<TeamByLeagueResponse> response, int leagueId) {
+        int equiposGuardados = 0;
+        
+        for (TeamByLeagueResponse teamByLeague : response.getResponse()) {
             if (equipoRepository.existsByApiSportsId(teamByLeague.getTeam().getId())) {
-                return;
+                continue;
             }
 
             if (!ligaRepository.existsByApiSportsId(leagueId)) {
-                return;
+                continue;
             }
 
             Liga liga = ligaRepository.findByApiSportsId(leagueId)
@@ -208,17 +232,25 @@ public class ApiSportService {
                     .build();
 
             equipoRepository.save(newTeam);
-        });
+            equiposGuardados++;
+        }
+        
+        return equiposGuardados;
     }
 
+    /**
+     * Metodo para sincronizar datos maestros
+     * 
+     * @deprecated
+     */
     public void sincronizarDatosMaestros() {
         // getLeaguesBySeason();
         // getTeamsByLeague();
         // Obtener eventos de los próximos 7 días a partir de mañana
-        LocalDateTime tomorrow = LocalDateTime.now().plusDays(1);
+        //LocalDateTime tomorrow = LocalDateTime.now().plusDays(1);
         for (int i = 0; i < 7; i++) {
-            LocalDateTime targetDate = tomorrow.plusDays(i);
-            Date date = Date.from(targetDate.atZone(ZoneId.systemDefault()).toInstant());
+            //LocalDateTime targetDate = tomorrow.plusDays(i);
+            //Date date = Date.from(targetDate.atZone(ZoneId.systemDefault()).toInstant());
             // obtenerEventosByDate(date);
         }
     }
@@ -328,10 +360,11 @@ public class ApiSportService {
      * Metodo para obtener eventos de hoy que aun no suceden o estan en vivo
      */
     @Async
-    public void obtenerEventosByDate(Date date) {
+    public CompletableFuture<Integer> obtenerEventosByDate(Date date, String deporte) {
         String fechaActual = new java.text.SimpleDateFormat("yyyy-MM-dd").format(date);
 
-        String url = "https://v3.football.api-sports.io/fixtures?season=2025&date=" + fechaActual + "&status=NS";
+        String url = URLS_POR_DEPORTE.get(deporte) + "/fixtures?season=2025&date=" + fechaActual
+                + "&status=NS&timezone=America%2FMexico_City";
         Response<EventsByLeagueResponse> response = getFromSportApi(url,
                 new ParameterizedTypeReference<Response<EventsByLeagueResponse>>() {
                 });
@@ -372,14 +405,15 @@ public class ApiSportService {
         Response<OddsResponse> finalOddsResponse = new Response<>();
         finalOddsResponse.setResponse(allOdds);
 
-        procesarEventoOdds(finalOddsResponse, response);
+        int eventosGuardados = procesarEventoOdds(finalOddsResponse, response);
 
-        System.out.println("Eventos procesados para la fecha: " + fechaActual);
+        System.out.println("Eventos procesados para la fecha: " + fechaActual + " - Total guardados: " + eventosGuardados);
 
+        return CompletableFuture.completedFuture(eventosGuardados);
     }
 
     @Transactional
-    private void procesarEventoOdds(Response<OddsResponse> oddsResponse,
+    private int procesarEventoOdds(Response<OddsResponse> oddsResponse,
             Response<EventsByLeagueResponse> eventsResponse) {
         // Crear un Set con los IDs de fixtures que tienen odds
         Set<Integer> fixturesWithOdds = oddsResponse.getResponse().stream()
@@ -391,22 +425,24 @@ public class ApiSportService {
                 .filter(event -> fixturesWithOdds.contains(event.getFixture().getId()))
                 .collect(Collectors.toList());
 
+        int eventosGuardados = 0;
+        
         // Procesar solo los eventos filtrados
-        filteredEvents.forEach(eventByLeague -> {
+        for (EventsByLeagueResponse eventByLeague : filteredEvents) {
             if (eventoDeportivoRepository.existsByApiSportsId(eventByLeague.getFixture().getId())) {
-                return; // Continuar con el siguiente evento
+                continue; // Continuar con el siguiente evento
             }
 
             if (!ligaRepository.existsByApiSportsId(eventByLeague.getLeague().getId())) {
-                return; // Continuar con el siguiente evento
+                continue; // Continuar con el siguiente evento
             }
 
             if (!equipoRepository.existsByApiSportsId(eventByLeague.getTeams().getHome().getId())) {
-                return; // Continuar con el siguiente evento
+                continue; // Continuar con el siguiente evento
             }
 
             if (!equipoRepository.existsByApiSportsId(eventByLeague.getTeams().getAway().getId())) {
-                return; // Continuar con el siguiente evento
+                continue; // Continuar con el siguiente evento
             }
 
             if (eventByLeague != null) {
@@ -417,8 +453,11 @@ public class ApiSportService {
                         .orElse(null);
 
                 ConvertirAEventoDeportivo(eventByLeague, matchingOdds);
+                eventosGuardados++;
             }
-        });
+        }
+        
+        return eventosGuardados;
     }
 
     private EventoDeportivo ConvertirAEventoDeportivo(EventsByLeagueResponse eventByLeague, OddsResponse matchingOdds) {
@@ -497,37 +536,53 @@ public class ApiSportService {
      * Metodo para obtener eventos en vivo por deporte y odds en vivo
      */
     @Async
-    public void obtenerEventosEnVivo() {
+    public void obtenerEventosEnVivo(String deporte) {
+        String deporteKey = (deporte == null || deporte.isBlank()) ? "SOCCER" : deporte.toUpperCase();
+        String baseUrl = URLS_POR_DEPORTE.get(deporteKey);
+        if (baseUrl == null) {
+            return;
+        }
+
+        String urlEventosEnVivo = baseUrl + "/fixtures?live=all";
+        String urlOddsEnVivo = baseUrl + "/odds/live";
+
         Response<EventsByLeagueResponse> eventosResponse = getFromSportApi(urlEventosEnVivo,
                 new ParameterizedTypeReference<Response<EventsByLeagueResponse>>() {
                 });
 
-        Response<OddsLiveResponse> oddsEnVivoResponse = getFromSportApi(urlOddsEnVivo,
-                new ParameterizedTypeReference<Response<OddsLiveResponse>>() {
-                });
+        /*
+         * Response<OddsLiveResponse> oddsEnVivoResponse =
+         * getFromSportApi(urlOddsEnVivo,
+         * new ParameterizedTypeReference<Response<OddsLiveResponse>>() {
+         * });
+         */
 
         eventosResponse.getResponse().forEach(eventoEnVivo -> {
             EventoDeportivo existingEvent = eventoDeportivoRepository
                     .findByApiSportsId(eventoEnVivo.getFixture().getId());
 
             if (existingEvent != null) {
-                // Actualiza el estado del evento existente
                 existingEvent.getEstado().setLargo(eventoEnVivo.getFixture().getStatus().getLongStatus());
                 existingEvent.getEstado().setCorto(eventoEnVivo.getFixture().getStatus().getShortStatus());
                 existingEvent.getEstado().setElapsed(eventoEnVivo.getFixture().getStatus().getElapsed());
                 existingEvent.getEstado().setExtra(eventoEnVivo.getFixture().getStatus().getExtra());
                 existingEvent.setFechaActualizacion(LocalDateTime.now());
 
-                //Actualizacion de goles
-                existingEvent.getGoles().setLocales(eventoEnVivo.getScore().getFulltime().getHome() != null ? eventoEnVivo.getScore().getFulltime().getHome() : 0);
-                existingEvent.getGoles().setVisitantes(eventoEnVivo.getScore().getFulltime().getAway() != null ? eventoEnVivo.getScore().getFulltime().getAway() : 0);
+                existingEvent.getGoles()
+                        .setLocales(eventoEnVivo.getScore().getFulltime().getHome() != null
+                                ? eventoEnVivo.getScore().getFulltime().getHome()
+                                : 0);
+                existingEvent.getGoles()
+                        .setVisitantes(eventoEnVivo.getScore().getFulltime().getAway() != null
+                                ? eventoEnVivo.getScore().getFulltime().getAway()
+                                : 0);
 
                 existingEvent.getGoles().getFulltime().setLocales(eventoEnVivo.getScore().getFulltime().getHome());
                 existingEvent.getGoles().getFulltime().setVisitantes(eventoEnVivo.getScore().getFulltime().getAway());
 
                 existingEvent.getGoles().getExtratime().setLocales(eventoEnVivo.getScore().getExtratime().getHome());
                 existingEvent.getGoles().getExtratime().setVisitantes(eventoEnVivo.getScore().getExtratime().getAway());
-                
+
                 existingEvent.getGoles().getPenalty().setLocales(eventoEnVivo.getScore().getPenalty().getHome());
                 existingEvent.getGoles().getPenalty().setVisitantes(eventoEnVivo.getScore().getPenalty().getAway());
             }

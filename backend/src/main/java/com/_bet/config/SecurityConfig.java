@@ -73,6 +73,7 @@ public class SecurityConfig {
                         .requestMatchers("/24bet/eventos/**").permitAll()
                         .requestMatchers("/24bet/apuestas/**").permitAll()
                         .requestMatchers("/24bet/admin/**").permitAll()
+                        .requestMatchers("/24bet/soporte/").permitAll()
 
                         // Swagger y documentación
                         //.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
