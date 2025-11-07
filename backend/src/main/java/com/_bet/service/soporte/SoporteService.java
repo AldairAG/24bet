@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com._bet.dto.request.NuevoComentarioRequest;
 import com._bet.entity.soporte.Comentario;
@@ -17,6 +18,7 @@ public class SoporteService {
     @Autowired
     private TiketRepository tiketRepository;
 
+    @Transactional
     public Tiket crearTiket(Tiket tiket, Usuario usuario) {
         tiket.setUsuario(usuario);
         tiket.setFechaCreacion(LocalDateTime.now());
@@ -26,23 +28,28 @@ public class SoporteService {
         return tiket;
     }
 
+    @Transactional
     public Tiket actualizarTiket(Tiket tiket) {
         tiketRepository.save(tiket);
         return tiket;
     }
 
+    @Transactional(readOnly = true)
     public Tiket obtenerTiketPorId(Long id) {
         return tiketRepository.findById(id).orElseThrow(() -> new RuntimeException("Tiket no encontrado"));
     }
 
+    @Transactional(readOnly = true)
     public List<Tiket> obtenerTiketsPorUsuario(Usuario usuario) {
         return tiketRepository.findByUsuario(usuario);
     }
 
+    @Transactional(readOnly = true)
     public List<Tiket> obtenerTodosLosTiketsCreadosYEnProgreso() {
         return tiketRepository.findByEstadoIn(List.of(Tiket.estadoTiket.CREADO, Tiket.estadoTiket.EN_PROGRESO));
     }
 
+    @Transactional
     public Comentario publicarComentarioEnTiket(NuevoComentarioRequest comentarioRequest) {
         Tiket tiket = obtenerTiketPorId(comentarioRequest.getTiketId());
 
