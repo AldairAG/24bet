@@ -13,6 +13,7 @@ import com._bet.service.evento.EventoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Date;
@@ -156,6 +157,7 @@ public class EventosController {
     }
 
     @PostMapping("/datosMaestros/ligas/{deporteNombre}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponseWrapper<Integer>> obtenerLigas(@PathVariable String deporteNombre) {
         try {
             int result = apiSportService.getLeaguesBySeason(deporteNombre).join();
@@ -167,6 +169,7 @@ public class EventosController {
     }
 
     @PostMapping("/datosMaestros/equipos/{deporteNombre}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponseWrapper<Integer>> obtenerEquipos(@PathVariable String deporteNombre) {
         try {
             int result = apiSportService.getTeamsByLeague(deporteNombre).join();
@@ -178,6 +181,7 @@ public class EventosController {
     }
 
     @PostMapping("/datosMaestros/eventos-por-fecha/{deporteNombre}/{fecha}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponseWrapper<Integer>> obtenerEventosPorFecha(@PathVariable String deporteNombre, @PathVariable String fecha) {
         try {
             Date fechaDate = Date.valueOf(fecha);
