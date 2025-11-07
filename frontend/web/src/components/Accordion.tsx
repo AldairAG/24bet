@@ -8,6 +8,7 @@ interface AccordionProps {
   banderaPais?: string;
   ligas: LigaPorDeporteDetalleResponse[];
   defaultOpen?: boolean;
+  isAdmin?: boolean;
 }
 
 interface AccordionItemProps {
@@ -40,14 +41,19 @@ const Accordion: React.FC<AccordionProps> = ({
   title, 
   banderaPais, 
   ligas, 
-  defaultOpen = false 
+  defaultOpen = false,
+  isAdmin = false 
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const navigate = useNavigate();
   const { deporte } = useParams<{ deporte: string }>();
 
   const handleLigaClick = (liga: LigaPorDeporteDetalleResponse) => {
-    navigate(`${ROUTES.USER_LIGA(deporte!, liga.paisNombre, liga.nombre)}`);
+    if (isAdmin) {
+      navigate(`${ROUTES.ADMIN_CONTAINER}/liga/${liga.paisNombre}/${liga.nombre}`);
+    } else {
+      navigate(`${ROUTES.USER_LIGA(deporte!, liga.paisNombre, liga.nombre)}`);
+    }
   };
 
   return (

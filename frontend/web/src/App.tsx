@@ -22,6 +22,7 @@ import HistorialApuestasPage from './pages/usuario/evento/HistorialApuestasPage'
 import DefaultPage from './pages/usuario/DefaultPage'
 import SoportePage from './pages/usuario/SoportePage'
 import DatosMaestros from './pages/admin/DatosMaestros'
+import LigaAdmin from './pages/admin/LigaAdmin'
 
 function App() {
 
@@ -58,6 +59,7 @@ function App() {
               <Route path={ROUTES.ADMIN_PETICIONES} element={<AdminPeticiones />} />
               <Route path={ROUTES.ADMIN_USUARIOS} element={<AdminUsuarios />} />
               <Route path={ROUTES.ADMIN_DATOS_MAESTROS} element={<DatosMaestros />} />
+              <Route path={`${ROUTES.ADMIN_CONTAINER}/liga/:pais/:liga`} element={<LigaAdmin />} />
               <Route path={`${ROUTES.ADMIN_USUARIOS_EDITAR}/:id`} element={<EditarUsuario />} />
             </Route>
           </Routes>

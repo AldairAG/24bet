@@ -24,4 +24,5 @@ export const ROUTES = {
   ADMIN_USUARIOS_EDITAR: 'usuarios/editar', // Ruta relativa para anidación
   ADMIN_EVENTOS: 'eventos', // Ruta relativa para anidación
   ADMIN_DATOS_MAESTROS: 'datos-maestros', // Ruta relativa para anidación
+  ADMIN_LIGAS: 'ligas', // Ruta relativa para anidación
 }
