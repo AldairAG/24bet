@@ -28,4 +28,15 @@ export interface ApuestaHistorialResponse {
     estadoApuesta: string;
     momio: number;
     descripcionResultado?: string;
+    parlayId?: number;
+}
+
+export interface ParlayHistorialResponse {
+    id: number;
+    montoApostado: number;
+    resultado: string;
+    fechaApuesta: string;
+    momioTotal: number;
+    estado: string;
+    apuestas: ApuestaHistorialResponse[];
 }

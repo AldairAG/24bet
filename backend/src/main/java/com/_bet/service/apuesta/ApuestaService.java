@@ -7,12 +7,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com._bet.dto.request.CrearApuestaRequest;
 import com._bet.dto.request.ParlayRequest;
 import com._bet.dto.response.ApuestaHistorialResponse;
+import com._bet.dto.response.ParlayHistorialResponse;
 import com._bet.dto.response.ParlayResponse;
 import com._bet.entity.apuestas.Apuesta;
 import com._bet.entity.apuestas.Parlay;
@@ -175,14 +175,29 @@ public class ApuestaService {
         }
 
         /**
-         * Obtiene el historial de parlays de un usuario (paginado)
+         * Obtiene el historial de parlays de un usuario
          */
-        public List<ParlayResponse> obtenerHistorialParlays(Long usuarioId, Pageable pageable) {
+        public List<ParlayHistorialResponse> obtenerHistorialParlays(Long usuarioId) {
                 List<Parlay> parlays = parlayRepository.findByUsuarioIdOrderByFechaCreacionDesc(usuarioId);
 
                 return parlays.stream()
-                                .map(parlay -> convertirParlayAResponse(parlay, parlay.getApuestas()))
+                                .map(parlay -> convertirParlayHistorialResponse(parlay))
                                 .collect(Collectors.toList());
+        }
+
+        private ParlayHistorialResponse convertirParlayHistorialResponse(Parlay parlay) {
+                List<ApuestaHistorialResponse> apuestasResponse = parlay.getApuestas().stream().
+                map(this::convertirApuestaAHistorialResponse).collect(Collectors.toList());
+
+                return ParlayHistorialResponse.builder()
+                                .id(parlay.getId())
+                                .montoApostado(parlay.getMontoTotal())
+                                .momioTotal(parlay.getMomioTotal().doubleValue())
+                                .estado(parlay.getEstado())
+                                .resultado(parlay.getResultadoFinal())
+                                .fechaApuesta(parlay.getFechaCreacion().toString())
+                                .apuestas(apuestasResponse)
+                                .build();
         }
 
         /**

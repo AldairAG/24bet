@@ -159,5 +159,6 @@ public class Parlay {
         GANADO,
         PERDIDO,
         CANCELADO,
+        PENDIENTE
     }
 }

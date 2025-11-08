@@ -1,5 +1,5 @@
 import { apiBase } from './apiBase';
-import type { ApuestaHistorialResponse, CrearApuesta, CrearParlayApuestas } from '../types/apuestasTypes';
+import type { ApuestaHistorialResponse, CrearApuesta, CrearParlayApuestas, ParlayHistorialResponse } from '../types/apuestasTypes';
 import type { ApiResponseWrapper } from '../types/authTypes';
 
 /**
@@ -42,6 +42,14 @@ class ApuestaService {
      */
     async obtenerHistorialApuestas(): Promise<ApiResponseWrapper<ApuestaHistorialResponse[]>> {
         const response = await apiBase.get<ApuestaHistorialResponse[]>(`${this.baseUrl}/historial`);
+        return response;
+    }
+
+    /**
+     * Obtiene el historial de parlays
+     */
+    async obtenerHistorialParlays(): Promise<ApiResponseWrapper<ParlayHistorialResponse[]>> {
+        const response = await apiBase.get<ParlayHistorialResponse[]>(`${this.baseUrl}/parlay/historial`);
         return response;
     }
 

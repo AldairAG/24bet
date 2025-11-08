@@ -4,6 +4,7 @@ import com._bet.controller.AuthController.ApiResponseWrapper;
 import com._bet.dto.request.CrearApuestaRequest;
 import com._bet.dto.request.ParlayRequest;
 import com._bet.dto.response.ApuestaHistorialResponse;
+import com._bet.dto.response.ParlayHistorialResponse;
 import com._bet.dto.response.ParlayResponse;
 import com._bet.entity.apuestas.Apuesta;
 import com._bet.entity.user.Usuario;
@@ -21,7 +22,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import org.springframework.web.bind.annotation.GetMapping;
 
 
 /**
@@ -106,14 +106,14 @@ public class ApuestaController {
      */
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/parlay/historial")
-    public ResponseEntity<ApiResponseWrapper<List<ParlayResponse>>> obtenerHistorialParlays(Pageable pageable) {
+    public ResponseEntity<ApiResponseWrapper<List<ParlayHistorialResponse>>> obtenerHistorialParlays() {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             Usuario usuario = (Usuario) authentication.getPrincipal();
             
             log.info("Obteniendo historial de parlays para usuario: {}", usuario.getId());
 
-            List<ParlayResponse> parlays = apuestaService.obtenerHistorialParlays(usuario.getId(), pageable);
+            List<ParlayHistorialResponse> parlays = apuestaService.obtenerHistorialParlays(usuario.getId());
 
             return ResponseEntity.ok(new ApiResponseWrapper<>(true, "Historial obtenido exitosamente", parlays));
         } catch (Exception e) {

@@ -33,6 +33,10 @@ import {
     selectHistorialApuestas,
     selectErrorObteniendoHistorial,
     obtenerHistorialApuestasThunk,
+    selectHistorialParlays,
+    selectIsObteniendoHistorialParlays,
+    selectErrorObteniendoHistorialParlays,
+    obtenerHistorialParlaysThunk,
 
 } from '../store/slices/apuestaSlice';
 
@@ -58,6 +62,9 @@ export const useApuesta = () => {
     const historialApuestas = useSelector(selectHistorialApuestas);
     const isObteniendoHistorial = useSelector(selectIsObteniendoHistorial);
     const errorObteniendoHistorial = useSelector(selectErrorObteniendoHistorial);
+    const historialParlays = useSelector(selectHistorialParlays);
+    const isObteniendoHistorialParlays = useSelector(selectIsObteniendoHistorialParlays);
+    const errorObteniendoHistorialParlays = useSelector(selectErrorObteniendoHistorialParlays);
 
     // ========== ACCIONES DEL BOLETO ==========
     
@@ -200,7 +207,7 @@ export const useApuesta = () => {
 
         
         return { valido: true, mensaje: '' };
-    }, [existeApuestaEnBoleto, obtenerApuestasPorEvento, boleto]);
+    }, [existeApuestaEnBoleto]);
 
     /**
      * Obtener resumen del boleto
@@ -242,6 +249,10 @@ export const useApuesta = () => {
         dispatch(obtenerHistorialApuestasThunk());
     }, [dispatch]);
 
+    const obtenerHistorialParlays = useCallback(() => {
+        dispatch(obtenerHistorialParlaysThunk());
+    }, [dispatch]);
+
     // ========== RETORNO DEL HOOK ==========
     return {
         // Estado
@@ -253,11 +264,18 @@ export const useApuesta = () => {
         errorRealizandoApuesta,
         cantidadApuestas,
         hayApuestas,
-        // Historial
+        // Historial de Apuestas
         historialApuestas,
         isObteniendoHistorial,
         errorObteniendoHistorial,
         obtenerHistorialApuestas,
+
+        // Historial de Parlays
+        historialParlays,
+        isObteniendoHistorialParlays,
+        errorObteniendoHistorialParlays,
+        obtenerHistorialParlays,
+
         // Estado de Parlay
         parlayTotal,
         parlayGanancia,
