@@ -10,6 +10,7 @@ import type {
 import axios from 'axios';
 import { apiBase } from './apiBase';
 import { type CreateCryptoWalletDto, TipoCrypto, type CryptoWalletDto, type SolicitudDepositoResponse, type SolicitudDepositoDto, type SolicitudRetiroDto, type SolicitudRetiroResponse } from '../types/walletTypes';
+import type { ApiResponseWrapper } from '../types/authTypes';
 
 // Tipo genérico para respuestas paginadas de Spring
 type PageResponse<T> = {
@@ -255,6 +256,23 @@ class WalletService {
             return this.unwrapApiResponse<PageResponse<unknown>>(raw);
         } catch (error) {
             console.error('Error fetching withdrawal requests:', error);
+            throw this.handleError(error);
+        }
+    }
+
+    /**
+     * Obtiene las solicitudes de depósito de un usuario
+     * @param usuarioId ID del usuario
+     * @returns Promise con la lista de solicitudes de depósito
+     */
+    async getSolicitudesDeposito(usuarioId: number): Promise<ApiResponseWrapper<SolicitudDepositoResponse[]>> {
+        try {
+            const response = await apiBase.get<SolicitudDepositoResponse[]>(
+                `${this.baseUrl}/usuario/${usuarioId}/solicitudes-deposito`
+            );
+            return response;
+        } catch (error) {
+            console.error('Error fetching deposit requests:', error);
             throw this.handleError(error);
         }
     }

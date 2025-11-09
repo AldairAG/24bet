@@ -44,7 +44,6 @@ public class AdminSolicitudesController {
     public ResponseEntity<SolicitudDeposito> aprobarDeposito(
             @PathVariable Long solicitudId,
             @RequestBody AprobarSolicitudDto dto) {
-        
         try {
             log.info("Aprobando solicitud de depósito: {} por admin: {}", solicitudId, dto.getAdminId());
             SolicitudDeposito solicitud = solicitudTransaccionService.aprobarSolicitudDeposito(

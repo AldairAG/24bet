@@ -204,12 +204,12 @@ public class CryptoWalletController {
      */
     @GetMapping("/usuario/{usuarioId}/solicitudes-deposito")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<Page<SolicitudDeposito>> obtenerSolicitudesDeposito(
-            @PathVariable Long usuarioId, Pageable pageable) {
+    public ResponseEntity<ApiResponseWrapper<List<SolicitudDeposito>>> obtenerSolicitudesDeposito(
+            @PathVariable Long usuarioId) {
         
         try {
-            Page<SolicitudDeposito> solicitudes = solicitudTransaccionService.obtenerSolicitudesDepositoPorUsuario(usuarioId, pageable);
-            return ResponseEntity.ok(solicitudes);
+            List<SolicitudDeposito> solicitudes = solicitudTransaccionService.obtenerSolicitudesDepositoPorUsuario(usuarioId);
+            return ResponseEntity.ok(new ApiResponseWrapper<>(true,solicitudes.size()+" Solicitudes de depósito obtenidas",solicitudes));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }

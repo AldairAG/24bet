@@ -26,12 +26,14 @@ interface WalletState {
     withdrawalRequestError: string | null;
     depositRequestResponse: SolicitudDepositoResponse | null;
     withdrawalRequestResponse: SolicitudRetiroResponse | null;
+    depositRequests: SolicitudDepositoResponse[] | null;
 
     // Estados de carga
     isCreatingWallet: boolean;
     isLoadingUserWallets: boolean;
     isDeactivatingWallet: boolean;
     isLoadingWithdrawalRequests: boolean;
+    isLoadingDepositRequests: boolean;
 
     // Datos
     createdWallet: CryptoWalletDto | null;
@@ -44,6 +46,7 @@ interface WalletState {
     loadUserWalletsError: string | null;
     deactivateWalletError: string | null;
     loadWithdrawalRequestsError: string | null;
+    loadDepositRequestsError: string | null;
 
     // Estados de validación
     validationError: string | null;
@@ -123,6 +126,9 @@ const initialState: WalletState = {
     rejectAdminWithdrawalError: null,
     adminStatsError: null,
     adminDashboardError: null,
+    loadDepositRequestsError: null,
+    depositRequests: null,
+    isLoadingDepositRequests: false,
 };
 
 // ========== THUNKS ASÍNCRONOS ==========
@@ -267,6 +273,23 @@ export const getWithdrawalRequests = createAsyncThunk<
             return response;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Error al cargar solicitudes de retiro';
+            return rejectWithValue(errorMessage);
+        }
+    }
+);
+
+export const getDepositRequests = createAsyncThunk<
+    SolicitudDepositoResponse[], // Tipo de retorno
+    number,
+    { rejectValue: string }
+>(
+    'wallet/getDepositRequests',
+    async (usuarioId, { rejectWithValue }) => {
+        try {
+            const response = await walletService.getSolicitudesDeposito(usuarioId);
+            return response.data;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Error al cargar solicitudes de depósito';
             return rejectWithValue(errorMessage);
         }
     }
@@ -615,6 +638,22 @@ const walletSlice = createSlice({
                 state.withdrawalRequests = [];
             });
 
+        builder
+            .addCase(getDepositRequests.pending, (state) => {
+                state.isLoadingDepositRequests = true;
+                state.loadDepositRequestsError = null;
+            })
+            .addCase(getDepositRequests.fulfilled, (state, action) => {
+                state.isLoadingDepositRequests = false;
+                state.depositRequests = action.payload;
+                state.loadDepositRequestsError = null;
+            })
+            .addCase(getDepositRequests.rejected, (state, action) => {
+                state.isLoadingDepositRequests = false;
+                state.loadDepositRequestsError = action.payload || 'Error al cargar solicitudes de depósito';
+                state.depositRequests = null;
+            });
+
         // ===== ADMIN: pending deposits =====
         builder
             .addCase(loadAdminDepositsPending.pending, (state) => {
@@ -779,7 +818,9 @@ export const selectValidationError = (state: { wallet: WalletState }) => state.w
 export const selectAvailableCryptoTypes = (state: { wallet: WalletState }) => state.wallet.availableCryptoTypes;
 export const selectIsCreatingDepositRequest = (state: { wallet: WalletState }) => state.wallet.isCreatingDepositRequest;
 export const selectIsCreatingWithdrawalRequest = (state: { wallet: WalletState }) => state.wallet.isCreatingWithdrawalRequest;
-
+export const selectIsLoadingDepositRequests = (state: { wallet: WalletState }) => state.wallet.isLoadingDepositRequests;
+export const selectLoadDepositRequestsError = (state: { wallet: WalletState }) => state.wallet.loadDepositRequestsError;
+export const selectDepositRequests = (state: { wallet: WalletState }) => state.wallet.depositRequests;
 
 export const selectDepositRequestState = (state: { wallet: WalletState }) => ({
     isCreating: state.wallet.isCreatingDepositRequest,

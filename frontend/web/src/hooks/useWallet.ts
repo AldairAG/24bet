@@ -68,6 +68,10 @@ import {
     // Helpers
     getCryptoDisplayName,
     validateWalletData,
+    selectDepositRequests,
+    selectLoadDepositRequestsError,
+    selectIsLoadingDepositRequests,
+    getDepositRequests,
 } from '../store/slices/walletSlice';
 
 /**
@@ -103,8 +107,19 @@ export const useWallet = () => {
     const adminDashboard = useSelector(selectAdminDashboard);
     const adminErrors = useSelector(selectAdminErrors);
     const adminLoading = useSelector(selectAdminLoading);
+    const depositRequests = useSelector(selectDepositRequests);
+    const isLoadingDepositRequests = useSelector(selectIsLoadingDepositRequests);
+    const loadDepositRequestsError = useSelector(selectLoadDepositRequestsError);
 
     // ========== ACCIONES PRINCIPALES ==========
+
+    const loadDepositRequests = useCallback(
+        async (usuarioId: number) => {
+            const result = await dispatch(getDepositRequests(usuarioId));
+            return result;
+        },
+        [dispatch]
+    );
 
     /**
      * Crea un nuevo wallet crypto para un usuario
@@ -123,7 +138,7 @@ export const useWallet = () => {
      * Carga los tipos de criptomonedas disponibles
      */
     const loadCryptoTypes = useCallback(async () => {
-    const result = await dispatch(loadAvailableCryptoTypes());
+        const result = await dispatch(loadAvailableCryptoTypes());
         return result;
     }, [dispatch]);
 
@@ -425,18 +440,20 @@ export const useWallet = () => {
         isCreatingWithdrawalRequest,
         isLoading: isCreatingWallet || isLoadingUserWallets || isDeactivatingWallet || isLoadingWithdrawalRequests || isCreatingDepositRequest || isCreatingWithdrawalRequest,
         loading: walletLoading,
+        isLoadingDepositRequests,
 
         // Datos
         createdWallet,
         userWallets,
         withdrawalRequests,
-    adminDepositsPending,
-    adminWithdrawalsPending,
-    adminStats,
-    adminDashboard,
+        adminDepositsPending,
+        adminWithdrawalsPending,
+        adminStats,
+        adminDashboard,
         availableCryptoTypes,
         depositRequestResponse: depositRequestState.response,
         withdrawalRequestResponse: withdrawalRequestState.response,
+        depositRequests,
 
         // Errores
         createWalletError,
@@ -447,9 +464,10 @@ export const useWallet = () => {
         depositRequestError: depositRequestState.error,
         withdrawalRequestError: withdrawalRequestState.error,
         errors: walletErrors,
-    adminErrors,
+        adminErrors,
         hasErrors: hasErrors(),
         allErrors: getAllErrors(),
+        loadDepositRequestsError,
 
         // Acciones principales
         createWallet,
@@ -459,15 +477,16 @@ export const useWallet = () => {
         deleteWallet,
         createDeposit,
         createWithdrawal,
-    // Admin thunks
-    loadAdminPendingDeposits,
-    loadAdminPendingWithdrawals,
-    approveDepositAdmin,
-    rejectDepositAdmin,
-    approveWithdrawalAdmin,
-    rejectWithdrawalAdmin,
-    loadAdminStats: loadAdminStatsAction,
-    loadAdminDashboard: loadAdminDashboardAction,
+        loadDepositRequests,
+        // Admin thunks
+        loadAdminPendingDeposits,
+        loadAdminPendingWithdrawals,
+        approveDepositAdmin,
+        rejectDepositAdmin,
+        approveWithdrawalAdmin,
+        rejectWithdrawalAdmin,
+        loadAdminStats: loadAdminStatsAction,
+        loadAdminDashboard: loadAdminDashboardAction,
 
         // Acciones de limpieza
         clearCreateError,
@@ -483,11 +502,11 @@ export const useWallet = () => {
         resetWalletState,
         clearDeposit,
         clearWithdrawal,
-    clearAdminDepositsError: clearAdminDepositsErr,
-    clearAdminWithdrawalsError: clearAdminWithdrawalsErr,
-    clearAdminOperationErrors: clearAdminOpsErr,
-    clearAdminStatsError: clearAdminStatsErr,
-    clearAdminDashboardError: clearAdminDashboardErr,
+        clearAdminDepositsError: clearAdminDepositsErr,
+        clearAdminWithdrawalsError: clearAdminWithdrawalsErr,
+        clearAdminOperationErrors: clearAdminOpsErr,
+        clearAdminStatsError: clearAdminStatsErr,
+        clearAdminDashboardError: clearAdminDashboardErr,
 
         // Funciones auxiliares
         validateWallet,

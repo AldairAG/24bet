@@ -38,12 +38,14 @@ public interface SolicitudDepositoRepository extends JpaRepository<SolicitudDepo
     /**
      * Busca solicitudes por usuario y estado
      */
-    List<SolicitudDeposito> findByUsuarioAndEstadoOrderByFechaSolicitudDesc(Usuario usuario, SolicitudDeposito.EstadoSolicitud estado);
+    List<SolicitudDeposito> findByUsuarioAndEstadoOrderByFechaSolicitudDesc(Usuario usuario,
+            SolicitudDeposito.EstadoSolicitud estado);
 
     /**
      * Busca solicitudes por rango de fechas
      */
-    List<SolicitudDeposito> findByFechaSolicitudBetweenOrderByFechaSolicitudDesc(LocalDateTime inicio, LocalDateTime fin);
+    List<SolicitudDeposito> findByFechaSolicitudBetweenOrderByFechaSolicitudDesc(LocalDateTime inicio,
+            LocalDateTime fin);
 
     /**
      * Busca solicitudes por método de pago
@@ -87,7 +89,8 @@ public interface SolicitudDepositoRepository extends JpaRepository<SolicitudDepo
      * Busca solicitudes recientes de un usuario (últimas 24 horas)
      */
     @Query("SELECT s FROM SolicitudDeposito s WHERE s.usuario = :usuario AND s.fechaSolicitud >= :fecha")
-    List<SolicitudDeposito> findSolicitudesRecientesByUsuario(@Param("usuario") Usuario usuario, @Param("fecha") LocalDateTime fecha);
+    List<SolicitudDeposito> findSolicitudesRecientesByUsuario(@Param("usuario") Usuario usuario,
+            @Param("fecha") LocalDateTime fecha);
 
     /**
      * Busca solicitudes por monto mínimo
@@ -105,8 +108,7 @@ public interface SolicitudDepositoRepository extends JpaRepository<SolicitudDepo
      */
     @Query("SELECT COALESCE(SUM(s.monto), 0) FROM SolicitudDeposito s WHERE s.estado = :estado AND s.fechaProcesamiento BETWEEN :fechaInicio AND :fechaFin")
     BigDecimal sumMontoByEstadoAndFechaBetween(
-        @Param("estado") SolicitudDeposito.EstadoSolicitud estado,
-        @Param("fechaInicio") LocalDateTime fechaInicio,
-        @Param("fechaFin") LocalDateTime fechaFin
-    );
+            @Param("estado") SolicitudDeposito.EstadoSolicitud estado,
+            @Param("fechaInicio") LocalDateTime fechaInicio,
+            @Param("fechaFin") LocalDateTime fechaFin);
 }

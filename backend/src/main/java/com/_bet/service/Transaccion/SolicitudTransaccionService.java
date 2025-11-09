@@ -1,6 +1,5 @@
 package com._bet.service.Transaccion;
 
-import com._bet.entity.*;
 import com._bet.entity.transacciones.SolicitudDeposito;
 import com._bet.entity.transacciones.SolicitudRetiro;
 import com._bet.entity.user.Usuario;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -275,10 +273,11 @@ public class SolicitudTransaccionService {
     /**
      * Obtiene solicitudes de depósito por usuario
      */
-    public Page<SolicitudDeposito> obtenerSolicitudesDepositoPorUsuario(Long usuarioId, Pageable pageable) {
+    public List<SolicitudDeposito> obtenerSolicitudesDepositoPorUsuario(Long usuarioId) {
         Usuario usuario = usuarioRepository.findById(usuarioId)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-        return solicitudDepositoRepository.findByUsuarioOrderByFechaSolicitudDesc(usuario, pageable);
+
+        return solicitudDepositoRepository.findByUsuarioOrderByFechaSolicitudDesc(usuario);
     }
 
     /**

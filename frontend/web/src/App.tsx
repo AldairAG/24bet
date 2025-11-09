@@ -23,6 +23,7 @@ import DefaultPage from './pages/usuario/DefaultPage'
 import SoportePage from './pages/usuario/SoportePage'
 import DatosMaestros from './pages/admin/DatosMaestros'
 import LigaAdmin from './pages/admin/LigaAdmin'
+import HistorialTransacciones from './pages/usuario/transacciones/HistorialTransacciones'
 
 function App() {
 
@@ -44,6 +45,7 @@ function App() {
               <Route path={ROUTES.USER_BET_HISTORY} element={<HistorialApuestasPage />} />
               <Route path={ROUTES.USER_DEPOSITO} element={<DepositoPage />} />
               <Route path={ROUTES.USER_RETIRO} element={<RetiroPage />} />
+              <Route path={ROUTES.USER_HISTORIAL} element={<HistorialTransacciones />} />
 
               <Route path={ROUTES.USER_PERFIL} element={<PerfilPage />} >
                 {/* Rutas de perfil */}
