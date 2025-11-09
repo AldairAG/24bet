@@ -96,7 +96,7 @@ const LigaAdmin: React.FC = () => {
                             {liga} - <span className="text-red-600">{pais}</span>
                         </h1>
                         <div className="flex items-center space-x-2">
-                            <div className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium">
+                            <div className=" text-gray-800 px-3 py-1 rounded-full text-sm font-medium">
                                 {Object.values(eventosPorFecha).reduce((total, grupo) => total + grupo.events.length, 0)} eventos programados
                             </div>
                         </div>
@@ -109,7 +109,7 @@ const LigaAdmin: React.FC = () => {
                                 <div key={grupo.date} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
                                     <button
                                         onClick={() => toggleDateExpansion(grupo.date)}
-                                        className="w-full flex justify-between items-center p-4 bg-gradient-to-r from-red-50 to-white hover:from-red-100 hover:to-red-50 transition-all duration-200"
+                                        className="w-full flex justify-between items-center p-4 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-inset hover:bg-gray-50 transition-colors duration-200"
                                     >
                                         <span className="font-semibold text-gray-800">{grupo.displayDate}</span>
                                         <div className="flex items-center space-x-2">

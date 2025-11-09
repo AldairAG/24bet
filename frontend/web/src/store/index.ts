@@ -5,7 +5,7 @@ import apuestaReducer from './slices/apuestaSlice';
 import { apiBase } from '../service/apiBase';
 import walletReducer from './slices/walletSlice';
 import userReducer from './slices/userSlice';
-//import exampleReducer from './slices/exampleSlice';
+import soporteReducer from './slices/soporteSlice';
 
 export const store = configureStore({
     reducer: {
@@ -14,7 +14,7 @@ export const store = configureStore({
         apuesta: apuestaReducer,
         wallet: walletReducer,
         user: userReducer,
-        // example: exampleReducer,
+        soporte: soporteReducer,
     },
 });
 

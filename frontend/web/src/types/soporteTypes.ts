@@ -1,3 +1,5 @@
+import type { Usuario } from './authTypes';
+
 export const TipoProblema = {
   CUENTA: 'CUENTA',
   PAGOS: 'PAGOS',
@@ -18,6 +20,19 @@ export const EstadoTicket = {
 
 export type EstadoTicket = typeof EstadoTicket[keyof typeof EstadoTicket];
 
+export interface Comentario {
+  id: number;
+  contenido: string;
+  fechaCreacion: Date;
+  usuario: Usuario;
+  tiket: Ticket;
+}
+
+export interface NuevoComentarioRequest {
+  contenido: string;
+  tiketId: number;
+}
+
 export interface Ticket {
   id: number;
   tipo: TipoProblema;
@@ -26,11 +41,20 @@ export interface Ticket {
   estado: EstadoTicket;
   fechaCreacion: Date;
   fechaActualizacion: Date;
-  usuarioId: number;
+  usuario: Usuario;
+  comentarios: Comentario[];
 }
 
 export interface CrearTicketRequest {
   tipo: TipoProblema;
   asunto: string;
   descripcion: string;
+}
+
+export interface ActualizarTicketRequest {
+  id: number;
+  tipo?: TipoProblema;
+  asunto?: string;
+  descripcion?: string;
+  estado?: EstadoTicket;
 }

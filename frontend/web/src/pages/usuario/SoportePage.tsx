@@ -1,13 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useToast } from '../../components/Toast';
 import type { 
   TipoProblema, 
   EstadoTicket, 
-  Ticket, 
   CrearTicketRequest 
 } from '../../types/soporteTypes';
+import { useSoporte } from '../../hooks/useSoporte';
 
 // Configuración de tipos de problemas con sus íconos y colores
 const tiposProblemas = [
@@ -97,42 +97,27 @@ const ticketValidationSchema = Yup.object().shape({
 const SoportePage = () => {
   const { showToast, ToastComponent } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [tipoSeleccionado, setTipoSeleccionado] = useState<TipoProblema | null>(null);
 
-  // Mock de tickets - aquí se conectaría con el backend
-  const [tickets] = useState<Ticket[]>([
-    {
-      id: 1,
-      tipo: 'PAGOS' as TipoProblema,
-      asunto: 'No puedo realizar un retiro',
-      descripcion: 'He intentado retirar fondos pero me aparece un error',
-      estado: 'EN_PROCESO' as EstadoTicket,
-      fechaCreacion: new Date('2025-10-20'),
-      fechaActualizacion: new Date('2025-10-23'),
-      usuarioId: 1
-    },
-    {
-      id: 2,
-      tipo: 'TECNICO' as TipoProblema,
-      asunto: 'Error al cargar eventos en vivo',
-      descripcion: 'La página de eventos en vivo no carga correctamente',
-      estado: 'RESUELTO' as EstadoTicket,
-      fechaCreacion: new Date('2025-10-18'),
-      fechaActualizacion: new Date('2025-10-19'),
-      usuarioId: 1
-    },
-    {
-      id: 3,
-      tipo: 'CUENTA' as TipoProblema,
-      asunto: 'No puedo cambiar mi contraseña',
-      descripcion: 'Cuando intento cambiar mi contraseña me dice que la anterior es incorrecta',
-      estado: 'ABIERTO' as EstadoTicket,
-      fechaCreacion: new Date('2025-10-24'),
-      fechaActualizacion: new Date('2025-10-24'),
-      usuarioId: 1
+  const {
+    tickets,
+    isLoading,
+    error,
+    crearTicket,
+    obtenerTicketsUsuario,
+    limpiarError
+  } = useSoporte();
+
+  useEffect(() => {
+    obtenerTicketsUsuario();
+  }, [obtenerTicketsUsuario]);
+
+  useEffect(() => {
+    if (error) {
+      showToast(error, 'error');
+      limpiarError();
     }
-  ]);
+  }, [error, showToast, limpiarError]);
 
   const formik = useFormik<CrearTicketRequest>({
     initialValues: {
@@ -143,23 +128,21 @@ const SoportePage = () => {
     enableReinitialize: true,
     validationSchema: ticketValidationSchema,
     onSubmit: async (values, { resetForm }) => {
-      setIsLoading(true);
       try {
-        // Aquí iría la llamada al backend
-        console.log('Creando ticket:', values);
-        
-        // Simulación de creación exitosa
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        showToast('Ticket creado exitosamente', 'success');
-        resetForm();
-        setIsModalOpen(false);
-        setTipoSeleccionado(null);
+        const resultado = await crearTicket(values);
+        if (resultado.success) {
+          showToast('Ticket creado exitosamente', 'success');
+          resetForm();
+          setIsModalOpen(false);
+          setTipoSeleccionado(null);
+          // Actualizar la lista de tickets
+          await obtenerTicketsUsuario();
+        } else {
+          showToast(resultado.error || 'Error al crear el ticket', 'error');
+        }
       } catch (error) {
         console.error('Error al crear ticket:', error);
         showToast('Error al crear el ticket', 'error');
-      } finally {
-        setIsLoading(false);
       }
     }
   });

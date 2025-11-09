@@ -118,6 +118,61 @@ class EventosService {
      * @param error Error capturado
      * @returns Error procesado
      */
+    /**
+     * Obtiene y actualiza las ligas de un deporte desde la API externa (Solo admin)
+     * POST /24bet/eventos/datosMaestros/ligas/{deporteNombre}
+     * @param deporteNombre Nombre del deporte
+     * @returns Promise con el número de ligas actualizadas
+     */
+    async actualizarLigasPorDeporte(deporteNombre: string): Promise<number> {
+        try {
+            const response = await apiBase.post<ApiResponseWrapper<number>>(
+                `${this.baseUrl}/datosMaestros/ligas/${deporteNombre}`
+            );
+            return response.data.data || 0;
+        } catch (error) {
+            console.error('Error updating leagues:', error);
+            throw this.handleError(error);
+        }
+    }
+
+    /**
+     * Obtiene y actualiza los equipos de un deporte desde la API externa (Solo admin)
+     * POST /24bet/eventos/datosMaestros/equipos/{deporteNombre}
+     * @param deporteNombre Nombre del deporte
+     * @returns Promise con el número de equipos actualizados
+     */
+    async actualizarEquiposPorDeporte(deporteNombre: string): Promise<number> {
+        try {
+            const response = await apiBase.post<ApiResponseWrapper<number>>(
+                `${this.baseUrl}/datosMaestros/equipos/${deporteNombre}`
+            );
+            return response.data.data || 0;
+        } catch (error) {
+            console.error('Error updating teams:', error);
+            throw this.handleError(error);
+        }
+    }
+
+    /**
+     * Obtiene y actualiza los eventos de un deporte para una fecha específica desde la API externa (Solo admin)
+     * POST /24bet/eventos/datosMaestros/eventos-por-fecha/{deporteNombre}/{fecha}
+     * @param deporteNombre Nombre del deporte
+     * @param fecha Fecha en formato YYYY-MM-DD
+     * @returns Promise con el número de eventos actualizados
+     */
+    async actualizarEventosPorDeporteYFecha(deporteNombre: string, fecha: string): Promise<number> {
+        try {
+            const response = await apiBase.post<ApiResponseWrapper<number>>(
+                `${this.baseUrl}/datosMaestros/eventos-por-fecha/${deporteNombre}/${fecha}`
+            );
+            return response.data.data || 0;
+        } catch (error) {
+            console.error('Error updating events:', error);
+            throw this.handleError(error);
+        }
+    }
+
     private handleError(error: any): Error {
         if (error.response) {
             // Error de respuesta del servidor
