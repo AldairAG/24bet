@@ -13,7 +13,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Etapa 2: Ejecución del JAR en OpenJDK 19
-FROM openjdk:19-jdk
+FROM eclipse-temurin:19-jdk
 WORKDIR /app
 # Copia el archivo JAR generado desde la etapa anterior
 COPY --from=builder /app/target/24bet-0.0.1.jar app_24bet.jar
