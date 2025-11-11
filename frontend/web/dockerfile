@@ -1,5 +1,5 @@
 # Etapa 1: Construcción del frontend
-FROM node:20-alpine AS builder
+FROM node:20-alpine3.19 AS builder
 WORKDIR /app
 # Copia los archivos de configuración de Node.js
 COPY package.json package-lock.json ./
