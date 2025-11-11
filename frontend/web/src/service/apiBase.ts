@@ -102,8 +102,8 @@ export interface ApiError {
 export type RequestData = Record<string, unknown> | FormData | string | null | unknown;
 
 // Configuración base de la API
-const API_BASE_URL = 'http://localhost:8080/24bet';
-//const API_BASE_URL = 'https://24bet.mx/24bet';
+//const API_BASE_URL = 'http://localhost:8080/24bet';
+const API_BASE_URL = 'https://24bet.mx/24bet';
 
 
 class ApiBase {
