@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import RegisterForm from './RegisterForm';
 import { type RegistroRequest } from '../../types/authTypes';
-import Logo24bet from '../../assets/24betR.png';
+import Logo24bet from '../../assets/24betr.png';
 
 // Interfaz para el formulario que incluye campos de validación local
 interface RegisterFormData extends RegistroRequest {

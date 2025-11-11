@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import LoginForm, { type LoginFormData } from './LoginForm';
 import { useAuth } from '../../hooks/useAuth';
 import { ROUTES } from '../../routes/routes';
-import Logo24bet from '../../assets/24betR.png';
+import Logo24bet from '../../assets/24betr.png';
 
 interface LoginModalProps {
   isOpen: boolean;
