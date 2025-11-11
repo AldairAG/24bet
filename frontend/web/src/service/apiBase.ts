@@ -103,8 +103,8 @@ export type RequestData = Record<string, unknown> | FormData | string | null | u
 
 // Configuración base de la API
 //const API_BASE_URL = 'http://localhost:8080/24bet';
-const API_BASE_URL = 'https://24bet.mx/24bet';
-
+//const API_BASE_URL = 'https://24bet.mx/24bet';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://24bet.mx/24bet';
 
 class ApiBase {
   private axiosInstance: AxiosInstance;
