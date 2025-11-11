@@ -65,17 +65,16 @@ public class ApiSportService {
     private final MomioRepository momioRepository;
 
     public static final Map<String, String> URLS_POR_DEPORTE = Map.ofEntries(
-            Map.entry("SOCCER", "https://v3.football.api-sports.io"),
-            Map.entry("BASKETBALL", "https://v1.basketball.api-sports.io"),
-            Map.entry("BASEBALL", "https://v1.baseball.api-sports.io"),
-            Map.entry("FORMULA1", "https://v1.formula-1.api-sports.io"),
-            Map.entry("HOCKEY", "https://v1.hockey.api-sports.io"),
-            Map.entry("MMA", "https://v1.mma.api-sports.io"),
+            Map.entry("Soccer", "https://v3.football.api-sports.io"),
+            Map.entry("Basketball", "https://v1.basketball.api-sports.io"),
+            Map.entry("Baseball", "https://v1.baseball.api-sports.io"),
+            Map.entry("Formula1", "https://v1.formula-1.api-sports.io"),
+            Map.entry("Hockey", "https://v1.hockey.api-sports.io"),
+            Map.entry("Mma", "https://v1.mma.api-sports.io"),
             Map.entry("NBA", "https://v2.nba.api-sports.io"),
-            Map.entry("AMERICAN_FOOTBALL", "https://v1.american-football.api-sports.io"),
-            Map.entry("RUGBY", "https://v1.rugby.api-sports.io"),
-            Map.entry("VOLLEYBALL", "https://v1.volleyball.api-sports.io"));
-
+            Map.entry("American_Football", "https://v1.american-football.api-sports.io"),
+            Map.entry("Rugby", "https://v1.rugby.api-sports.io"),
+            Map.entry("Volleyball", "https://v1.volleyball.api-sports.io"));
     /**
      * Metodo get base para consumir la API de ApiSport
      * 
@@ -106,9 +105,9 @@ public class ApiSportService {
     @Async
     @Transactional
     public CompletableFuture<Integer> getLeaguesBySeason(String deporte) {
-        String deporteKey = (deporte == null || deporte.isBlank()) ? "SOCCER" : deporte.toUpperCase();
+        String deporteKey = (deporte == null || deporte.isBlank()) ? "Soccer" : deporte;
 
-        int season = java.time.Year.now().getValue();
+        int season = java.time.Year.now().getValue()+1;
         String url = URLS_POR_DEPORTE.get(deporteKey) + "/leagues?season=" + season + "&current=true";
         Response<LeagueBySeasonResponse> response = getFromSportApi(
                 url,

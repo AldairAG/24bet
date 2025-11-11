@@ -45,19 +45,6 @@ interface CriptomonedaConfig {
   tasaCambio: number;
 }
 
-interface SolicitudRetiro {
-  id: string;
-  tipoRetiro: TipoRetiro;
-  wallet?: WalletInfo;
-  cuentaBancaria?: CuentaBancariaInfo;
-  cantidadUSD: number;
-  cantidadCrypto?: number;
-  beneficiario?: string;
-  clabe?: string;
-  estado: 'pendiente' | 'procesando' | 'completado' | 'rechazado';
-  fecha: string;
-}
-
 // Lista de criptomonedas permitidas para agregar nueva wallet
 const ALLOWED_CRYPTOS: TipoCrypto[] = [
   TipoCrypto.ETHEREUM,
@@ -498,6 +485,7 @@ const RetiroPage = () => {
       try {
         // Crear solicitud de retiro con los datos del formulario
         const retiroData: SolicitudRetiroApiDto = {
+          fechaSolicitud: new Date().toISOString(),
           monto: values.cantidadUSD,
           metodoRetiro: values.tipoRetiro === TipoRetiro.CRIPTOMONEDA 
             ? (walletSeleccionada?.criptomoneda === TipoCrypto.BITCOIN ? MetodoRetiro.BITCOIN 
@@ -580,7 +568,7 @@ const RetiroPage = () => {
 
   const eliminarWallet = (walletId: string) => {
     //setWallets(prev => prev.filter(w => w.id !== walletId));
-    showToast('Funcionalidad no implementada', 'success');
+    showToast('Funcionalidad no implementada '+walletId, 'success');
   };
 
   const eliminarCuentaBancaria = (cuentaId: string) => {

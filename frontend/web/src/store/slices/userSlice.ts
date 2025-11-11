@@ -186,7 +186,6 @@ const userSlice = createSlice({
                     state.isDeactivatingUsuario = false;
                     // Reflejar en usuarioActual
                     if (state.usuarioActual && state.usuarioActual.id === action.payload.id) {
-                        // @ts-expect-error: algunos modelos pueden no incluir 'activo' explícitamente
                         state.usuarioActual.activo = false;
                     }
                     // Reflejar en la lista si existe la propiedad
@@ -212,7 +211,6 @@ const userSlice = createSlice({
                         (state, action: PayloadAction<{ id: number }>) => {
                             state.isActivatingUsuario = false;
                             if (state.usuarioActual && state.usuarioActual.id === action.payload.id) {
-                                // @ts-expect-error: algunos modelos pueden no incluir 'activo' explícitamente
                                 state.usuarioActual.activo = true;
                             }
                             state.usuarios = state.usuarios.map((u) => {

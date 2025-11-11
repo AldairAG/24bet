@@ -262,7 +262,7 @@ export const deactivateWallet = createAsyncThunk<
  * Thunk para obtener las solicitudes de retiro de un usuario
  */
 export const getWithdrawalRequests = createAsyncThunk<
-    unknown, // Tipo de retorno
+    SolicitudRetiroDto[], // Tipo de retorno
     number, // Tipo de parámetros: usuarioId
     { rejectValue: string } // Tipo del error
 >(
@@ -270,7 +270,7 @@ export const getWithdrawalRequests = createAsyncThunk<
     async (usuarioId, { rejectWithValue }) => {
         try {
             const response = await walletService.getSolicitudesRetiro(usuarioId);
-            return response;
+            return response.data;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Error al cargar solicitudes de retiro';
             return rejectWithValue(errorMessage);
@@ -620,16 +620,7 @@ const walletSlice = createSlice({
             })
             .addCase(getWithdrawalRequests.fulfilled, (state, action) => {
                 state.isLoadingWithdrawalRequests = false;
-                // El backend puede retornar Page<SolicitudRetiro> o un array directo; normalizamos
-                const data = action.payload as { content?: unknown[] } | unknown[] | null | undefined;
-                let list: unknown[] = [];
-                if (Array.isArray(data)) {
-                    list = data;
-                } else if (data && typeof data === 'object' && 'content' in data) {
-                    const c = (data as { content?: unknown[] }).content;
-                    list = Array.isArray(c) ? c : [];
-                }
-                state.withdrawalRequests = list;
+                state.withdrawalRequests = action.payload;
                 state.loadWithdrawalRequestsError = null;
             })
             .addCase(getWithdrawalRequests.rejected, (state, action) => {

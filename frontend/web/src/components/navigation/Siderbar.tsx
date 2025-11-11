@@ -1,6 +1,7 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../routes/routes';
 import logo from '/src/assets/24bet.png';
+import { useAuth } from '../../hooks/useAuth';
 
 interface SidebarProps {
     isOpen: boolean;
@@ -8,6 +9,14 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+    const {logout}=useAuth();
+    const navigation=useNavigate();
+
+    const cerrarSesion = () => {
+        logout();
+        navigation(ROUTES.LANDING_PAGE);
+    }
+
     return (
         <>
             {/* Overlay */}
@@ -153,7 +162,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
                     {/* Botón de cerrar sesión */}
                     <div className="mt-8 pt-8 border-t border-gray-200">
-                        <button className="flex items-center w-full px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                        <button className="flex items-center w-full px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            onClick={cerrarSesion}
+                        >
                             <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                             </svg>

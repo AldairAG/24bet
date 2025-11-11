@@ -58,8 +58,8 @@ export const fetchEventoById = createAsyncThunk(
                 throw new Error('Evento no encontrado');
             }
             return evento;
-        } catch (error: any) {
-            return rejectWithValue(error.message || 'Error al obtener el evento');
+        } catch (error: unknown) {
+            return rejectWithValue((error as Error).message || 'Error al obtener el evento');
         }
     }
 );
@@ -71,8 +71,8 @@ export const fetchHeadToHead = createAsyncThunk(
         try {
             const historial = await apiSportService.getHeadToHead(team1, team2);
             return historial;
-        } catch (error: any) {
-            return rejectWithValue(error.message || 'Error al obtener el historial H2H');
+        } catch (error: unknown) {
+            return rejectWithValue((error as Error).message || 'Error al obtener el historial H2H');
         }
     }
 );
@@ -84,8 +84,8 @@ export const fetchTablaClasificacion = createAsyncThunk(
         try {
             const tabla = await apiSportService.getTablaClasificacion(leagueId, season);
             return tabla;
-        } catch (error: any) {
-            return rejectWithValue(error.message || 'Error al obtener la tabla de clasificación');
+        } catch (error: unknown) {
+            return rejectWithValue((error as Error).message || 'Error al obtener la tabla de clasificación');
         }
     }
 );

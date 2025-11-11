@@ -1,6 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ROUTES } from '../../routes/routes';
 import { useToast } from '../../components/Toast';
 import { useEventos } from '../../hooks/useEventos';
 import Accordion from '../../components/Accordion';
@@ -24,6 +22,8 @@ const DatosMaestros: React.FC = () => {
   const [active, setActive] = useState<string>(SPORTS[0].key);
   const [activeTab, setActiveTab] = useState<'monitoreo' | 'sincronizar'>('monitoreo');
   const [isSyncLoading, setIsSyncLoading] = useState(false);
+  const [fecha, setFecha] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
 
   const {
@@ -78,12 +78,10 @@ const DatosMaestros: React.FC = () => {
           result = await eventosService.actualizarEquiposPorDeporte(apiKey);
           showToast(`Se actualizaron ${result} equipos exitosamente`, 'success');
           break;
-        case 'eventos': {
-          const fecha = new Date().toISOString().split('T')[0];
+        case 'eventos':
           result = await eventosService.actualizarEventosPorDeporteYFecha(apiKey, fecha);
           showToast(`Se actualizaron ${result} eventos exitosamente`, 'success');
           break;
-        }
       }
     } catch (error) {
       showToast(error instanceof Error ? error.message : 'Error en la sincronización', 'error');
@@ -114,7 +112,7 @@ const DatosMaestros: React.FC = () => {
     return [...prioritarios, ...otros];
   }, [ligasAgrupadasPorPais]);
 
-  
+
 
 
 
@@ -129,21 +127,19 @@ const DatosMaestros: React.FC = () => {
           <div className="flex gap-4">
             <button
               onClick={() => setActiveTab('monitoreo')}
-              className={`pb-2 px-1 ${
-                activeTab === 'monitoreo'
-                  ? 'border-b-2 border-red-600 text-red-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
+              className={`pb-2 px-1 ${activeTab === 'monitoreo'
+                ? 'border-b-2 border-red-600 text-red-600'
+                : 'text-gray-500 hover:text-gray-700'
+                }`}
             >
               Monitoreo
             </button>
             <button
               onClick={() => setActiveTab('sincronizar')}
-              className={`pb-2 px-1 ${
-                activeTab === 'sincronizar'
-                  ? 'border-b-2 border-red-600 text-red-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
+              className={`pb-2 px-1 ${activeTab === 'sincronizar'
+                ? 'border-b-2 border-red-600 text-red-600'
+                : 'text-gray-500 hover:text-gray-700'
+                }`}
             >
               Sincronizar
             </button>
@@ -194,14 +190,128 @@ const DatosMaestros: React.FC = () => {
                         <p className="text-gray-600 text-sm">Actualiza la información de los equipos</p>
                       </button>
 
-                      <button
-                        onClick={() => handleSincronizacion('eventos')}
-                        disabled={isSyncLoading}
-                        className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 disabled:opacity-50"
-                      >
-                        <h3 className="text-lg font-semibold text-gray-800 mb-2">Sincronizar Eventos</h3>
-                        <p className="text-gray-600 text-sm">Actualiza la información de los eventos para la fecha actual</p>
-                      </button>
+                      <div className="w-full flex flex-col gap-2">
+                        <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Fecha para sincronizar eventos
+                          </label>
+                          <div className="relative">
+                            {/* Botón que muestra la fecha y abre el picker */}
+                            <button
+                              type="button"
+                              onClick={() => setShowDatePicker(!showDatePicker)}
+                              disabled={isSyncLoading}
+                              className="p-3 pr-10 border-2 border-gray-300 rounded-lg w-full bg-white text-gray-900 text-left
+                              focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 
+                              disabled:bg-gray-100 disabled:cursor-not-allowed transition-all
+                              hover:border-gray-400"
+                            >
+                              {new Date(fecha + 'T00:00:00').toLocaleDateString('es-MX', { 
+                                weekday: 'long', 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric' 
+                              })}
+                            </button>
+                            <svg 
+                              className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+
+                            {/* Date Picker Dropdown */}
+                            {showDatePicker && (
+                              <div className="absolute z-50 mt-2 p-4 bg-white border-2 border-gray-300 rounded-lg shadow-lg">
+                                <div className="space-y-3">
+                                  {/* Botones de acceso rápido */}
+                                  <div className="grid grid-cols-3 gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const today = new Date().toISOString().split('T')[0];
+                                        setFecha(today);
+                                        setShowDatePicker(false);
+                                      }}
+                                      className="px-3 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                                    >
+                                      Hoy
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const tomorrow = new Date();
+                                        tomorrow.setDate(tomorrow.getDate() + 1);
+                                        setFecha(tomorrow.toISOString().split('T')[0]);
+                                        setShowDatePicker(false);
+                                      }}
+                                      className="px-3 py-2 text-sm bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                                    >
+                                      Mañana
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const nextWeek = new Date();
+                                        nextWeek.setDate(nextWeek.getDate() + 7);
+                                        setFecha(nextWeek.toISOString().split('T')[0]);
+                                        setShowDatePicker(false);
+                                      }}
+                                      className="px-3 py-2 text-sm bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                                    >
+                                      +7 días
+                                    </button>
+                                  </div>
+
+                                  {/* Input de fecha nativo como fallback */}
+                                  <div>
+                                    <label className="block text-xs text-gray-600 mb-1">O selecciona una fecha específica:</label>
+                                    <input
+                                      type="date"
+                                      value={fecha}
+                                      onChange={(e) => {
+                                        setFecha(e.target.value);
+                                        setShowDatePicker(false);
+                                      }}
+                                      style={{ colorScheme: 'light' }}
+                                      className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 
+                                      [&::-webkit-calendar-picker-indicator]:cursor-pointer 
+                                      [&::-webkit-calendar-picker-indicator]:opacity-100
+                                      [&::-webkit-datetime-edit]:text-gray-900
+                                      [&::-webkit-datetime-edit-fields-wrapper]:text-gray-900
+                                      [&::-webkit-datetime-edit-text]:text-gray-900
+                                      text-gray-900"
+                                      min="2024-01-01"
+                                      max="2030-12-31"
+                                    />
+                                  </div>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowDatePicker(false)}
+                                    className="w-full px-3 py-2 text-sm bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                                  >
+                                    Cerrar
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-500 mt-2">
+                            Haz clic para seleccionar una fecha diferente
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => handleSincronizacion('eventos')}
+                          disabled={isSyncLoading}
+                          className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                        >
+                          <h3 className="text-lg font-semibold text-gray-800 mb-2">Sincronizar Eventos</h3>
+                          <p className="text-gray-600 text-sm">Actualiza la información de los eventos para la fecha seleccionada</p>
+                        </button>
+                      </div>
                     </div>
 
                     {isSyncLoading && (
@@ -228,7 +338,7 @@ const DatosMaestros: React.FC = () => {
                       {paisesOrdenados.map((pais) => {
                         const ligasDelPais = ligasAgrupadasPorPais[pais];
                         const banderaPais = ligasDelPais[0]?.pais.flagUrl;
-                        
+
                         return (
                           <Accordion
                             key={pais}

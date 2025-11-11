@@ -172,7 +172,8 @@ const DepositoPage = () => {
     monto: 0,
     metodoPago: MetodoPago.BITCOIN,
     tipoCrypto: TipoCrypto.BITCOIN,
-    direccionWallet: ''
+    direccionWallet: '',
+    estado: 'PENDIENTE'
   };
 
   // Mapear criptomoneda a método de pago
@@ -212,7 +213,8 @@ const DepositoPage = () => {
           monto: values.monto,
           metodoPago: values.metodoPago,
           tipoCrypto: values.tipoCrypto,
-          direccionWallet: values.direccionWallet
+          direccionWallet: values.direccionWallet,
+          estado: 'PENDIENTE'
         };
         
         await createDeposit(usuario.id, depositData);

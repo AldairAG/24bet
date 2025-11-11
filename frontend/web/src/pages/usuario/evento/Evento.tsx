@@ -73,7 +73,8 @@ const EventoPage = () => {
         tipoApuesta: bet.name,
         eventoName: `${evento}`,
         descripcion: value.value.replace("Home", eventoDetail.teams.home.name).replace("Away", eventoDetail.teams.away.name).trim(),
-        idOddValue: value.id
+        idOddValue: value.id,
+        validaParaParlay: true
       };
 
       // Validar antes de agregar

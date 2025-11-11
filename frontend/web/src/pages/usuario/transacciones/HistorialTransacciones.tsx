@@ -4,7 +4,7 @@ import { useUser } from '../../../hooks/useUser';
 import TransaccionItem from '../../../components/item/TransaccionItem';
 import { useApuesta } from '../../../hooks/useApuesta';
 import ApuestaHistorialItem from '../../../components/item/ApuestaHistorialItem';
-import type { SolicitudDepositoDto, SolicitudRetiroDto } from '../../../types/walletTypes';
+import type { SolicitudRetiroDto } from '../../../types/walletTypes';
 
 type TabType = 'depositos' | 'retiros' | 'apuestas';
 
@@ -101,8 +101,10 @@ const HistorialTransacciones = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {depositRequests?.map((deposito: SolicitudDepositoDto, index: number) => (
-              <TransaccionItem key={index} transaccion={deposito} tipo="deposito" />
+            {depositRequests?.map((deposito, index: number) => (
+              <div key={index}>
+              <TransaccionItem transaccion={deposito} tipo="deposito" />
+              </div>
             ))}
           </tbody>
         </table>

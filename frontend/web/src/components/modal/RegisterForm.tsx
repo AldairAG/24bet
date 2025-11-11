@@ -144,7 +144,6 @@ const getPhonePlaceholder = (ladaTelefono: string): string => {
 };
 
 const RegisterForm: React.FC<RegisterFormProps> = ({ 
-  onSubmit, 
   onCancel, 
   isLoading = false 
 }) => {

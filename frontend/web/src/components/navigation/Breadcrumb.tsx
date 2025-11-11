@@ -9,8 +9,9 @@ interface BreadcrumbItem {
 }
 
 const Breadcrumb: React.FC = () => {
-  const { deporte, liga, evento } = useParams<{
+  const { deporte,pais, liga, evento } = useParams<{
     deporte?: string;
+    pais?: string;
     liga?: string;
     evento?: string;
   }>();
@@ -45,10 +46,10 @@ const Breadcrumb: React.FC = () => {
     }
 
     // Si hay liga en la URL
-    if (deporte && liga) {
+    if (deporte && liga && pais) {
       items.push({
         label: formatName(liga),
-        path: ROUTES.USER_LIGA(deporte, liga),
+        path: ROUTES.USER_LIGA(deporte, pais, liga),
         isActive: !evento
       });
     }

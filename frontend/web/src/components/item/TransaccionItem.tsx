@@ -1,7 +1,7 @@
-import type { SolicitudDepositoAdmin, SolicitudDepositoDto, SolicitudRetiroAdmin, SolicitudRetiroDto } from '../../types/walletTypes';
+import type { SolicitudDepositoDto, SolicitudDepositoResponse, SolicitudRetiroDto } from '../../types/walletTypes';
 
 interface TransaccionItemProps {
-    transaccion: SolicitudDepositoAdmin | SolicitudRetiroAdmin | SolicitudRetiroDto | SolicitudDepositoDto;
+    transaccion: SolicitudDepositoDto | SolicitudRetiroDto | SolicitudDepositoResponse;
     tipo: 'deposito' | 'retiro';
 }
 
@@ -38,19 +38,19 @@ const TransaccionItem = ({ transaccion, tipo }: TransaccionItemProps) => {
 
     const getMetodoPago = () => {
         if (tipo === 'deposito') {
-            const deposito = transaccion as SolicitudDepositoAdmin | SolicitudDepositoDto;
+            const deposito = transaccion as SolicitudDepositoDto;
             return deposito.metodoPago || 'N/A';
         } else {
-            const retiro = transaccion as SolicitudRetiroAdmin | SolicitudRetiroDto;
+            const retiro = transaccion as SolicitudRetiroDto;
             return retiro.metodoRetiro || 'N/A';
         }
     };
 
-    const getMontoNeto = () => {
+    const getMontoNeto = (): number | null => {
         if (tipo === 'retiro') {
-            const retiro = transaccion as SolicitudRetiroAdmin | SolicitudRetiroDto;
+            const retiro = transaccion as SolicitudRetiroDto;
             if ('montoNeto' in retiro) {
-                return retiro.montoNeto;
+                return retiro.montoNeto as number;
             }
         }
         return null;
@@ -77,7 +77,7 @@ const TransaccionItem = ({ transaccion, tipo }: TransaccionItemProps) => {
         <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
             {/* ID */}
             <td className="px-4 py-3 text-sm text-gray-900 font-medium">
-                #{getTransaccionId()}
+                #{getTransaccionId() as string}
             </td>
 
             {/* Tipo */}

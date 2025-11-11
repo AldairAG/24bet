@@ -12,21 +12,6 @@ import { apiBase } from './apiBase';
 import { type CreateCryptoWalletDto, TipoCrypto, type CryptoWalletDto, type SolicitudDepositoResponse, type SolicitudDepositoDto, type SolicitudRetiroDto, type SolicitudRetiroResponse } from '../types/walletTypes';
 import type { ApiResponseWrapper } from '../types/authTypes';
 
-// Tipo genérico para respuestas paginadas de Spring
-type PageResponse<T> = {
-    content: T[];
-    totalElements: number;
-    totalPages: number;
-    size: number;
-    number: number;
-    first: boolean;
-    last: boolean;
-    empty?: boolean;
-    numberOfElements?: number;
-    sort?: unknown;
-    pageable?: unknown;
-};
-
 /**
  * Servicio para la gestión de wallets de criptomonedas
  */
@@ -247,13 +232,12 @@ class WalletService {
      * @param usuarioId ID del usuario
      * @returns Promise con la lista de solicitudes de retiro
      */
-    async getSolicitudesRetiro(usuarioId: number): Promise<PageResponse<unknown>> {
+    async getSolicitudesRetiro(usuarioId: number): Promise<ApiResponseWrapper<SolicitudRetiroDto[]>> {
         try {
-            const raw = await apiBase.get(
+            const response = await apiBase.get<SolicitudRetiroDto[]>(
                 `${this.baseUrl}/usuario/${usuarioId}/solicitudes-retiro`
             );
-            // Puede venir envuelto o no; si viene envuelto extrae data, en caso contrario devuelve el body
-            return this.unwrapApiResponse<PageResponse<unknown>>(raw);
+            return response;
         } catch (error) {
             console.error('Error fetching withdrawal requests:', error);
             throw this.handleError(error);

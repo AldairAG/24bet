@@ -64,6 +64,7 @@ export interface SolicitudDepositoDto {
     metodoPago: MetodoPago;
     tipoCrypto: TipoCrypto;
     direccionWallet: string;
+    estado: string;
 }
 
 
