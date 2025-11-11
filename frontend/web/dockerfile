@@ -1,17 +1,21 @@
 # Etapa 1: Construcción del frontend
-FROM node:20.19-alpine AS builder
+FROM node:20-alpine AS builder
 WORKDIR /app
+
 # Copia los archivos de configuración de Node.js
 COPY package.json package-lock.json ./
-RUN npm install
+RUN npm ci --only=production=false
+
 # Copia el resto del código fuente
 COPY . .
-# Construye el proyecto frontend
-RUN npm run build
 
-# Muestra el contenido del directorio src para depurar
-RUN ls -l src
-#RUN ls -l src/constants
+# Debug: Verifica que los assets se copiaron
+RUN echo "=== Verificando estructura ===" && \
+    ls -la src/ && \
+    echo "=== Assets ===" && \
+    ls -la src/assets/ || echo "No se encontró carpeta assets"
+
+# Construye el proyecto frontend
 RUN npm run build
 
 # Etapa 2: Servir con Nginx
@@ -23,5 +27,7 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # Expone el puerto 80
 EXPOSE 80
 # Inicia Nginx
+CMD ["nginx", "-g", "daemon off;"]
+
 CMD ["nginx", "-g", "daemon off;"]
 
