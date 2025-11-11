@@ -107,7 +107,7 @@ public class ApiSportService {
     public CompletableFuture<Integer> getLeaguesBySeason(String deporte) {
         String deporteKey = (deporte == null || deporte.isBlank()) ? "Soccer" : deporte;
 
-        int season = java.time.Year.now().getValue()+1;
+        int season = java.time.Year.now().getValue();
         String url = URLS_POR_DEPORTE.get(deporteKey) + "/leagues?season=" + season + "&current=true";
         Response<LeagueBySeasonResponse> response = getFromSportApi(
                 url,
