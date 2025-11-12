@@ -184,9 +184,8 @@ public class ApiSportService {
      * Metodo para obtener equipos por liga
      */
     @Async
-    @Transactional
     public CompletableFuture<Integer> getTeamsByLeague(String deporte) {
-        String deporteKey = (deporte == null || deporte.isBlank()) ? "SOCCER" : deporte.toUpperCase();
+        String deporteKey = (deporte == null || deporte.isBlank()) ? "Soccer" : deporte;
         int season = java.time.Year.now().getValue();
         List<Liga> activeLeagues = ligaRepository.findByDeporteNombreAndActivaTrue(deporteKey);
 
@@ -207,32 +206,59 @@ public class ApiSportService {
         return CompletableFuture.completedFuture(totalEquiposGuardados);
     }
 
+    @Transactional
     private int saveTeams(Response<TeamByLeagueResponse> response, int leagueId) {
         int equiposGuardados = 0;
+        int equiposYaExistentes = 0;
+        int ligasNoEncontradas = 0;
+        
+        System.out.println("=== Iniciando guardado de equipos para liga ID: " + leagueId + " ===");
+        System.out.println("Total de equipos recibidos de la API: " + (response.getResponse() != null ? response.getResponse().size() : 0));
+        
+        if (response.getResponse() == null || response.getResponse().isEmpty()) {
+            System.out.println("⚠️ No se recibieron equipos de la API para la liga " + leagueId);
+            return 0;
+        }
         
         for (TeamByLeagueResponse teamByLeague : response.getResponse()) {
-            if (equipoRepository.existsByApiSportsId(teamByLeague.getTeam().getId())) {
-                continue;
+            try {
+                if (equipoRepository.existsByApiSportsId(teamByLeague.getTeam().getId())) {
+                    equiposYaExistentes++;
+                    System.out.println("⏭️ Equipo ya existe: " + teamByLeague.getTeam().getName() + " (ID: " + teamByLeague.getTeam().getId() + ")");
+                    continue;
+                }
+
+                if (!ligaRepository.existsByApiSportsId(leagueId)) {
+                    ligasNoEncontradas++;
+                    System.out.println("❌ Liga no encontrada con ID: " + leagueId);
+                    continue;
+                }
+
+                Liga liga = ligaRepository.findByApiSportsId(leagueId)
+                        .orElseThrow(() -> new RuntimeException("Liga no encontrada con ID: " + leagueId));
+
+                Equipo newTeam = Equipo.builder()
+                        .apiSportsId(teamByLeague.getTeam().getId())
+                        .nombre(teamByLeague.getTeam().getName())
+                        .logoUrl(teamByLeague.getTeam().getLogo())
+                        .code(teamByLeague.getTeam().getCode())
+                        .liga(liga)
+                        .build();
+
+                equipoRepository.save(newTeam);
+                equiposGuardados++;
+                System.out.println("✅ Equipo guardado: " + teamByLeague.getTeam().getName() + " (ID: " + teamByLeague.getTeam().getId() + ")");
+                
+            } catch (Exception e) {
+                System.out.println("❌ Error al guardar equipo: " + teamByLeague.getTeam().getName() + " - " + e.getMessage());
+                e.printStackTrace();
             }
-
-            if (!ligaRepository.existsByApiSportsId(leagueId)) {
-                continue;
-            }
-
-            Liga liga = ligaRepository.findByApiSportsId(leagueId)
-                    .orElseThrow(() -> new RuntimeException("Liga no encontrada con ID: " + leagueId));
-
-            Equipo newTeam = Equipo.builder()
-                    .apiSportsId(teamByLeague.getTeam().getId())
-                    .nombre(teamByLeague.getTeam().getName())
-                    .logoUrl(teamByLeague.getTeam().getLogo())
-                    .code(teamByLeague.getTeam().getCode())
-                    .liga(liga)
-                    .build();
-
-            equipoRepository.save(newTeam);
-            equiposGuardados++;
         }
+        
+        System.out.println("=== Resumen para liga " + leagueId + " ===");
+        System.out.println("Equipos nuevos guardados: " + equiposGuardados);
+        System.out.println("Equipos ya existentes: " + equiposYaExistentes);
+        System.out.println("Ligas no encontradas: " + ligasNoEncontradas);
         
         return equiposGuardados;
     }
