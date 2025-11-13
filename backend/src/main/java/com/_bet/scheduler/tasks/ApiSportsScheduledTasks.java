@@ -7,6 +7,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com._bet.service.apiSport.ApiSportService;
+import com._bet.service.evento.EventoService;
 
 /**
  * Tareas programadas para sincronización con TheSportsDB
@@ -17,6 +18,7 @@ import com._bet.service.apiSport.ApiSportService;
 public class ApiSportsScheduledTasks {
 
     private final ApiSportService apiSportService;
+    private final EventoService eventoService;
 
     /**
      * Sincroniza los eventos diarios se ejecuta una vez al dia a las 6:00 PM
@@ -40,25 +42,7 @@ public class ApiSportsScheduledTasks {
     }
 
     /**
-     * Sincronización de datos maestros (deportes, ligas, equipos) - cada 24 horas
-     */
-    // @Scheduled(cron = "0 0 2 * * *", zone = "America/Mexico_City") // Todos los
-    // días a las 2:00 AM
-    @Scheduled(fixedRate = 86400000, zone = "America/Mexico_City") // Cada 24 horas
-    @Async("theSportsDbTaskExecutor")
-    public void sincronizacionDatosMaestros() {
-        log.info("🔄 Iniciando sincronización diaria de datos maestros (deportes, ligas, equipos)");
-
-        try {
-            apiSportService.sincronizarDatosMaestros();
-            log.info("✅ Sincronización de datos maestros completada exitosamente");
-        } catch (Exception e) {
-            log.error("❌ Error en la sincronización de datos maestros: {}", e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Sincronización de eventos en vivo - cada 5 minutos durante horas de juego
+     * Sincronización de eventos en vivo - cada 2 minutos durante horas de juego
      * Solo ejecuta durante horarios típicos de eventos deportivos
      */
     //@Scheduled(fixedRate = 120000) // 2 minutos
@@ -74,7 +58,7 @@ public class ApiSportsScheduledTasks {
         log.debug("🔴 Verificando eventos en vivo con API v2...");
 
         try {
-            //theSportsDbV2Service.sincronizarEventosEnVivo();
+            apiSportService.obtenerEventosEnVivo("Soccer");
         } catch (Exception e) {
             log.error("❌ Error en la sincronización de eventos en vivo V2: {}", e.getMessage(), e);
         }
@@ -90,6 +74,27 @@ public class ApiSportsScheduledTasks {
             //      apiSportService.obtenerEventosEnVivo();
         } catch (Exception e) {
             log.error("❌ Error en la sincronización de eventos en vivo y cuotas de apuestas: {}", e.getMessage(), e);
+        }
+    }
+
+    @Scheduled(fixedRate = 120000) // 2 minutos
+    public void quitarEstadoEnVivoDeEventos() {
+        try {
+            eventoService.quitarEstadoEnVivoDeEventos();
+        } catch (Exception e) {
+            log.error("❌ Error al quitar el estado de en vivo de eventos: {}", e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Borrar eventos antiguos cada 24 horas a las 2:00 AM
+     */
+    @Scheduled(cron = "0 0 2 * * *", zone = "America/Mexico_City")
+    public void borrarEventosAntiguos() {
+        try {
+            eventoService.borrarEventosAntiguos();
+        } catch (Exception e) {
+            log.error("❌ Error al borrar eventos antiguos: {}", e.getMessage(), e);
         }
     }
 

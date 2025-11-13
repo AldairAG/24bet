@@ -75,6 +75,7 @@ public class ApiSportService {
             Map.entry("American_Football", "https://v1.american-football.api-sports.io"),
             Map.entry("Rugby", "https://v1.rugby.api-sports.io"),
             Map.entry("Volleyball", "https://v1.volleyball.api-sports.io"));
+
     /**
      * Metodo get base para consumir la API de ApiSport
      * 
@@ -135,13 +136,13 @@ public class ApiSportService {
         response = filteredResponse;
 
         int ligasGuardadas = saveLeagues(response.getResponse());
-        
+
         return CompletableFuture.completedFuture(ligasGuardadas);
     }
 
     private int saveLeagues(List<LeagueBySeasonResponse> leagues) {
         int ligasGuardadas = 0;
-        
+
         for (LeagueBySeasonResponse league : leagues) {
             if (ligaRepository.existsByApiSportsId(league.getLeague().getId())) {
                 continue;
@@ -176,7 +177,7 @@ public class ApiSportService {
             ligaRepository.save(newLiga);
             ligasGuardadas++;
         }
-        
+
         return ligasGuardadas;
     }
 
@@ -190,7 +191,7 @@ public class ApiSportService {
         List<Liga> activeLeagues = ligaRepository.findByDeporteNombreAndActivaTrue(deporteKey);
 
         int totalEquiposGuardados = 0;
-        
+
         for (Liga league : activeLeagues) {
             Integer leagueId = league.getApiSportsId();
 
@@ -202,7 +203,7 @@ public class ApiSportService {
             totalEquiposGuardados += saveTeams(response, leagueId);
 
         }
-        
+
         return CompletableFuture.completedFuture(totalEquiposGuardados);
     }
 
@@ -211,20 +212,22 @@ public class ApiSportService {
         int equiposGuardados = 0;
         int equiposYaExistentes = 0;
         int ligasNoEncontradas = 0;
-        
+
         System.out.println("=== Iniciando guardado de equipos para liga ID: " + leagueId + " ===");
-        System.out.println("Total de equipos recibidos de la API: " + (response.getResponse() != null ? response.getResponse().size() : 0));
-        
+        System.out.println("Total de equipos recibidos de la API: "
+                + (response.getResponse() != null ? response.getResponse().size() : 0));
+
         if (response.getResponse() == null || response.getResponse().isEmpty()) {
             System.out.println("⚠️ No se recibieron equipos de la API para la liga " + leagueId);
             return 0;
         }
-        
+
         for (TeamByLeagueResponse teamByLeague : response.getResponse()) {
             try {
                 if (equipoRepository.existsByApiSportsId(teamByLeague.getTeam().getId())) {
                     equiposYaExistentes++;
-                    System.out.println("⏭️ Equipo ya existe: " + teamByLeague.getTeam().getName() + " (ID: " + teamByLeague.getTeam().getId() + ")");
+                    System.out.println("⏭️ Equipo ya existe: " + teamByLeague.getTeam().getName() + " (ID: "
+                            + teamByLeague.getTeam().getId() + ")");
                     continue;
                 }
 
@@ -247,19 +250,21 @@ public class ApiSportService {
 
                 equipoRepository.save(newTeam);
                 equiposGuardados++;
-                System.out.println("✅ Equipo guardado: " + teamByLeague.getTeam().getName() + " (ID: " + teamByLeague.getTeam().getId() + ")");
-                
+                System.out.println("✅ Equipo guardado: " + teamByLeague.getTeam().getName() + " (ID: "
+                        + teamByLeague.getTeam().getId() + ")");
+
             } catch (Exception e) {
-                System.out.println("❌ Error al guardar equipo: " + teamByLeague.getTeam().getName() + " - " + e.getMessage());
+                System.out.println(
+                        "❌ Error al guardar equipo: " + teamByLeague.getTeam().getName() + " - " + e.getMessage());
                 e.printStackTrace();
             }
         }
-        
+
         System.out.println("=== Resumen para liga " + leagueId + " ===");
         System.out.println("Equipos nuevos guardados: " + equiposGuardados);
         System.out.println("Equipos ya existentes: " + equiposYaExistentes);
         System.out.println("Ligas no encontradas: " + ligasNoEncontradas);
-        
+
         return equiposGuardados;
     }
 
@@ -272,10 +277,10 @@ public class ApiSportService {
         // getLeaguesBySeason();
         // getTeamsByLeague();
         // Obtener eventos de los próximos 7 días a partir de mañana
-        //LocalDateTime tomorrow = LocalDateTime.now().plusDays(1);
+        // LocalDateTime tomorrow = LocalDateTime.now().plusDays(1);
         for (int i = 0; i < 7; i++) {
-            //LocalDateTime targetDate = tomorrow.plusDays(i);
-            //Date date = Date.from(targetDate.atZone(ZoneId.systemDefault()).toInstant());
+            // LocalDateTime targetDate = tomorrow.plusDays(i);
+            // Date date = Date.from(targetDate.atZone(ZoneId.systemDefault()).toInstant());
             // obtenerEventosByDate(date);
         }
     }
@@ -432,7 +437,8 @@ public class ApiSportService {
 
         int eventosGuardados = procesarEventoOdds(finalOddsResponse, response);
 
-        System.out.println("Eventos procesados para la fecha: " + fechaActual + " - Total guardados: " + eventosGuardados);
+        System.out.println(
+                "Eventos procesados para la fecha: " + fechaActual + " - Total guardados: " + eventosGuardados);
 
         return CompletableFuture.completedFuture(eventosGuardados);
     }
@@ -451,7 +457,7 @@ public class ApiSportService {
                 .collect(Collectors.toList());
 
         int eventosGuardados = 0;
-        
+
         // Procesar solo los eventos filtrados
         for (EventsByLeagueResponse eventByLeague : filteredEvents) {
             if (eventoDeportivoRepository.existsByApiSportsId(eventByLeague.getFixture().getId())) {
@@ -481,7 +487,7 @@ public class ApiSportService {
                 eventosGuardados++;
             }
         }
-        
+
         return eventosGuardados;
     }
 
@@ -562,7 +568,7 @@ public class ApiSportService {
      */
     @Async
     public void obtenerEventosEnVivo(String deporte) {
-        String deporteKey = (deporte == null || deporte.isBlank()) ? "SOCCER" : deporte.toUpperCase();
+        String deporteKey = (deporte == null || deporte.isBlank()) ? "Soccer" : deporte.toUpperCase();
         String baseUrl = URLS_POR_DEPORTE.get(deporteKey);
         if (baseUrl == null) {
             return;
@@ -591,6 +597,7 @@ public class ApiSportService {
                 existingEvent.getEstado().setCorto(eventoEnVivo.getFixture().getStatus().getShortStatus());
                 existingEvent.getEstado().setElapsed(eventoEnVivo.getFixture().getStatus().getElapsed());
                 existingEvent.getEstado().setExtra(eventoEnVivo.getFixture().getStatus().getExtra());
+                existingEvent.setEnVivo(true);
                 existingEvent.setFechaActualizacion(LocalDateTime.now());
 
                 existingEvent.getGoles()
@@ -613,4 +620,5 @@ public class ApiSportService {
             }
         });
     }
+
 }

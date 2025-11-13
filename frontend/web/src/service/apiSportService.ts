@@ -23,7 +23,7 @@ interface ApiResponse<T> {
 
 // Endpoints de la API
 const apiEndpoints = {
-    EVENTO_BY_ID: (id: number) => `/fixtures?id=${id}`,
+    EVENTO_BY_ID: (id: number) => `/fixtures?id=${id}&timezone=America%2FMexico_City`,
     H2H: (team1: number, team2: number) => `/fixtures/headtohead?h2h=${team1}-${team2}`,
     TABLA_CLASIFICACION: (leagueId: number, season: number = 2025) => `/standings?league=${leagueId}&season=${season}`,
     EVENTOS_BY_IDS: (ids: number[]) => `/fixtures?ids=${ids.join('-')}`,

@@ -27,7 +27,7 @@ const EventoInfoWidget = ({ eventoId }: EventoInfoWidgetProps) => {
             }
             try {
                 setIsLoading(true);
-                const data = await apiSportService.getEventoById(1377952);
+                const data = await apiSportService.getEventoById(eventoId);
                 setEvento(data);
             } catch {
                 setError('Error al cargar información del evento');
@@ -134,7 +134,15 @@ const EventoInfoWidget = ({ eventoId }: EventoInfoWidgetProps) => {
                         <span className="text-xl font-bold text-white">{evento.goals.home}</span>
                     </div>
                     <div className="flex flex-col items-center gap-0.5 text-xs text-white">
-                        <span>{formatearEstadoPartido(evento.fixture.status.short)}</span>
+                        {evento.fixture.status.short == "NS" ? (
+                            <div className="bg-red-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                                {evento.fixture.date.slice(11, 16)}
+                            </div>
+                        ) : (
+                            <span>
+                                {formatearEstadoPartido(evento.fixture.status.short)}
+                            </span>
+                        )}
                         {evento.fixture.status.elapsed && (
                             <span>{evento.fixture.status.elapsed + evento.fixture.status.extra}'</span>
                         )}
@@ -228,7 +236,7 @@ const EventoInfoWidget = ({ eventoId }: EventoInfoWidgetProps) => {
                                 </div>
                                 <span className="text-sm text-gray-800 font-semibold">{evento.fixture.venue.name}</span>
                             </div>
-                            
+
                             <div className="bg-gradient-to-r from-red-50 to-red-100 p-3 rounded-lg border-l-4 border-red-500 shadow-sm">
                                 <div className="flex items-center gap-2 mb-1">
                                     <svg className="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
@@ -238,7 +246,7 @@ const EventoInfoWidget = ({ eventoId }: EventoInfoWidgetProps) => {
                                 </div>
                                 <span className="text-sm text-gray-800 font-semibold">{evento.fixture.venue.city}</span>
                             </div>
-                            
+
                             <div className="bg-gradient-to-r from-red-50 to-red-100 p-3 rounded-lg border-l-4 border-red-500 shadow-sm">
                                 <div className="flex items-center gap-2 mb-1">
                                     <svg className="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
@@ -248,7 +256,7 @@ const EventoInfoWidget = ({ eventoId }: EventoInfoWidgetProps) => {
                                 </div>
                                 <span className="text-sm text-gray-800 font-semibold">{evento.fixture.referee || 'N/A'}</span>
                             </div>
-                            
+
                             <div className="bg-gradient-to-r from-red-50 to-red-100 p-3 rounded-lg border-l-4 border-red-500 shadow-sm">
                                 <div className="flex items-center gap-2 mb-1">
                                     <svg className="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
@@ -269,11 +277,11 @@ const EventoInfoWidget = ({ eventoId }: EventoInfoWidgetProps) => {
                                     </svg>
                                     <h4 className="text-red-700 text-base font-bold">Timeline de Eventos</h4>
                                 </div>
-                                
+
                                 <div className="relative">
                                     {/* Línea horizontal principal */}
                                     <div className="absolute top-6 left-4 right-4 h-0.5 bg-gradient-to-r from-red-300 via-red-500 to-red-300"></div>
-                                    
+
                                     {/* Contenedor scrollable horizontal */}
                                     <div className="overflow-x-auto pb-4">
                                         <div className="flex gap-8 min-w-max px-4">
@@ -313,17 +321,17 @@ const EventoInfoWidget = ({ eventoId }: EventoInfoWidgetProps) => {
                                                     <div key={index} className="flex flex-col items-center relative min-w-[120px]">
                                                         {/* Punto en la línea */}
                                                         <div className={`w-3 h-3 rounded-full border-2 bg-white z-10 ${getEventColor(event.detail).split(' ')[2]}`}></div>
-                                                        
+
                                                         {/* Tiempo */}
                                                         <div className="bg-red-600 text-white px-2 py-1 rounded-full text-xs font-bold mt-2 shadow-md">
                                                             {event.time.elapsed}'
                                                         </div>
-                                                        
+
                                                         {/* Icono del evento */}
                                                         <div className={`mt-2 p-2 rounded-full border-2 shadow-sm ${getEventColor(event.detail)}`}>
                                                             {getEventIcon(event.detail)}
                                                         </div>
-                                                        
+
                                                         {/* Información del evento */}
                                                         <div className="mt-2 text-center max-w-[100px]">
                                                             <div className="text-xs font-semibold text-gray-800 truncate">{event.detail}</div>
@@ -347,48 +355,48 @@ const EventoInfoWidget = ({ eventoId }: EventoInfoWidgetProps) => {
                                 {['Shots on Goal', 'Total Shots', 'Possession %', 'Corner Kicks', 'Fouls', 'Yellow Cards', 'Red Cards'].map((statType) => {
                                     const homeRaw = getStatByType(evento.statistics[0].statistics, statType);
                                     const awayRaw = getStatByType(evento.statistics[1].statistics, statType);
-                                    
+
                                     // Convertir NaN y N/A a 0
                                     const homeValue = homeRaw === 'N/A' || isNaN(Number(homeRaw)) ? 0 : Number(homeRaw);
                                     const awayValue = awayRaw === 'N/A' || isNaN(Number(awayRaw)) ? 0 : Number(awayRaw);
-                                    
+
                                     // Calcular porcentajes para las barras
                                     const total = homeValue + awayValue;
                                     const homePercent = total > 0 ? (homeValue / total) * 100 : 50;
                                     const awayPercent = total > 0 ? (awayValue / total) * 100 : 50;
-                                    
+
                                     return (
                                         <div key={statType} className="py-2 border-b border-gray-100">
                                             {/* Etiqueta encima */}
                                             <div className="text-center text-xs text-gray-500 mb-1">
                                                 {statType === 'Shots on Goal' ? 'Tiros a puerta' :
-                                                 statType === 'Total Shots' ? 'Tiros totales' :
-                                                 statType === 'Possession %' ? 'Posesión' :
-                                                 statType === 'Corner Kicks' ? 'Corners' :
-                                                 statType === 'Fouls' ? 'Faltas' :
-                                                 statType === 'Yellow Cards' ? 'Tarjetas amarillas' :
-                                                 'Tarjetas rojas'}
+                                                    statType === 'Total Shots' ? 'Tiros totales' :
+                                                        statType === 'Possession %' ? 'Posesión' :
+                                                            statType === 'Corner Kicks' ? 'Corners' :
+                                                                statType === 'Fouls' ? 'Faltas' :
+                                                                    statType === 'Yellow Cards' ? 'Tarjetas amarillas' :
+                                                                        'Tarjetas rojas'}
                                             </div>
-                                            
+
                                             {/* Contenedor de valores y barra */}
                                             <div className="flex items-center gap-2">
                                                 {/* Valor local */}
                                                 <div className="w-8 text-right text-xs font-medium text-gray-700">
                                                     {homeValue}
                                                 </div>
-                                                
+
                                                 {/* Barra minimalista */}
                                                 <div className="flex-1 flex h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                                                    <div 
+                                                    <div
                                                         className="bg-green-700"
                                                         style={{ width: `${homePercent}%` }}
                                                     ></div>
-                                                    <div 
+                                                    <div
                                                         className="bg-red-500"
                                                         style={{ width: `${awayPercent}%` }}
                                                     ></div>
                                                 </div>
-                                                
+
                                                 {/* Valor visitante */}
                                                 <div className="w-8 text-left text-sm font-medium text-gray-700">
                                                     {awayValue}
@@ -434,40 +442,40 @@ const EventoInfoWidget = ({ eventoId }: EventoInfoWidgetProps) => {
                                     <div className="absolute inset-0 opacity-30">
                                         <div className="h-full w-full bg-gradient-to-r from-green-500 via-transparent to-green-700"></div>
                                     </div>
-                                    
+
                                     {/* Líneas del campo horizontal - responsivo */}
                                     <svg className="absolute inset-0 w-full h-full" viewBox="0 0 800 300" preserveAspectRatio="none">
                                         {/* Líneas laterales */}
-                                        <rect x="40" y="30" width="720" height="240" fill="none" stroke="white" strokeWidth="2" vectorEffect="non-scaling-stroke"/>
-                                        
+                                        <rect x="40" y="30" width="720" height="240" fill="none" stroke="white" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+
                                         {/* Línea del medio campo */}
-                                        <line x1="400" y1="30" x2="400" y2="270" stroke="white" strokeWidth="2" vectorEffect="non-scaling-stroke"/>
-                                        
+                                        <line x1="400" y1="30" x2="400" y2="270" stroke="white" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+
                                         {/* Círculo central */}
-                                        <circle cx="400" cy="150" r="40" fill="none" stroke="white" strokeWidth="2" vectorEffect="non-scaling-stroke"/>
-                                        <circle cx="400" cy="150" r="3" fill="white"/>
-                                        
+                                        <circle cx="400" cy="150" r="40" fill="none" stroke="white" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+                                        <circle cx="400" cy="150" r="3" fill="white" />
+
                                         {/* Área grande equipo local (izquierda) */}
-                                        <rect x="40" y="80" width="60" height="140" fill="none" stroke="white" strokeWidth="2" vectorEffect="non-scaling-stroke"/>
-                                        
+                                        <rect x="40" y="80" width="60" height="140" fill="none" stroke="white" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+
                                         {/* Área pequeña equipo local */}
-                                        <rect x="40" y="120" width="25" height="60" fill="none" stroke="white" strokeWidth="2" vectorEffect="non-scaling-stroke"/>
-                                        
+                                        <rect x="40" y="120" width="25" height="60" fill="none" stroke="white" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+
                                         {/* Área grande equipo visitante (derecha) */}
-                                        <rect x="700" y="80" width="60" height="140" fill="none" stroke="white" strokeWidth="2" vectorEffect="non-scaling-stroke"/>
-                                        
+                                        <rect x="700" y="80" width="60" height="140" fill="none" stroke="white" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+
                                         {/* Área pequeña equipo visitante */}
-                                        <rect x="735" y="120" width="25" height="60" fill="none" stroke="white" strokeWidth="2" vectorEffect="non-scaling-stroke"/>
-                                        
+                                        <rect x="735" y="120" width="25" height="60" fill="none" stroke="white" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+
                                         {/* Arcos */}
-                                        <path d="M 40 130 Q 30 150 40 170" fill="none" stroke="white" strokeWidth="2" vectorEffect="non-scaling-stroke"/>
-                                        <path d="M 760 130 Q 770 150 760 170" fill="none" stroke="white" strokeWidth="2" vectorEffect="non-scaling-stroke"/>
-                                        
+                                        <path d="M 40 130 Q 30 150 40 170" fill="none" stroke="white" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+                                        <path d="M 760 130 Q 770 150 760 170" fill="none" stroke="white" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+
                                         {/* Esquinas */}
-                                        <path d="M 40 30 Q 45 30 45 35" fill="none" stroke="white" strokeWidth="1" vectorEffect="non-scaling-stroke"/>
-                                        <path d="M 760 30 Q 755 30 755 35" fill="none" stroke="white" strokeWidth="1" vectorEffect="non-scaling-stroke"/>
-                                        <path d="M 40 270 Q 45 270 45 265" fill="none" stroke="white" strokeWidth="1" vectorEffect="non-scaling-stroke"/>
-                                        <path d="M 760 270 Q 755 270 755 265" fill="none" stroke="white" strokeWidth="1" vectorEffect="non-scaling-stroke"/>
+                                        <path d="M 40 30 Q 45 30 45 35" fill="none" stroke="white" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+                                        <path d="M 760 30 Q 755 30 755 35" fill="none" stroke="white" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+                                        <path d="M 40 270 Q 45 270 45 265" fill="none" stroke="white" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+                                        <path d="M 760 270 Q 755 270 755 265" fill="none" stroke="white" strokeWidth="1" vectorEffect="non-scaling-stroke" />
                                     </svg>
 
                                     {/* Contenedor de jugadores */}
@@ -481,16 +489,16 @@ const EventoInfoWidget = ({ eventoId }: EventoInfoWidgetProps) => {
                                                 'M': evento.lineups[0].startXI.filter(p => p.player.pos === 'M'),
                                                 'F': evento.lineups[0].startXI.filter(p => p.player.pos === 'F')
                                             };
-                                            
+
                                             return evento.lineups[0].startXI.slice(0, 11).map((player, index) => {
                                                 const pos = player.player.pos;
                                                 const posPlayers = playersByPosition[pos as keyof typeof playersByPosition] || [];
                                                 const posIndex = posPlayers.findIndex(p => p.player.id === player.player.id);
                                                 const totalInPos = posPlayers.length;
-                                                
+
                                                 // Posiciones X base para cada rol
                                                 const baseX = pos === 'G' ? 12 : pos === 'D' ? 22 : pos === 'M' ? 35 : 45;
-                                                
+
                                                 // Calcular Y evitando superposiciones - responsivo
                                                 let yPos = 50;
                                                 if (totalInPos > 1) {
@@ -498,7 +506,7 @@ const EventoInfoWidget = ({ eventoId }: EventoInfoWidgetProps) => {
                                                     const spacing = Math.min(20, 45 / (totalInPos - 1));
                                                     yPos = 50 - (spacing * (totalInPos - 1) / 2) + (spacing * posIndex);
                                                 }
-                                                
+
                                                 const position = {
                                                     x: baseX,
                                                     y: Math.max(20, Math.min(80, yPos))
@@ -548,16 +556,16 @@ const EventoInfoWidget = ({ eventoId }: EventoInfoWidgetProps) => {
                                                 'M': evento.lineups[1].startXI.filter(p => p.player.pos === 'M'),
                                                 'F': evento.lineups[1].startXI.filter(p => p.player.pos === 'F')
                                             };
-                                            
+
                                             return evento.lineups[1].startXI.slice(0, 11).map((player, index) => {
                                                 const pos = player.player.pos;
                                                 const posPlayers = playersByPosition[pos as keyof typeof playersByPosition] || [];
                                                 const posIndex = posPlayers.findIndex(p => p.player.id === player.player.id);
                                                 const totalInPos = posPlayers.length;
-                                                
+
                                                 // Posiciones X base para visitante (lado derecho)
                                                 const baseX = pos === 'G' ? 88 : pos === 'D' ? 78 : pos === 'M' ? 65 : 55;
-                                                
+
                                                 // Calcular Y evitando superposiciones - responsivo
                                                 let yPos = 50;
                                                 if (totalInPos > 1) {
@@ -565,7 +573,7 @@ const EventoInfoWidget = ({ eventoId }: EventoInfoWidgetProps) => {
                                                     const spacing = Math.min(20, 45 / (totalInPos - 1));
                                                     yPos = 50 - (spacing * (totalInPos - 1) / 2) + (spacing * posIndex);
                                                 }
-                                                
+
                                                 const position = {
                                                     x: baseX,
                                                     y: Math.max(20, Math.min(80, yPos))
@@ -631,7 +639,7 @@ const EventoInfoWidget = ({ eventoId }: EventoInfoWidgetProps) => {
                                         const isHomeWin = match.goals.home > match.goals.away;
                                         const isAwayWin = match.goals.away > match.goals.home;
                                         const isDraw = match.goals.home === match.goals.away;
-                                        
+
                                         return (
                                             <div key={index} className="group hover:bg-gray-50 transition-colors duration-200">
                                                 <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
@@ -642,10 +650,10 @@ const EventoInfoWidget = ({ eventoId }: EventoInfoWidgetProps) => {
                                                                 <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                                                             </svg>
                                                             <span className="text-xs text-gray-500 font-medium">
-                                                                {new Date(match.fixture.date).toLocaleDateString('es-ES', { 
-                                                                    day: 'numeric', 
-                                                                    month: 'short', 
-                                                                    year: 'numeric' 
+                                                                {new Date(match.fixture.date).toLocaleDateString('es-ES', {
+                                                                    day: 'numeric',
+                                                                    month: 'short',
+                                                                    year: 'numeric'
                                                                 })}
                                                             </span>
                                                         </div>
@@ -662,9 +670,9 @@ const EventoInfoWidget = ({ eventoId }: EventoInfoWidgetProps) => {
                                                         {/* Equipo Local */}
                                                         <div className="flex items-center gap-3 flex-1">
                                                             <div className="relative">
-                                                                <img 
-                                                                    src={match.teams.home.logo} 
-                                                                    alt={match.teams.home.name} 
+                                                                <img
+                                                                    src={match.teams.home.logo}
+                                                                    alt={match.teams.home.name}
                                                                     className="w-8 h-8 rounded-full border-2 border-white shadow-sm"
                                                                 />
                                                                 {isHomeWin && (
@@ -686,17 +694,15 @@ const EventoInfoWidget = ({ eventoId }: EventoInfoWidgetProps) => {
                                                         {/* Marcador Central */}
                                                         <div className="flex items-center gap-4 px-4">
                                                             <div className="flex items-center gap-2">
-                                                                <div className={`text-xl font-bold px-3 py-2 rounded-lg ${
-                                                                    isHomeWin ? 'bg-green-100 text-green-700' :
+                                                                <div className={`text-xl font-bold px-3 py-2 rounded-lg ${isHomeWin ? 'bg-green-100 text-green-700' :
                                                                     isDraw ? 'bg-gray-100 text-gray-700' : 'bg-red-100 text-red-400'
-                                                                }`}>
+                                                                    }`}>
                                                                     {match.goals.home}
                                                                 </div>
                                                                 <div className="text-gray-400 font-medium">-</div>
-                                                                <div className={`text-xl font-bold px-3 py-2 rounded-lg ${
-                                                                    isAwayWin ? 'bg-green-100 text-green-700' :
+                                                                <div className={`text-xl font-bold px-3 py-2 rounded-lg ${isAwayWin ? 'bg-green-100 text-green-700' :
                                                                     isDraw ? 'bg-gray-100 text-gray-700' : 'bg-red-100 text-red-400'
-                                                                }`}>
+                                                                    }`}>
                                                                     {match.goals.away}
                                                                 </div>
                                                             </div>
@@ -711,9 +717,9 @@ const EventoInfoWidget = ({ eventoId }: EventoInfoWidgetProps) => {
                                                                 <div className="text-xs text-gray-500">Visitante</div>
                                                             </div>
                                                             <div className="relative">
-                                                                <img 
-                                                                    src={match.teams.away.logo} 
-                                                                    alt={match.teams.away.name} 
+                                                                <img
+                                                                    src={match.teams.away.logo}
+                                                                    alt={match.teams.away.name}
                                                                     className="w-8 h-8 rounded-full border-2 border-white shadow-sm"
                                                                 />
                                                                 {isAwayWin && (
@@ -729,14 +735,13 @@ const EventoInfoWidget = ({ eventoId }: EventoInfoWidgetProps) => {
 
                                                     {/* Resultado badge */}
                                                     <div className="flex justify-center mt-3">
-                                                        <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                                            isDraw ? 'bg-yellow-100 text-yellow-700' :
+                                                        <div className={`px-3 py-1 rounded-full text-xs font-medium ${isDraw ? 'bg-yellow-100 text-yellow-700' :
                                                             isHomeWin ? 'bg-blue-100 text-blue-700' :
-                                                            'bg-red-100 text-red-700'
-                                                        }`}>
+                                                                'bg-red-100 text-red-700'
+                                                            }`}>
                                                             {isDraw ? '🤝 Empate' :
-                                                             isHomeWin ? `🏆 Victoria ${match.teams.home.name}` :
-                                                             `🏆 Victoria ${match.teams.away.name}`}
+                                                                isHomeWin ? `🏆 Victoria ${match.teams.home.name}` :
+                                                                    `🏆 Victoria ${match.teams.away.name}`}
                                                         </div>
                                                     </div>
                                                 </div>

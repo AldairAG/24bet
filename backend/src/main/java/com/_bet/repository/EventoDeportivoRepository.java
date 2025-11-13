@@ -91,4 +91,14 @@ public interface EventoDeportivoRepository extends JpaRepository<EventoDeportivo
      */
     List<EventoDeportivo> findByLigaNombreAndLigaPaisNombreAndLigaActivaTrue(String nombreLiga, String paisLiga);
 
+    /**
+     * buscar eventos en vivo
+     */
+    List<EventoDeportivo> findByEnVivoTrue();
+
+    /*
+     * Buscar eventos por fecha anterior a una fecha dada
+     */
+    List<EventoDeportivo> findByFechaEventoBefore(LocalDateTime fecha);
+
 }
