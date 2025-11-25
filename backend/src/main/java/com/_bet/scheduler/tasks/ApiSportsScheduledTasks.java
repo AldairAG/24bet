@@ -45,7 +45,7 @@ public class ApiSportsScheduledTasks {
      * Sincronización de eventos en vivo - cada 2 minutos durante horas de juego
      * Solo ejecuta durante horarios típicos de eventos deportivos
      */
-    //@Scheduled(fixedRate = 120000) // 2 minutos
+    @Scheduled(fixedRate = 120000) // 2 minutos
     @Async("theSportsDbTaskExecutor")
     public void sincronizacionEventosEnVivo() {
         // Solo ejecutar durante horarios de eventos deportivos (8 AM a 12 AM)
@@ -71,7 +71,7 @@ public class ApiSportsScheduledTasks {
     public void sincronizacionEventosEnVivoYCuotas() {
 
         try {
-            //      apiSportService.obtenerEventosEnVivo();
+            //apiSportService.obtenerEventosEnVivo();
         } catch (Exception e) {
             log.error("❌ Error en la sincronización de eventos en vivo y cuotas de apuestas: {}", e.getMessage(), e);
         }

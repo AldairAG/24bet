@@ -1,9 +1,7 @@
 package com._bet.service.evento;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com._bet.dto.apiSports.entidades.Fixture;
 import com._bet.dto.apiSports.entidades.League;
 import com._bet.dto.apiSports.entidades.Team;
-import com._bet.dto.apiSports.entidades.Fixture.Status;
 import com._bet.dto.apiSports.entidades.Odds.Bet;
 import com._bet.dto.apiSports.entidades.Odds.Value;
 import com._bet.dto.apiSports.response.EventsByLeagueResponse.Goals;
