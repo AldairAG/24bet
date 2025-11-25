@@ -575,13 +575,12 @@ public class ApiSportService {
         }
 
         String urlEventosEnVivo = baseUrl + "/fixtures?live=all";
-        // String urlOddsEnVivo = baseUrl + "/odds/live";
 
         Response<EventsByLeagueResponse> eventosResponse = getFromSportApi(urlEventosEnVivo,
                 new ParameterizedTypeReference<Response<EventsByLeagueResponse>>() {
                 });
 
-        /*
+                        /*
          * Response<OddsLiveResponse> oddsEnVivoResponse =
          * getFromSportApi(urlOddsEnVivo,
          * new ParameterizedTypeReference<Response<OddsLiveResponse>>() {
@@ -593,47 +592,56 @@ public class ApiSportService {
                     .findByApiSportsId(eventoEnVivo.getFixture().getId());
 
             if (existingEvent != null) {
-                existingEvent.getEstado().setLargo(eventoEnVivo.getFixture().getStatus().getLongStatus());
-                existingEvent.getEstado().setCorto(eventoEnVivo.getFixture().getStatus().getShortStatus());
-                existingEvent.getEstado().setElapsed(eventoEnVivo.getFixture().getStatus().getElapsed());
-                existingEvent.getEstado().setExtra(eventoEnVivo.getFixture().getStatus().getExtra());
+                System.out.println("Actualizando evento en vivo: " + existingEvent.getNombre() + " (ID: "
+                        + existingEvent.getApiSportsId() + ")");
+                
+                // Actualizar estado
+                if (eventoEnVivo.getFixture() != null && eventoEnVivo.getFixture().getStatus() != null) {
+                    existingEvent.getEstado().setLargo(eventoEnVivo.getFixture().getStatus().getLongStatus());
+                    existingEvent.getEstado().setCorto(eventoEnVivo.getFixture().getStatus().getShortStatus());
+                    existingEvent.getEstado().setElapsed(eventoEnVivo.getFixture().getStatus().getElapsed());
+                    existingEvent.getEstado().setExtra(eventoEnVivo.getFixture().getStatus().getExtra());
+                }
+                
                 existingEvent.setEnVivo(true);
                 existingEvent.setFechaActualizacion(LocalDateTime.now());
 
-                existingEvent.getGoles()
-                        .setLocales(eventoEnVivo.getScore().getFulltime().getHome() != null
-                                ? eventoEnVivo.getScore().getFulltime().getHome()
-                                : 0);
-                existingEvent.getGoles()
-                        .setVisitantes(eventoEnVivo.getScore().getFulltime().getAway() != null
-                                ? eventoEnVivo.getScore().getFulltime().getAway()
-                                : 0);
+                // Verificar que score no sea null
+                if (eventoEnVivo.getScore() != null) {
+                    // Actualizar goles totales
+                    if (eventoEnVivo.getScore().getFulltime() != null) {
+                        Integer homeGoals = eventoEnVivo.getScore().getFulltime().getHome();
+                        Integer awayGoals = eventoEnVivo.getScore().getFulltime().getAway();
+                        
+                        existingEvent.getGoles().setLocales(homeGoals != null ? homeGoals : 0);
+                        existingEvent.getGoles().setVisitantes(awayGoals != null ? awayGoals : 0);
+                        
+                        // Actualizar fulltime
+                        existingEvent.getGoles().getFulltime().setLocales(homeGoals != null ? homeGoals : 0);
+                        existingEvent.getGoles().getFulltime().setVisitantes(awayGoals != null ? awayGoals : 0);
+                    }
 
-                existingEvent.getGoles().getFulltime().setLocales(
-                        eventoEnVivo.getScore().getFulltime().getHome() == null ? 0
-                                : eventoEnVivo.getScore().getFulltime().getHome());
+                    // Actualizar extratime
+                    if (eventoEnVivo.getScore().getExtratime() != null) {
+                        Integer homeExtratime = eventoEnVivo.getScore().getExtratime().getHome();
+                        Integer awayExtratime = eventoEnVivo.getScore().getExtratime().getAway();
+                        
+                        existingEvent.getGoles().getExtratime().setLocales(homeExtratime != null ? homeExtratime : 0);
+                        existingEvent.getGoles().getExtratime().setVisitantes(awayExtratime != null ? awayExtratime : 0);
+                    }
 
-                existingEvent.getGoles().getFulltime()
-                        .setVisitantes(eventoEnVivo.getScore().getFulltime().getAway() != null
-                                ? eventoEnVivo.getScore().getFulltime().getAway()
-                                : 0);
-
-                existingEvent.getGoles().getExtratime()
-                        .setLocales(eventoEnVivo.getScore().getExtratime().getHome() != null
-                                ? eventoEnVivo.getScore().getExtratime().getHome()
-                                : 0);
-                existingEvent.getGoles().getExtratime()
-                        .setVisitantes(eventoEnVivo.getScore().getExtratime().getAway() != null
-                                ? eventoEnVivo.getScore().getExtratime().getAway()
-                                : 0);
-
-                existingEvent.getGoles().getPenalty().setLocales(eventoEnVivo.getScore().getPenalty().getHome() != null
-                        ? eventoEnVivo.getScore().getPenalty().getHome()
-                        : 0);
-                existingEvent.getGoles().getPenalty()
-                        .setVisitantes(eventoEnVivo.getScore().getPenalty().getAway() != null
-                                ? eventoEnVivo.getScore().getPenalty().getAway()
-                                : 0);
+                    // Actualizar penalty
+                    if (eventoEnVivo.getScore().getPenalty() != null) {
+                        Integer homePenalty = eventoEnVivo.getScore().getPenalty().getHome();
+                        Integer awayPenalty = eventoEnVivo.getScore().getPenalty().getAway();
+                        
+                        existingEvent.getGoles().getPenalty().setLocales(homePenalty != null ? homePenalty : 0);
+                        existingEvent.getGoles().getPenalty().setVisitantes(awayPenalty != null ? awayPenalty : 0);
+                    }
+                }
+                
+                // Guardar los cambios
+                eventoDeportivoRepository.save(existingEvent);
             }
         });
     }
