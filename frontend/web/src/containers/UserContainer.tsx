@@ -19,16 +19,18 @@ const UserContainer: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="flex">
+        <div className="min-h-screen bg-gray-50 max-w-dvw">
+            <div className=" max-w-dvw">
                 <HeaderUser onMenuToggle={toggleSidebar} />
             </div>
             <div>
                 <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
             </div>
-            <div className="flex">
-                <AsideUser />
-                <main className="flex-1">
+            <div className="flex max-w-dvw">
+                <div>    
+                    <AsideUser />
+                </div>
+                <main className="flex-1 ">
                     <Outlet />
                 </main>
             </div>

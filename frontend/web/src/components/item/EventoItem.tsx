@@ -99,48 +99,48 @@ const EventoItem: React.FC<EventoItemProps> = ({
 
   // Definir clases CSS basadas en la variante
   const containerClasses = variante === 'detailed'
-    ? "rounded-lg border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow min-w-100 h-45"
-    : "border-b border-b-gray-400 border border-gray-300 p-3 bg-gray-100 cursor-pointer";
+    ? "rounded-lg border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow min-w-100 h-45 sm:p-4"
+    : "border-b border-b-gray-400 border border-gray-300 p-3 bg-gray-100 cursor-pointer sm:p-2";
 
   const headerClasses = variante === 'detailed'
     ? "flex items-center justify-between mb-2"
     : "flex items-center justify-between mb-2";
 
   const headerContentClasses = variante === 'detailed'
-    ? "flex items-center gap-2 overflow-hidden"
-    : "flex items-center space-x-2";
+    ? "flex items-center gap-2 overflow-hidden flex-wrap sm:gap-1"
+    : "flex items-center space-x-2 flex-wrap sm:space-x-1";
 
   const liveIndicatorClasses = variante === 'detailed'
     ? "flex items-center space-x-1"
-    : "flex items-center space-x-2";
+    : "flex items-center space-x-2 sm:space-x-1";
 
   const teamsContainerClasses = variante === 'detailed'
-    ? "space-y-6"
-    : "flex items-center justify-between";
+    ? "space-y-6 sm:space-y-4"
+    : "flex items-center justify-between flex-wrap sm:flex-col sm:items-start";
 
   const teamsLayoutClasses = variante === 'detailed'
-    ? "flex items-center justify-between gap-3"
+    ? "flex items-center justify-between gap-3 sm:gap-2 sm:flex-col sm:w-full"
     : "flex-1";
 
   const teamClasses = variante === 'detailed'
-    ? "flex items-center gap-2 min-w-0"
-    : "flex items-center space-x-2 mb-1 text-gray-900";
+    ? "flex items-center gap-2 min-w-0 sm:gap-1 sm:w-full"
+    : "flex items-center space-x-2 mb-1 text-gray-900 sm:space-x-1";
 
   const teamLogoClasses = variante === 'detailed'
-    ? "w-7 h-7 rounded-full object-contain bg-gray-100"
-    : "w-4 h-4 object-contain";
+    ? "w-7 h-7 rounded-full object-contain bg-gray-100 sm:w-5 sm:h-5"
+    : "w-4 h-4 object-contain sm:w-3 sm:h-3";
 
   const teamNameClasses = variante === 'detailed'
-    ? "text-sm text-gray-900 font-medium truncate max-w-[120px]"
-    : "text-sm text-gray-900";
+    ? "text-sm text-gray-900 font-medium truncate max-w-[120px] sm:text-xs sm:max-w-[100px]"
+    : "text-sm text-gray-900 sm:text-xs";
 
   const scoreClasses = variante === 'detailed'
-    ? "flex items-center gap-2 text-sm font-semibold text-gray-900"
-    : "text-sm font-bold text-gray-900";
+    ? "flex items-center gap-2 text-sm font-semibold text-gray-900 sm:text-xs sm:gap-1"
+    : "text-sm font-bold text-gray-900 sm:text-xs";
 
   const betsContainerClasses = variante === 'detailed'
-    ? "grid grid-cols-3 gap-2 text-[11px]"
-    : "flex space-x-2 text-xs ";
+    ? "grid grid-cols-3 gap-2 text-[11px] md:grid-cols-3 sm:gap-1 sm:text-[10px]"
+    : "flex flex-col space-y-2 text-xs md:flex-row md:space-y-0 md:space-x-2 sm:space-y-1";
 
   const betButtonClasses = (isSelected: boolean) => {
     const baseClasses = "px-2 py-1 rounded text-center transition-colors duration-200 bg-gray-300";

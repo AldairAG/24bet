@@ -31,7 +31,7 @@ const EventosEnVivo: React.FC = () => {
   }
 
   return (
-    <section className="px-3 pb-4">
+    <section className="px-3 pb-4 max-w-dvw">
       {/* Header En vivo ahora */}
       <div className="bg-red-600 text-white p-3 rounded-t-lg flex items-center justify-between">
         <h2 className="font-bold text-sm flex items-center">

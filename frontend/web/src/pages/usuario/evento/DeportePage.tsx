@@ -62,16 +62,16 @@ const DeportePage = () => {
       return <div className="p-4 text-center text-black">No hay eventos en vivo disponibles.</div>;
     }
     return (
-      <div className="w-full overflow-x-auto">
-        <div className="flex gap-2 min-w-max">
-          {eventosEnVivo.map((evento) => (
+      <div className="grid ">
+        <div className="flex gap-2 overflow-auto">
+           {eventosEnVivo.map((evento) => (
             <EventoItem
               key={evento.fixture.id}
               evento={evento}
               isLive={true}
               variante="detailed"
             />
-          ))}
+          ))} 
         </div>
       </div>
     );
@@ -140,7 +140,7 @@ const DeportePage = () => {
   }
 
   return (
-    <div className="px-4 py-6 overflow-hidden">
+    <div className="px-4 py-6 overflow-hidden max-w-dvw">
 
       <Breadcrumb />
 

@@ -27,7 +27,7 @@ const HeaderUser: React.FC<HeaderUserProps> = ({ onMenuToggle }) => {
 
     return (
         <header className="w-full bg-gradient-to-r from-red-600 to-red-700 shadow-lg border-b-2 border-red-800">
-            <div className="flex px-4 py-3 ">
+            <div className="flex px-3 py-3 ">
                 <div className="flex w-full items-center justify-evenly">
                     {/* Botón hamburguesa */}
                     <button
@@ -70,7 +70,7 @@ const HeaderUser: React.FC<HeaderUserProps> = ({ onMenuToggle }) => {
 
                     {/* Sección derecha: Saldo + Botón Depósito */}
                     <div className="flex items-center gap-3 text-white">
-                        <div className="sm:hidden flex items-center gap-3">
+                        <div className=" flex items-center gap-3">
                             <span className="py-1 text-lg font-semibold">
                                 {user ? formatearSaldo(user.saldoUsd) : "$0.00"}
                             </span>
@@ -94,24 +94,14 @@ const HeaderUser: React.FC<HeaderUserProps> = ({ onMenuToggle }) => {
                                         <path d="M7 9h.01M7 15h.01M17 9h.01M12 11a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" />
                                     </svg>
                                 </span>
-                                <span className="uppercase tracking-wide inline sm:hidden">Depositar</span>
+                                <span className="uppercase tracking-wide inline">Depositar</span>
                             </button>   
                         </div>
 
                     </div>
                 </div>
 
-                {/* Saldo móvil (visible solo en pantallas pequeñas) */}
-                <div className="hidden sm:flex mt-2 justify-center">
-                    <div className="flex items-center bg-white bg-opacity-15 backdrop-blur-sm rounded-lg px-3 py-1.5 border border-white border-opacity-20">
-                        <svg className="w-4 h-4 text-green-300 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                        </svg>
-                        <span className="text-white font-semibold text-sm">
-                            Saldo: {user ? formatearSaldo(user.saldoUsd) : '$0.00'}
-                        </span>
-                    </div>
-                </div>
+                
             </div>
         </header >
     );

@@ -33,7 +33,7 @@ const Home = () => {
       {/* Contenido principal */}
       <main className="flex-1 overflow-y-auto">
         {/* Banners promocionales */}
-        <section className="p-3">
+        <section className="hidden sm:block p-3">
           <div className="grid grid-cols-4 gap-2 mb-4">
             <div className="bg-red-600 rounded-lg p-3 text-white relative overflow-hidden h-20">
               <div className="relative z-10">
@@ -78,7 +78,7 @@ const Home = () => {
         </section>
 
         {/* Sección de deportes */}
-        <section className="px-3 mb-4">
+        <section className="px-3 mb-4 max-w-dvw">
           <div className="bg-white rounded-lg shadow-md p-3">
 
             <div className="flex space-x-4 overflow-x-auto">
