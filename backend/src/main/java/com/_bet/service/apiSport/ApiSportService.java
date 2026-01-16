@@ -187,14 +187,13 @@ public class ApiSportService {
     @Async
     public CompletableFuture<Integer> getTeamsByLeague(String deporte) {
         String deporteKey = (deporte == null || deporte.isBlank()) ? "Soccer" : deporte;
-        int season = java.time.Year.now().getValue();
         List<Liga> activeLeagues = ligaRepository.findByDeporteNombreAndActivaTrue(deporteKey);
 
         int totalEquiposGuardados = 0;
 
         for (Liga league : activeLeagues) {
             Integer leagueId = league.getApiSportsId();
-
+            int season = league.getTemporada();
             String url = URLS_POR_DEPORTE.get(deporteKey) + "/teams?league=" + leagueId + "&season=" + season;
             Response<TeamByLeagueResponse> response = getFromSportApi(url,
                     new ParameterizedTypeReference<Response<TeamByLeagueResponse>>() {
