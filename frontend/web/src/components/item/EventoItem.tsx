@@ -156,7 +156,7 @@ const EventoItem: React.FC<EventoItemProps> = ({
       {/* Equipos y apuestas */}
       <div className={variante === 'detailed'
         ? "space-y-6 sm:space-y-4"
-        : "flex items-center justify-between flex-wrap sm:flex-col sm:items-start"} onClick={() => handleEventoClick(`${evento?.teams.home.name} vs ${evento?.teams.away.name}`)} style={{ cursor: 'pointer' }}>
+        : "items-center justify-evenly flex-col sm:flex flex-wrap"} onClick={() => handleEventoClick(`${evento?.teams.home.name} vs ${evento?.teams.away.name}`)} style={{ cursor: 'pointer' }}>
         {variante === 'detailed' ? (
           <>
             {/* Equipos en layout horizontal para detailed */}
@@ -188,7 +188,7 @@ const EventoItem: React.FC<EventoItemProps> = ({
               </div>
 
               {/* Visitante */}
-              <div className="flex items-center gap-2 min-w-0 sm:gap-1 sm:w-full">
+              <div className="flex items-center justify-end gap-2 min-w-0 sm:gap-1 sm:w-full">
                 <span className="text-sm text-gray-900 font-medium truncate max-w-[120px] sm:text-xs sm:max-w-[100px]">
                   {evento?.teams.away.name}
                 </span>
@@ -252,7 +252,7 @@ const EventoItem: React.FC<EventoItemProps> = ({
             </div>
 
             {/* Botones de apuestas */}
-            <div className="flex flex-col space-y-2 text-xs md:flex-row md:space-y-0 md:space-x-2 sm:space-y-1">
+            <div className="flex w-full justify-evenly sm:flex space-y-2 text-xs md:flex-row md:space-x-2 sm:space-y-1">
               {evento?.odds
                 .filter(option => option.name === 'Match Winner' || option.name === 'Full Time Result')
                 .slice(0, 3)
@@ -261,7 +261,7 @@ const EventoItem: React.FC<EventoItemProps> = ({
                     <button
                       key={value.id}
                       onClick={(event) => handleBetClick(event, value.id)}
-                      className={`px-2 py-1 rounded text-center transition-colors duration-200 bg-gray-300 ${isBetSelected(value.id, evento.fixture.id) ? 'bg-blue-500 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}
+                      className={`px-2 py-1 w-full rounded text-center transition-colors duration-200 bg-gray-300 ${isBetSelected(value.id, evento.fixture.id) ? 'bg-blue-500 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}
                     >
                       <p className={`font-bold ${value.odd > 2 ? 'text-green-600' : 'text-gray-800'}`}>
                         {formatoCuota(value.odd)}
