@@ -15,7 +15,7 @@ export interface EventoItemProps {
 const EventoItem: React.FC<EventoItemProps> = ({
   evento,
   isLive = false,
-  variante = 'default'
+  variante = 'default' as 'default' | 'detailed'
 }) => {
   const { obtenerBanderaPorNombrePais } = useEventos();
   const navigate = useNavigate();
@@ -55,9 +55,9 @@ const EventoItem: React.FC<EventoItemProps> = ({
     // Referencia vacía para evitar warnings de variable no usada mientras se integra con el store
     void _betId;
 
-    handleQuickBet(evento.fixture.id, 
-      evento.teams.home.name + ' vs ' + evento.teams.away.name, 
-      'Match Winner', 'Apuesta rápida desde Home', 
+    handleQuickBet(evento.fixture.id,
+      evento.teams.home.name + ' vs ' + evento.teams.away.name,
+      'Match Winner', 'Apuesta rápida desde Home',
       evento.odds.flatMap(o => o.values).find(v => v.id === _betId)?.odd || 0, _betId);
   };
 
@@ -97,75 +97,15 @@ const EventoItem: React.FC<EventoItemProps> = ({
 
   const showScore = isLive && evento?.goals?.home !== undefined && evento?.goals?.away !== undefined;
 
-  // Definir clases CSS basadas en la variante
-  const containerClasses = variante === 'detailed'
-    ? "rounded-lg border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow min-w-100 h-45 sm:p-4"
-    : "border-b border-b-gray-400 border border-gray-300 p-3 bg-gray-100 cursor-pointer sm:p-2";
-
-  const headerClasses = variante === 'detailed'
-    ? "flex items-center justify-between mb-2"
-    : "flex items-center justify-between mb-2";
-
-  const headerContentClasses = variante === 'detailed'
-    ? "flex items-center gap-2 overflow-hidden flex-wrap sm:gap-1"
-    : "flex items-center space-x-2 flex-wrap sm:space-x-1";
-
-  const liveIndicatorClasses = variante === 'detailed'
-    ? "flex items-center space-x-1"
-    : "flex items-center space-x-2 sm:space-x-1";
-
-  const teamsContainerClasses = variante === 'detailed'
-    ? "space-y-6 sm:space-y-4"
-    : "flex items-center justify-between flex-wrap sm:flex-col sm:items-start";
-
-  const teamsLayoutClasses = variante === 'detailed'
-    ? "flex items-center justify-between gap-3 sm:gap-2 sm:flex-col sm:w-full"
-    : "flex-1";
-
-  const teamClasses = variante === 'detailed'
-    ? "flex items-center gap-2 min-w-0 sm:gap-1 sm:w-full"
-    : "flex items-center space-x-2 mb-1 text-gray-900 sm:space-x-1";
-
-  const teamLogoClasses = variante === 'detailed'
-    ? "w-7 h-7 rounded-full object-contain bg-gray-100 sm:w-5 sm:h-5"
-    : "w-4 h-4 object-contain sm:w-3 sm:h-3";
-
-  const teamNameClasses = variante === 'detailed'
-    ? "text-sm text-gray-900 font-medium truncate max-w-[120px] sm:text-xs sm:max-w-[100px]"
-    : "text-sm text-gray-900 sm:text-xs";
-
-  const scoreClasses = variante === 'detailed'
-    ? "flex items-center gap-2 text-sm font-semibold text-gray-900 sm:text-xs sm:gap-1"
-    : "text-sm font-bold text-gray-900 sm:text-xs";
-
-  const betsContainerClasses = variante === 'detailed'
-    ? "grid grid-cols-3 gap-2 text-[11px] md:grid-cols-3 sm:gap-1 sm:text-[10px]"
-    : "flex flex-col space-y-2 text-xs md:flex-row md:space-y-0 md:space-x-2 sm:space-y-1";
-
-  const betButtonClasses = (isSelected: boolean) => {
-    const baseClasses = "px-2 py-1 rounded text-center transition-colors duration-200 bg-gray-300";
-    if (variante === 'detailed') {
-      return `${baseClasses} min-w-0 ${isSelected ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`;
-    }
-    return `${baseClasses} ${isSelected ? 'bg-blue-500 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`;
-  };
-
-  const oddTextClasses = (odd: number) => {
-    if (variante === 'detailed') {
-      return `font-bold leading-4 ${odd > 2 ? 'text-green-600' : 'text-gray-800'}`;
-    }
-    return `font-bold ${odd > 2 ? 'text-green-600' : 'text-gray-800'}`;
-  };
-
-  const valueTextClasses = variante === 'detailed'
-    ? "text-gray-600 truncate"
-    : "";
-
   return (
-    <div className={containerClasses}>
+    <div className={variante === 'detailed'
+      ? "rounded-lg border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow min-w-100 h-45 sm:p-4"
+      : "border-b border-b-gray-400 border border-gray-300 p-3 bg-gray-100 cursor-pointer sm:p-2"}>
       {/* Header del evento */}
-      <div className={headerClasses} onClick={() => handleEventoClick(`${evento?.teams.home.name} vs ${evento?.teams.away.name}`)} style={{ cursor: 'pointer' }}>
-        <div className={headerContentClasses}>
+      <div className="flex items-center justify-between mb-2" onClick={() => handleEventoClick(`${evento?.teams.home.name} vs ${evento?.teams.away.name}`)} style={{ cursor: 'pointer' }}>
+        <div className={variante === 'detailed'
+          ? "flex items-center gap-2 overflow-hidden flex-wrap sm:gap-1"
+          : "flex items-center space-x-2 flex-wrap sm:space-x-1"}>
           {/* En vivo / fecha */}
           {isLive ? (
             <>
@@ -197,7 +137,9 @@ const EventoItem: React.FC<EventoItemProps> = ({
         </div>
         {/* Indicador visual cuando está en vivo */}
         {isLive && (
-          <div className={liveIndicatorClasses} aria-hidden>
+          <div className={variante === 'detailed'
+            ? "flex items-center space-x-1"
+            : "flex items-center space-x-2 sm:space-x-1"} aria-hidden>
             {variante === 'detailed' ? (
               renderStatusIndicator()
             ) : (
@@ -212,26 +154,28 @@ const EventoItem: React.FC<EventoItemProps> = ({
       </div>
 
       {/* Equipos y apuestas */}
-      <div className={teamsContainerClasses} onClick={() => handleEventoClick(`${evento?.teams.home.name} vs ${evento?.teams.away.name}`)} style={{ cursor: 'pointer' }}>
+      <div className={variante === 'detailed'
+        ? "space-y-6 sm:space-y-4"
+        : "flex items-center justify-between flex-wrap sm:flex-col sm:items-start"} onClick={() => handleEventoClick(`${evento?.teams.home.name} vs ${evento?.teams.away.name}`)} style={{ cursor: 'pointer' }}>
         {variante === 'detailed' ? (
           <>
             {/* Equipos en layout horizontal para detailed */}
-            <div className={teamsLayoutClasses}>
+            <div className="flex items-center justify-between gap-3 sm:gap-2 sm:w-full">
               {/* Local */}
-              <div className={teamClasses}>
+              <div className="flex items-center gap-2 min-w-0 sm:gap-1 sm:w-full">
                 <img
                   src={evento?.teams.home.logo}
                   alt={`${evento?.teams.home.name} logo`}
-                  className={teamLogoClasses}
+                  className="w-7 h-7 rounded-full object-contain bg-gray-100 sm:w-5 sm:h-5"
                   loading="lazy"
                 />
-                <span className={teamNameClasses}>
+                <span className="text-sm text-gray-900 font-medium truncate max-w-[120px] sm:text-xs sm:max-w-[100px]">
                   {evento?.teams.home.name}
                 </span>
               </div>
 
               {/* Marcador o VS */}
-              <div className={scoreClasses}>
+              <div className="flex items-center gap-2 text-sm font-semibold text-gray-900 sm:text-xs sm:gap-1">
                 {showScore ? (
                   <>
                     <span>{evento?.goals.home}</span>
@@ -244,21 +188,21 @@ const EventoItem: React.FC<EventoItemProps> = ({
               </div>
 
               {/* Visitante */}
-              <div className={teamClasses}>
-                <span className={teamNameClasses}>
+              <div className="flex items-center gap-2 min-w-0 sm:gap-1 sm:w-full">
+                <span className="text-sm text-gray-900 font-medium truncate max-w-[120px] sm:text-xs sm:max-w-[100px]">
                   {evento?.teams.away.name}
                 </span>
                 <img
                   src={evento?.teams.away.logo}
                   alt={`${evento?.teams.away.name} logo`}
-                  className={teamLogoClasses}
+                  className="w-7 h-7 rounded-full object-contain bg-gray-100 sm:w-5 sm:h-5"
                   loading="lazy"
                 />
               </div>
             </div>
 
             {/* Botones de apuestas (debajo, distribución en grilla) */}
-            <div className={betsContainerClasses}>
+            <div className="grid grid-cols-3 gap-2 text-[11px] md:grid-cols-3 sm:gap-1 sm:text-[10px]">
               {evento?.odds
                 .filter(option => option.name === 'Match Winner' || option.name === 'Full Time Result')
                 .slice(0, 3)
@@ -267,12 +211,12 @@ const EventoItem: React.FC<EventoItemProps> = ({
                     <button
                       key={value.id}
                       onClick={(event) => handleBetClick(event, value.id)}
-                      className={betButtonClasses(isBetSelected(value.id, evento.fixture.id))}
+                      className={`px-2 py-1 rounded text-center transition-colors duration-200 bg-gray-300 min-w-0 ${isBetSelected(value.id, evento.fixture.id) ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}
                     >
-                      <p className={oddTextClasses(value.odd)}>
+                      <p className={`font-bold leading-4 ${value.odd > 2 ? 'text-green-600' : 'text-gray-800'}`}>
                         {value.odd > 2 ? '+' : ''}{((value.odd - 1) * 100).toFixed(0)}
                       </p>
-                      <p className={valueTextClasses}>{value.value}</p>
+                      <p className="text-gray-600 truncate">{value.value}</p>
                     </button>
                   ))))}
             </div>
@@ -280,35 +224,35 @@ const EventoItem: React.FC<EventoItemProps> = ({
         ) : (
           <>
             {/* Layout vertical para default */}
-            <div className={teamsLayoutClasses}>
-              <div className={teamClasses}>
+            <div className="flex-1">
+              <div className="flex items-center space-x-2 mb-1 text-gray-900 sm:space-x-1">
                 <img
                   src={evento?.teams.home.logo}
                   alt={`${evento?.teams.home.name} logo`}
-                  className={teamLogoClasses}
+                  className="w-4 h-4 object-contain sm:w-3 sm:h-3"
                   loading="lazy"
                 />
-                <span className={teamNameClasses}>{evento?.teams.home.name}</span>
+                <span className="text-sm text-gray-900 sm:text-xs">{evento?.teams.home.name}</span>
                 {isLive && evento?.goals.home !== undefined && (
-                  <span className={scoreClasses}>{evento?.goals.home}</span>
+                  <span className="text-sm font-bold text-gray-900 sm:text-xs">{evento?.goals.home}</span>
                 )}
               </div>
               <div className="flex items-center space-x-2">
                 <img
                   src={evento?.teams.away.logo}
                   alt={`${evento?.teams.away.name} logo`}
-                  className={teamLogoClasses}
+                  className="w-4 h-4 object-contain sm:w-3 sm:h-3"
                   loading="lazy"
                 />
-                <span className={teamNameClasses}>{evento?.teams.away.name}</span>
+                <span className="text-sm text-gray-900 sm:text-xs">{evento?.teams.away.name}</span>
                 {isLive && evento?.goals.away !== undefined && (
-                  <span className={scoreClasses}>{evento?.goals.away}</span>
+                  <span className="text-sm font-bold text-gray-900 sm:text-xs">{evento?.goals.away}</span>
                 )}
               </div>
             </div>
 
             {/* Botones de apuestas */}
-            <div className={betsContainerClasses}>
+            <div className="flex flex-col space-y-2 text-xs md:flex-row md:space-y-0 md:space-x-2 sm:space-y-1">
               {evento?.odds
                 .filter(option => option.name === 'Match Winner' || option.name === 'Full Time Result')
                 .slice(0, 3)
@@ -317,14 +261,15 @@ const EventoItem: React.FC<EventoItemProps> = ({
                     <button
                       key={value.id}
                       onClick={(event) => handleBetClick(event, value.id)}
-                      className={betButtonClasses(isBetSelected(value.id, evento.fixture.id))}
+                      className={`px-2 py-1 rounded text-center transition-colors duration-200 bg-gray-300 ${isBetSelected(value.id, evento.fixture.id) ? 'bg-blue-500 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}
                     >
-                      <p className={oddTextClasses(value.odd)}>
+                      <p className={`font-bold ${value.odd > 2 ? 'text-green-600' : 'text-gray-800'}`}>
                         {formatoCuota(value.odd)}
                       </p>
-                      <p className={valueTextClasses}>{value.value}</p>
+                      <p>{value.value}</p>
                     </button>
                   ))))}
+
             </div>
           </>
         )}

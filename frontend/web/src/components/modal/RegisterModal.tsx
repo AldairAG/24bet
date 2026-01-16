@@ -43,9 +43,6 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
       // Cerrar el modal
       onClose();
       
-      // Mostrar mensaje de éxito (puedes usar una librería de notificaciones)
-      alert('¡Registro exitoso! Te hemos enviado un email de confirmación.');
-      
     } catch (error) {
       console.error('Error en el registro:', error);
       alert('Hubo un error en el registro. Por favor, inténtalo de nuevo.');
@@ -62,7 +59,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 px-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 px-4">
       <div 
         className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}

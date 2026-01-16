@@ -145,7 +145,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                                     Soporte
                                 </Link>
                             </li>
-                            <li>
+                            {/* <li>
                                 <a 
                                     href="#" 
                                     className="flex items-center px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
@@ -156,7 +156,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                                     </svg>
                                     Configuración
                                 </a>
-                            </li>
+                            </li> */}
                         </ul>
                     </nav>
 

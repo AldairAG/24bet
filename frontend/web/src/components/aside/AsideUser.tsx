@@ -29,7 +29,7 @@ const AsideUser = () => {
     return null;
   }
   return (
-    <aside className="hidden md:block lg:w-50 w-64 bg-gray-800 text-white overflow-y-auto flex-shrink-0">
+    <aside className="hidden md:flex flex-col lg:w-50 w-64 bg-gray-200 text-white overflow-y-auto flex-shrink-0 h-full">
       {/* Header del aside */}
       <div className="bg-red-600 p-3">
         <h2 className="text-sm font-bold">LIGAS PRINCIPALES</h2>

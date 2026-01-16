@@ -59,7 +59,7 @@ const LandingPage = () => {
         </div>
         {/* Mobile menu */}
         {isMobileMenuOpen && (
-          <motion.div initial={{opacity:0, y:-8}} animate={{opacity:1, y:0}} className="bg-red-700 border-t border-red-800">
+          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="bg-red-700 border-t border-red-800">
             <div className="container mx-auto px-4 py-3 space-y-2">
               <button className="w-full bg-white text-red-700 hover:bg-gray-100 py-2.5 rounded-lg font-semibold shadow-sm" onClick={() => { setIsRegisterModalOpen(true); setIsMobileMenuOpen(false); }}>
                 Crear cuenta
@@ -82,13 +82,13 @@ const LandingPage = () => {
                 <img src={logo24betr} alt="24BET" className="h-30 w-auto object-contain" />
               </div>
             </div>
-            <motion.h2 initial={{opacity:0, y:16}} animate={{opacity:1, y:0}} className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight">
+            <motion.h2 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight">
               Apuesta con estilo, gana con velocidad
             </motion.h2>
-            <motion.p initial={{opacity:0, y:16}} animate={{opacity:1, y:0}} transition={{delay:0.1}} className="text-lg md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
+            <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-lg md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
               Vive la emoción con una experiencia limpia, estética y potente.
             </motion.p>
-            <motion.div initial={{opacity:0, y:16}} animate={{opacity:1, y:0}} transition={{delay:0.2}} className="flex items-center justify-center gap-3">
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="flex items-center justify-center gap-3">
               <button onClick={() => setIsRegisterModalOpen(true)} className="px-8 py-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold shadow-sm transition">
                 Crear cuenta
               </button>
@@ -103,10 +103,10 @@ const LandingPage = () => {
             {features.map((f, idx) => (
               <motion.div
                 key={idx}
-                initial={{opacity:0, y:16}}
-                whileInView={{opacity:1, y:0}}
-                viewport={{once:true}}
-                transition={{delay:0.1 * idx}}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 * idx }}
                 className="rounded-2xl border border-red-100 bg-white p-6 text-center hover:shadow-md transition"
               >
                 <div className="mx-auto mb-4 h-12 w-12 rounded-xl bg-red-50 border border-red-200 flex items-center justify-center">
@@ -128,7 +128,7 @@ const LandingPage = () => {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-6xl mx-auto">
             {steps.map((s, idx) => (
-              <motion.div key={idx} initial={{opacity:0, y:12}} whileInView={{opacity:1, y:0}} viewport={{once:true}} className="rounded-2xl border border-red-100 bg-gray-50 p-6 text-center">
+              <motion.div key={idx} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="rounded-2xl border border-red-100 bg-gray-50 p-6 text-center">
                 <div className="mx-auto mb-4 h-10 w-10 rounded-full bg-red-600 text-white flex items-center justify-center font-bold">
                   {idx + 1}
                 </div>
@@ -144,7 +144,7 @@ const LandingPage = () => {
       <section className="py-12 bg-red-50">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            {[{k:'+50K', v:'Usuarios'}, {k:'24/7', v:'Soporte'}, {k:'ms', v:'Latencia baja'}, {k:'100%', v:'Seguro'}].map((i, idx) => (
+            {[{ k: '+50K', v: 'Usuarios' }, { k: '24/7', v: 'Soporte' }, { k: 'ms', v: 'Latencia baja' }, { k: '100%', v: 'Seguro' }].map((i, idx) => (
               <div key={idx} className="rounded-xl border border-red-100 bg-white py-6">
                 <div className="text-3xl font-extrabold text-red-700">{i.k}</div>
                 <div className="text-sm text-gray-600">{i.v}</div>

@@ -3,6 +3,8 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useAuth } from '../../hooks/useAuth';
 import { type RegistroRequest } from '../../types/authTypes';
+import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '../../routes/routes';
 
 // Interfaz para el formulario que incluye campos de validación local
 interface RegisterFormData extends RegistroRequest {
@@ -147,7 +149,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
   onCancel, 
   isLoading = false 
 }) => {
-  const { registro, loading: authLoading, error } = useAuth();
+  const { registro, loading: authLoading, error, login,isAuthenticated } = useAuth();
+    const navigate = useNavigate();
 
   const handleFormSubmit = async (values: RegisterFormData) => {
     console.log('HandleFormSubmit llamado');
@@ -171,6 +174,15 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
         console.log('Usando hook de autenticación');
         const result = await registro(registroData);
         console.log('Resultado del registro:', result);
+        if (result) {
+          // Auto login después del registro exitoso
+          await login({ username: values.email, password: values.password });
+          if (isAuthenticated) {
+            alert('¡Registro y login exitosos! Bienvenido a 24bet.');
+            navigate(ROUTES.USER_HOME);
+          }
+        }
+
     } catch (error) {
       console.error('Error durante el registro:', error);
     }
